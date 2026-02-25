@@ -5,9 +5,151 @@ export default function Home() {
     return (
         <FrontendLayout>
             <Head title="Home Page" />
-            <div className="flex items-center justify-center py-24">
-                <h1 className="text-3xl font-semibold">Frontend</h1>
+            <section className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
+
+                <section className="relative min-h-[90vh] lg:h-[80vh] flex flex-col lg:flex-row items-center px-6 md:px-12 lg:px-24 overflow-hidden container mx-auto lg:pt-20 pt-8">
+            
+                <div className="relative max-w-xl z-20 text-center lg:text-left">
+                    <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
+                    <div className="flex">
+                        <img src="/assets/images/Group 2.png" alt="" />
+                    </div>
+                    <p className="text-[12px] font-semibold font-['Libre_Franklin'] tracking-widest text-gray-800">Friendship Worn. Culture Shown.</p>
+                    </div>
+                    
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold font-['Alumni_Sans'] leading-[1.1] mb-10">
+                    Aces in Da Hole is not your ordinary clothing brand. It's where friendship, culture, lifestyle, and fashion come together.
+                    </h1>
+                    
+                    <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                    <button className="bg-[#B32B2B] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-black transition w-full sm:w-auto">Buy Now</button>
+                    <button className="border border-[#B32B2B] text-[#B32B2B] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[#B32B2B] hover:text-white transition w-full sm:w-auto">Learn More</button>
+                    </div>
+                </div>
+
+                <div className="relative lg:absolute right-0 lg:right-[-10%] top-0 h-[50vh] lg:h-full w-full lg:w-2/3 flex items-center justify-center lg:mt-12 mt-0" 
+                    style={{ backgroundImage: 'url("/assets/images/Group 1.png")', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
+                    <div className="absolute inset-0 opacity-10 blur-[120px] rounded-full scale-75 transform translate-x-20"></div>
+                    <img src="/assets/images/heads.png" alt="Hero" className="relative z-10 h-[80%] lg:h-[90%] object-contain drop-shadow-2xl" />
+                </div>
+
+                <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-[#B32B2B] text-white w-12 h-12 items-center justify-center rounded-md z-30">
+                    <i className="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#B32B2B] text-white w-12 h-12 items-center justify-center rounded-md z-30">
+                    <i className="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </section>
+
+                <div className="bg-[#B32B2B] text-white py-3 overflow-hidden whitespace-nowrap">
+                    <div className="inline-block animate-[scroll_30s_linear_infinite] text-[10px] font-bold uppercase tracking-widest">
+                        Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns |
+                    </div>
+                </div>
+
+                <div className="text-[#1A1A1A] container mx-auto">
+                    <section className="px-10 lg:px-24 lg:py-20 py-6">
+                        <div className="flex items-center justify-between mb-10">
+                            <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">Category</h2>
+                            <div className="flex gap-3">
+                                <button className="bg-[#B22222] text-white p-3.5 hover:bg-black transition rounded-md shadow-md"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M15 19l-7-7 7-7"></path></svg></button>
+                                <button className="bg-[#B22222] text-white p-3.5 hover:bg-black transition rounded-md shadow-md"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M9 5l7 7-7 7"></path></svg></button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="group cursor-pointer">
+                                <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                    <img src="/assets/images/Frame 87.png" className="w-full lg:h-[980px] h-full object-cover group-hover:scale-105 transition duration-700" alt="Hoodies" />
+                                </div>
+                                <h3 className="mt-6 lg:text-4xl text-3xl font-semibold font-['Alumni_Sans'] tracking-tight">Hoodies</h3>
+                            </div>
+                            <div className="group cursor-pointer">
+                                <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                    <img src="/assets/images/Rectangle 13.jpg" className="w-full lg:h-[980px] h-full object-cover group-hover:scale-105 transition duration-700" alt="Sweatsuits" />
+                                </div>
+                                <h3 className="mt-6 lg:text-4xl text-3xl font-semibold font-['Alumni_Sans'] tracking-tight">Sweatsuits</h3>
+                            </div>
+                        </div>
+                    </section>
             </div>
+
+
+            <div className="text-[#1A1A1A] container mx-auto">
+                <section className="px-10 lg:px-24 lg:py-20 py-6">
+                    <div className="flex items-center justify-between mb-10">
+                        <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">Featured Products</h2>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="group cursor-pointer">
+                            <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                <img src="/assets/images/Rectangle 9.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Hoodies" />
+                            </div>
+                        </div>
+                        <div className="group cursor-pointer">
+                            <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                <img src="/assets/images/Rectangle 11.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Sweatsuits" />
+                            </div>
+                        </div>
+                        <div className="group cursor-pointer">
+                            <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                <img src="/assets/images/Rectangle 13 (1).jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Hoodies" />
+                            </div>
+                        </div>
+                        <div className="relative overflow-hidden rounded-md group cursor-pointer h-[174px] lg:h-[820px] w-full">
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat w-full h-full group-hover:scale-105 transition duration-700"
+                            style={{ backgroundImage: "url('/assets/images/Rectangle 13 (1).jpg')" }} >
+                            <div className="absolute inset-0 bg-black/60 backdrop-brightness-75"></div>
+                        </div>
+
+                        <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4">
+                            
+                            <h1 className="mb-4 md:mb-8 text-xl md:text-2xl lg:text-3xl font-[Alumni_Sans] tracking-wide text-center">
+                            Teal sweatsuits
+                            </h1>
+
+                            <div className="mb-4 lg:mb-8 h-10 lg:h-24 w-px bg-gray-400"></div>
+
+                            <button className="bg-[#B32B2B] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium transition-colors hover:bg-[#a02428] active:scale-95">
+                            View Details
+                            </button>
+                            
+                        </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div className="text-[#1A1A1A] container mx-auto">
+                    <section className="px-10 lg:px-24 lg:py-20 py-6">
+                        <div className="flex items-center justify-between mb-10">
+                            <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">New Arrivals</h2> 
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="group cursor-pointer">
+                                <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                    <img src="/assets/images/Rectangle 13 (2).jpg" className="w-full lg:h-[980px] h-full object-cover group-hover:scale-105 transition duration-700" alt="Hoodies" />
+                                </div>
+                                <button className="bg-[#B32B2B] px-10 py-4 text-lg font-medium transition-colors hover:bg-[#a02428] active:scale-95 mt-4 text-gray-100 rounded-md">
+                                    See All
+                                </button>
+                            </div>
+                            <div className="group cursor-pointer">
+                                <div className="overflow-hidden rounded-md aspect-[4/5] bg-gray-200">
+                                    <img src="/assets/images/Frame 87.png" className="w-full lg:h-[980px] h-full object-cover group-hover:scale-105 transition duration-700" alt="Sweatsuits" />
+                                </div> 
+                            </div>
+                        </div>
+                    </section>
+            </div>
+
+
+        </section>
         </FrontendLayout>
     );
 }
