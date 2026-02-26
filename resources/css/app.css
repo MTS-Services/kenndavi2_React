@@ -162,6 +162,7 @@
 }
 
 :root {
+  --bg-whitesecandary: #FDF7F7;
   --bg-blacks:#604238;
   --bg-gray:#2E4841;
   --bg-primary:#C1272D;
@@ -340,6 +341,7 @@
   --color-primary: var(--bg-primary);
   --color-gray: var(--bg-gray);
   --color-black: var(--bg-blacks);
+  --color-white-secondary: var(--bg-whitesecandary);
 }
 
 @layer base {

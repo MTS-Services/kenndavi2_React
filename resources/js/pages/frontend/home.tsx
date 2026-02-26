@@ -1,7 +1,10 @@
 import { Head, router } from '@inertiajs/react';
-import FrontendLayout from '@/layouts/frontend-layout';
+import FrontendLayout from '@/layouts/frontend-layout'; 
+import { useState } from 'react';
 
 export default function Home() {
+    const [activeTab, setActiveTab] = useState('men');
+    
     return (
         <FrontendLayout>
             <Head title="Home Page" />

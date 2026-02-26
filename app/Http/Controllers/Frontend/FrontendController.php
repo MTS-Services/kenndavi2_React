@@ -33,4 +33,19 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/productdetails');
     }
+    
+    public function aisuggestion(): Response
+    {
+        return Inertia::render('frontend/aisuggestion');
+    }
+    
+    public function homeWomen(): Response
+    {
+        return Inertia::render('frontend/home-women');
+    }
+    
+    public function cartpage(): Response
+    {
+        return Inertia::render('frontend/cartpage');
+    }
 }

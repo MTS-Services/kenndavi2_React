@@ -9,4 +9,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/women', [FrontendController::class, 'women'])->name('women');
     Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
     Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
+    Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
+    Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
+    Route::get('/cartpage', [FrontendController::class, 'cartpage'])->name('cartpage');
 });
