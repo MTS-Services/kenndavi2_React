@@ -29,5 +29,11 @@ class UserSeeder extends Seeder
         ]);
 
         User::factory(50)->create();
+
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'profile_image' => 'avatars/default-user.png', // Relative to the 'public' disk
+        ]);
     }
 }

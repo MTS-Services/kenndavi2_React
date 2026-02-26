@@ -1,11 +1,19 @@
-import { Link } from '@inertiajs/react';
-
 import AppLogo from '@/components/app-logo';
+import { Link, usePage } from '@inertiajs/react';
+import { ChevronDown, ChevronRight, Menu, User, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+// Navigation configuration
+const navigationItems = [
+    { name: 'Men', href: '/' },
+    { name: 'Women', href: '/women' },
+    { name: 'Accessories', href: '/accessories' }
+     
+];
 
 export function FrontendHeader() {
     return (
     
-
     <section className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
 
     
@@ -16,9 +24,13 @@ export function FrontendHeader() {
         </div>
 
         <ul className="hidden md:flex space-x-10 text-sm font-semibold tracking-wider font-['Libre_Franklin']">
-            <li><a href="#" className="text-red-600">Men</a></li>
-            <li><a href="#" className="hover:text-red-600 transition">Women</a></li>
-            <li><a href="#" className="hover:text-red-600 transition">Accessories</a></li>
+            {navigationItems.map((item) => (
+                <li key={item.name}>
+                    <a href={item.href} className={item.href === '/' ? 'text-red-600' : 'hover:text-red-600 transition'}>
+                        {item.name}
+                    </a>
+                </li>
+            ))}
         </ul>
 
         <div className="flex items-center gap-3 md:gap-6">
@@ -37,9 +49,13 @@ export function FrontendHeader() {
 
         <div id="mobile-menu" className="absolute left-0 top-full hidden w-full bg-[#f4eded] border-t border-gray-200 p-6 md:hidden">
             <ul className="flex flex-col space-y-4 text-sm font-semibold uppercase tracking-wider font-['Libre_Franklin']">
-            <li><a href="#" className="block text-red-600">Men</a></li>
-            <li><a href="#" className="block">Women</a></li>
-            <li><a href="#" className="block">Accessories</a></li>
+            {navigationItems.map((item) => (
+                <li key={item.name}>
+                    <a href={item.href} className={item.href === '/' ? 'block text-red-600' : 'block'}>
+                        {item.name}
+                    </a>
+                </li>
+            ))}
             <li className="pt-4 border-t border-gray-300">
                 <div className="flex items-center gap-2 rounded bg-black px-4 py-2">
                 <i className="fa-solid fa-magnifying-glass text-xs text-gray-400"></i>

@@ -11,5 +11,26 @@ class FrontendController extends Controller
     public function index(): Response
     {
         return Inertia::render('frontend/home');
+        
+    }
+
+    public function men(): Response
+    {
+        return Inertia::render('frontend/men');
+    }
+
+    public function women(): Response
+    {
+        return Inertia::render('frontend/women');
+    }
+
+    public function accessories(): Response
+    {
+        return Inertia::render('frontend/accessories');
+    }
+    
+    public function productdetails(): Response
+    {
+        return Inertia::render('frontend/productdetails');
     }
 }
