@@ -106,10 +106,10 @@ const accessories = () => {
     </div>
   </section>
   <div className="flex justify-center items-center gap-4 my-8">
-    <button className="border border-[#C1272D] px-6 py-3 text-[#C1272D] font-medium  transition-colors rounded-md">
+    <button className="border border-red-700 px-6 py-3 text-red-700 font-medium  transition-colors rounded-md">
       Back
     </button>
-    <p className="text-center text-[#ffffff] text-lg font-medium cursor-pointer transition-colors bg-[#C1272D] px-6 py-3 rounded-md">
+    <p className="text-center text-white text-lg font-medium cursor-pointer transition-colors bg-[#C1272D] px-6 py-3 rounded-md">
       Load More
     </p>
   </div>

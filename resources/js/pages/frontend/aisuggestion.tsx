@@ -8,7 +8,7 @@ const AISuggestion: React.FC = () => {
             <section className="bg-[var(--bg-whitesecandary)] font-sans text-gray-900 overflow-x-hidden">
    
             <div className="max-w-4xl mx-auto font-sans mt-10">
-                <button className="bg-[#b91c1c] text-white p-4 rounded-md mb-6 hover:bg-red-800 transition-colors">
+                <button className="bg-[var(--bg-red)] text-white p-4 rounded-md mb-6 transition-colors">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -25,7 +25,7 @@ const AISuggestion: React.FC = () => {
                 </svg>
                 </button>
                 <div className="mb-8">
-                <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[#b91c1c] tracking-tight">
+                <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight">
                     Suggestion 1
                 </h2>
                 <p className="text-gray-600 mt-1 font-['Libre_Franklin']">
@@ -34,14 +34,14 @@ const AISuggestion: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-4">
-                    <div className="bg-[#efeae8] flex items-center justify-center overflow-hidden">
+                    <div className="bg-[var(--bg-lights)] flex items-center justify-center overflow-hidden">
                     <img
                         src="assets/images/aiasisten1.png"
                         alt="Red Hoodie"
                         className="mix-blend-multiply h-6/5 object-cover"
                     />
                     </div>
-                    <div className="bg-[#efeae8] flex items-center justify-center overflow-hidden">
+                    <div className="bg-[var(--bg-lights)] flex items-center justify-center overflow-hidden">
                     <img
                         src="assets/images/aiasisten3.png"
                         alt="Black Pants"
@@ -49,7 +49,7 @@ const AISuggestion: React.FC = () => {
                     />
                     </div>
                 </div>
-                <div className="bg-[#efeae8] flex items-center justify-center overflow-hidden">
+                <div className="bg-[var(--bg-lights)] flex items-center justify-center overflow-hidden">
                     <img
                     src="assets/images/aiasisten2.png"
                     alt="Model wearing outfit"
@@ -60,7 +60,7 @@ const AISuggestion: React.FC = () => {
             </div>
             <div className="max-w-4xl mx-auto font-sans mt-10">
                 <div className="mb-8">
-                <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[#b91c1c] tracking-tight">
+                <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight">
                     Suggestion 2
                 </h2>
                 <p className="text-gray-600 mt-1 font-['Libre_Franklin']">
@@ -91,11 +91,11 @@ const AISuggestion: React.FC = () => {
                     Black pant
                     </p>
 
-                    <div className="w-px h-12 bg-white mx-auto mb-4 group-hover:bg-[#B32D2D] transition-colors duration-300 opacity-0 translate-y-4
+                    <div className="w-px h-12 bg-white mx-auto mb-4  transition-colors duration-300 opacity-0 translate-y-4
                     group-hover:opacity-100 group-hover:translate-y-0"></div>
 
                     {/* Hidden button initially */}
-                    <button className="bg-[#B32D2D] hover:bg-[#8B2323] 
+                    <button className="bg-[var(--bg-red)]  
                     transition-all duration-500 
                     px-8 py-3 text-sm font-medium uppercase tracking-tighter 
                     shadow-lg
@@ -127,11 +127,11 @@ const AISuggestion: React.FC = () => {
                     Black pant
                     </p>
 
-                    <div className="w-px h-12 bg-white mx-auto mb-4 group-hover:bg-[#B32D2D] transition-colors duration-300 opacity-0 translate-y-4
+                    <div className="w-px h-12 bg-white mx-auto mb-4 transition-colors duration-300 opacity-0 translate-y-4
                     group-hover:opacity-100 group-hover:translate-y-0"></div>
 
                     {/* Hidden button initially */}
-                    <button className="bg-[#B32D2D] hover:bg-[#8B2323] 
+                    <button className="bg-[var(--bg-red)] 
                     transition-all duration-500 
                     px-8 py-3 text-sm font-medium uppercase tracking-tighter 
                     shadow-lg
@@ -163,11 +163,11 @@ const AISuggestion: React.FC = () => {
                     Black pant
                     </p>
 
-                    <div className="w-px h-12 bg-white mx-auto mb-4 group-hover:bg-[#B32D2D] transition-colors duration-300 opacity-0 translate-y-4
+                    <div className="w-px h-12 bg-white mx-auto mb-4  transition-colors duration-300 opacity-0 translate-y-4
                     group-hover:opacity-100 group-hover:translate-y-0"></div>
 
                     {/* Hidden button initially */}
-                    <button className="bg-[#B32D2D] hover:bg-[#8B2323] 
+                    <button className="bg-[var(--bg-red)]
                     transition-all duration-500 
                     px-8 py-3 text-sm font-medium uppercase tracking-tighter 
                     shadow-lg

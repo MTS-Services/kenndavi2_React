@@ -5,7 +5,7 @@ import React from 'react';
 const HomeWomen: React.FC = () => {
     return (
         <FrontendLayout>
-        <div className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
+        <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
 
         <section className="p-4 md:p-8 container mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -110,10 +110,10 @@ const HomeWomen: React.FC = () => {
             </div>
         </section>
         <div className="flex justify-center items-center gap-4 my-8">
-            <button className="border border-[#C1272D] px-6 py-3 text-[#C1272D] font-medium  transition-colors rounded-md">
+            <button className="border border-red-700 px-6 py-3 text-[var(--text-primary)] font-medium  transition-colors rounded-md">
             Back
             </button>
-            <p className="text-center text-[#ffffff] text-lg font-medium cursor-pointer transition-colors bg-[#C1272D] px-6 py-3 rounded-md">
+            <p className="text-center text-white text-lg font-medium cursor-pointer transition-colors bg-[var(--bg-red)] px-6 py-3 rounded-md">
             Load More
             </p>
         </div>

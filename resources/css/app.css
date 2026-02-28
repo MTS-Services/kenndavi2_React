@@ -162,6 +162,11 @@
 }
 
 :root {
+  --bg-violet: #e8e0de;
+  --bg-white-secondary: #f3ecea;
+  --bg-red: #B32D2D;
+  --bg-lights: #efeae8;
+  --bg-animation: #FDF7F7;
   --bg-whitesecandary: #FDF7F7;
   --bg-blacks:#604238;
   --bg-gray:#2E4841;
@@ -342,6 +347,12 @@
   --color-gray: var(--bg-gray);
   --color-black: var(--bg-blacks);
   --color-white-secondary: var(--bg-whitesecandary);
+  --color-bg-animation: var(--bg-animation);
+  --color-bg-lights: var(--bg-lights);
+  --color-bg-red: var(--bg-red);
+  --color-bg-white-secondary: var(--bg-white-secondary);
+  --color-bg-violet: var(--bg-violet);
+   
 }
 
 @layer base {

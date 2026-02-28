@@ -13,8 +13,8 @@ export function FrontendHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <section className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
-            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[#f4eded] px-6 py-5 md:px-12">
+        <section className="bg-[var(--color-bg-animation)] font-sans text-gray-900 overflow-x-hidden">
+            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[var(--bg-white-secondary)] px-6 py-5 md:px-12">
 
                 {/* Logo */}
                 <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function FrontendHeader() {
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div className="absolute left-0 top-full w-full bg-[#f4eded] border-t border-gray-200 p-6 md:hidden">
+                    <div className="absolute left-0 top-full w-full bg-[var(--bg-white-secondary)] border-t border-gray-200 p-6 md:hidden">
                         <ul className="flex flex-col space-y-4 text-sm font-semibold uppercase tracking-wider">
                             {navigationItems.map((item) => (
                                 <li key={item.name}>

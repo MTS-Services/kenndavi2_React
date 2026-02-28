@@ -4,10 +4,10 @@ import React from 'react';
 const Cartpage: React.FC = () => {
     return (
         <FrontendLayout>
-               <div className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
-                <div className="min-h-screen bg-[#fdf7f7] p-4 md:p-10 font-sans text-[#2d2d2d]">
+               <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
+                <div className="min-h-screen bg-[var(--bg-animation)] p-4 md:p-10 font-sans text-gray-900">
                     <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
-                    <div className="flex-grow bg-[#F4EDED] p-6 md:p-8 rounded-sm">
+                    <div className="flex-grow bg-[var(--bg-animation)] p-6 md:p-8 rounded-sm">
                         <h1 className="text-xl font-[Libre_Franklin] font-semibold mb-8">
                         Shipping cart
                         </h1>
@@ -37,7 +37,7 @@ const Cartpage: React.FC = () => {
                             $70
                             </div>
                             <div className="col-span-3 flex justify-center">
-                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[#FDF7F7]">
+                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[var(--bg-animation)]">
                                 <button className="text-gray-400 hover:text-black">—</button>
                                 <span className="text-sm font-medium">01</span>
                                 <button className="text-gray-400 hover:text-black">+</button>
@@ -79,7 +79,7 @@ const Cartpage: React.FC = () => {
                             $70
                             </div>
                             <div className="col-span-3 flex justify-center">
-                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[#FDF7F7]">
+                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[var(--bg-animation)]">
                                 <button className="text-gray-400 hover:text-black">—</button>
                                 <span className="text-sm font-medium">01</span>
                                 <button className="text-gray-400 hover:text-black">+</button>
@@ -121,7 +121,7 @@ const Cartpage: React.FC = () => {
                             $70
                             </div>
                             <div className="col-span-3 flex justify-center">
-                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[#FDF7F7]">
+                            <div className="flex items-center border border-gray-100 px-3 py-1 space-x-4 bg-[var(--bg-animation)]">
                                 <button className="text-gray-400 hover:text-black">—</button>
                                 <span className="text-sm font-medium ">01</span>
                                 <button className="text-gray-400 hover:text-black">+</button>

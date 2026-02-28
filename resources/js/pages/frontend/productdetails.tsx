@@ -179,8 +179,7 @@ export default function ProductDetails() {
                       </button>
                     </div>
 
-                    <button 
-                      disabled={!selectedSize || !selectedColor}
+                    <button
                       onClick={() => router.get('/cartpage')}
                       className="bg-primary text-white px-6 py-3 rounded-md"
                     >
