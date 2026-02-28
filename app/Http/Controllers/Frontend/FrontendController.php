@@ -48,4 +48,14 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/cartpage');
     }
+    
+    public function userlogin(): Response
+    {
+        return Inertia::render('frontend/User/userlogin');
+    }
+
+    public function entercode(): Response
+    {
+        return Inertia::render('frontend/User/entercode');
+    }
 }

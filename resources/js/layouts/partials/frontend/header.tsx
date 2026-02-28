@@ -1,11 +1,11 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Menu, X, Search, ShoppingCart, User } from 'lucide-react';
 import { useState } from 'react';
 
 const navigationItems = [
     { name: 'Men', href: '/' },
     { name: 'Women', href: '/home-women' },
-    { name: 'Accessories', href: '/accessories' }
+    { name: 'Accessories', href: '/accessories' }, 
 ];
 
 export function FrontendHeader() {
@@ -58,7 +58,7 @@ export function FrontendHeader() {
                     </button>
 
                     {/* User */}
-                    <button className="text-lg hover:text-red-600 transition">
+                    <button onClick={() => router.get('/userlogin')} className="text-lg hover:text-red-600 transition">
                         <User size={20} />
                     </button>
 

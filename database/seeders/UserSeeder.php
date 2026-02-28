@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'profile_image' => 'avatars/default-user.png', // Relative to the 'public' disk
+            'profile_image' => 'avatars/default-user.png',
         ]);
     }
 }
