@@ -78,4 +78,14 @@ class FrontendController extends Controller
         // Use the standard redirect to a route that returns Inertia::render().
         return redirect()->route('otp.verify');
     }
+
+    public function hoodiesWomen(): Response
+    {
+        return Inertia::render('frontend/hoodies-women');
+    }
+
+    public function sweatsuitsMen(): Response
+    {
+        return Inertia::render('frontend/sweatsuitsmen');
+    }
 }

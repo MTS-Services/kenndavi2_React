@@ -94,7 +94,7 @@ export default function Home() {
 
                                 {/* The Button with pop-up effect */}
                                 <button 
-                                    onClick={() => router.visit('/productdetails')} 
+                                    onClick={() => router.visit('/sweatsuitsmen')} 
                                     className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
                                             transition-all duration-700 delay-300 ease-elastic
                                             opacity-0 scale-75 rotate-[-5deg] pointer-events-none
@@ -146,7 +146,7 @@ export default function Home() {
 
                                 {/* The Button with pop-up effect */}
                                 <button 
-                                    onClick={() => router.visit('/productdetails')} 
+                                    onClick={() => router.visit('/sweatsuitsmen')} 
                                     className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
                                             transition-all duration-700 delay-300 ease-elastic
                                             opacity-0 scale-75 rotate-[-5deg] pointer-events-none
@@ -444,6 +444,7 @@ export default function Home() {
                             </div>
 
                             <div className="group cursor-pointer">
+                                
                                 <div className="relative overflow-hidden rounded-md group cursor-pointer h-[174px] lg:h-[820px] w-full">
                             {/* Background Image with Zoom Effect */}
                             <div 
