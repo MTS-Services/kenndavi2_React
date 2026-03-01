@@ -4,16 +4,41 @@ import FrontendLayout from '@/layouts/frontend-layout';
 import { useState } from "react";
 
 export default function ProductDetails() {
-  const sizes = ["S", "M", "L", "XL", "XXL"];
 
-  const colors = [
-    { name: "Red", value: "bg-red-800" },
-    { name: "Black", value: "bg-black" },
-    { name: "Gray", value: "bg-gray" },
-  ];
+    // Product Data (API-ready structure)
+  const product = {
+    title: "Maroon Hoodie",
+    description:
+      "A premium, smooth hoodie crafted with the perfect balance of comfort and street style. Ideal for everyday wear—making every look effortlessly fresh.",
+    price: 1699,
+    discount: 21,
+    stock: 12,
+    rating: 4.7,
+    reviews: 21671,
+    images: [
+      "assets/images/Rectangle 20 (4).png",
+      "assets/images/rectangle1.png",
+      "assets/images/rechangle22.png",
+      "assets/images/rechangle74.png",
+      "assets/images/rechangle22.jpg", 
+    ],
+    colors: [
+      { name: "Maroon", value: "bg-red-800" },
+      { name: "Black", value: "bg-black" },
+      { name: "Gray", value: "bg-gray-600" },
+    ],
+    sizes: [38, 40, 42, 44],
+  };
 
+  // State
+  const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const finalPrice =
+    product.price - (product.price * product.discount) / 100;
+
 
   return (
         <FrontendLayout>
@@ -24,157 +49,155 @@ export default function ProductDetails() {
                 <div className="container mx-auto px-6 py-10">
 
                 {/* PRODUCT SECTION */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* LEFT: IMAGES */}
-                    <div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  {/* LEFT: IMAGES */}
+                  <div>
                     <div className="rounded-sm overflow-hidden bg-white">
-                        <img
-                            src="assets/images/Rectangle 20 (3).png"
-                            className="w-full object-cover"
-                            alt="Profile"
-                            onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.onerror = null;
-                                img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
-                            }}
-                        />   
+                      <img
+                        src={selectedImage}
+                        className="w-full object-cover"
+                        alt={product.title}
+                      />
                     </div>
+
                     {/* Thumbnails */}
                     <div className="flex gap-4 mt-4">
+                      {product.images.map((img, index) => (
                         <img
-                        src="assets/images/01 (1).png"
-                        className="w-20 h-20 object-cover rounded-lg cursor-pointer border border-neutral-300" 
-                                onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.onerror = null;
-                                img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
-                            }}
+                          key={index}
+                          src={img}
+                          onClick={() => setSelectedImage(img)}
+                          className={`w-20 h-20 object-cover rounded-lg cursor-pointer border ${
+                            selectedImage === img
+                              ? "border-black"
+                              : "border-neutral-300"
+                          }`}
                         />
-                        <img
-                        src="assets/images/05 (2).png"
-                        className="w-20 h-20 object-cover rounded-lg cursor-pointer border border-neutral-300"
-                                onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.onerror = null;
-                                img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
-                            }}
-                        />
-                        <img
-                        src="assets/images/03 (1).png"
-                        className="w-20 h-20 object-cover rounded-lg cursor-pointer border border-neutral-300" 
-                                onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.onerror = null;
-                                img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
-                            }}
-                        />
-                        <img
-                        src="assets/images/04 (1).png"
-                        className="w-20 h-20 object-cover rounded-lg cursor-pointer border border-neutral-300" 
-                                onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.onerror = null;
-                                img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
-                            }}
-                        />
+                      ))}
                     </div>
-                    </div>
-                    {/* RIGHT: DETAILS */}
-                    <div>
-                    {/* Rating */}
-                    <div className="flex items-center gap-2 text-sm text-neutral-600">
-                        <div className="flex text-orange-500">★★★★★</div>
-                        <span>4.7 Star Rating (21,671 User feedback)</span>
-                    </div>
-                    {/* Title */}
-                    <h1 className="text-2xl font-semibold mt-4 font-[Alumni_Sans]">
-                        Maroon hoodie
-                    </h1>
-                    {/* Description */}
-                    <p className="text-neutral-600 mt-3 leading-relaxed font-[Alumni_Sans]">
-                        A premium, smooth hoodie crafted with the perfect balance of comfort
-                        and street style. Ideal for everyday wear — making every look
-                        effortlessly fresh.
-                    </p>
-                    {/* Colors */}
-                    <div className="mt-6">
-                    <p className="font-semibold mb-2 font-[Alumni_Sans]">Colors</p>
+                  </div>
 
+                {/* RIGHT: DETAILS */}
+                <div>
+                  {/* Rating */}
+                  <div className="flex items-center gap-2 text-sm text-neutral-600">
+                    <div className="text-orange-500">
+                      {"★".repeat(Math.round(product.rating))}
+                    </div>
+                    <span>
+                      {product.rating} Star Rating ({product.reviews.toLocaleString()} Reviews)
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h1 className="text-2xl font-semibold mt-4">
+                    {product.title}
+                  </h1>
+
+                  {/* Description */}
+                  <p className="text-neutral-600 mt-3 leading-relaxed">
+                    {product.description}
+                  </p>
+
+                  {/* Colors */}
+                  <div className="mt-6">
+                    <p className="font-semibold mb-2">Colors</p>
                     <div className="flex gap-3">
-                        {colors.map((color, index) => (
+                      {product.colors.map((color, index) => (
                         <span
-                            key={index}
-                            onClick={() => setSelectedColor(color.name)}
-                            className={`w-6 h-6 ${color.value} rounded-full cursor-pointer border-2 ${
+                          key={index}
+                          onClick={() => setSelectedColor(color.name)}
+                          className={`w-6 h-6 ${color.value} rounded-full cursor-pointer border-2 ${
                             selectedColor === color.name
-                                ? "border-black scale-110"
-                                : "border-transparent"
-                            } transition-all duration-200`}
+                              ? "border-black scale-110"
+                              : "border-transparent"
+                          } transition`}
                         />
-                        ))}
+                      ))}
                     </div>
+                  </div>
 
-                    {selectedColor && (
-                        <p className="mt-3 text-sm">Selected: {selectedColor}</p>
-                    )}
-                    </div>
-                    {/* Sizes */}
-                    <div className="mt-6">
-                        <p className="font-semibold mb-2 font-[Alumni_Sans]">Size</p>
-
-                        <div className="flex gap-3">
-                            {sizes.map((size) => (
-                            <button
-                                key={size}
-                                onClick={() => setSelectedSize(size)}
-                                className={`px-5 py-2 rounded-md transition-all duration-200 ${
-                                selectedSize === size
-                                    ? "bg-primary text-white"
-                                    : "bg-neutral-200 hover:bg-neutral-300"
-                                }`}
-                            >
-                                {size}
-                            </button>
-                            ))}
-                        </div>
-
-                        {selectedSize && (
-                            <p className="mt-3 text-sm">Selected Size: {selectedSize}</p>
-                        )}
-                        </div>
-                    {/* Availability */}
-                    <p className="text-sm mt-4">
-                        Availability:{" "}
-                        <span className="text-green-600 font-medium">In Stock</span>
-                    </p>
-                    {/* Price */}
-                    <div className="flex items-center gap-4 mt-4">
-                        <span className="text-2xl font-semibold font-[Alumni_Sans]">
-                        $1699
-                        </span>
-                        <span className="text-red-600 text-sm font-medium">21% OFF</span>
-                    </div>
-                    {/* Quantity + Buttons */}
-                    <div className="flex items-center gap-4 mt-6">
-                        <div className="flex items-center border rounded-md">
-                        <button className="px-3 py-2">-</button>
-                        <span className="px-4">01</span>
-                        <button className="px-3 py-2">+</button>
-                        </div>
-                        <button className="bg-primary text-white lg:px-6 lg:py-3 px-1.5 py-1.5 rounded-md hover:bg-red-700 transition">
-                        Add To Cart
-                        <i className="fa-solid fa-cart-shopping" />
+                  {/* Sizes */}
+                  <div className="mt-6">
+                    <p className="font-semibold mb-2">Size</p>
+                    <div className="flex gap-3">
+                      {product.sizes.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`px-5 py-2 rounded-md ${
+                            selectedSize === size
+                              ? "bg-primary text-white"
+                              : "bg-neutral-200"
+                          }`}
+                        >
+                          {size}
                         </button>
-                        <button className="border border-red-600 text-red-600 lg:px-6 lg:py-3 px-1.5 py-1.5 rounded-md hover:bg-red-50 transition">
-                        Buy Now
-                        </button>
+                      ))}
                     </div>
-                    <button className="mt-4 bg-gray-900 text-white px-4 py-2 rounded-md text-sm">
-                        <i className="fa-solid fa-robot" />
-                         AI Suggest
+                  </div>
+
+                  {/* Availability */}
+                  <p className="text-sm mt-4">
+                    Availability:{" "}
+                    <span
+                      className={`font-medium ${
+                        product.stock > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                    </span>
+                  </p>
+
+                  {/* Price */}
+                  <div className="flex items-center gap-4 mt-4">
+                    <span className="text-2xl font-semibold">
+                      ${finalPrice.toFixed(0)}
+                    </span>
+                    <span className="text-red-600 text-sm font-medium">
+                      {product.discount}% OFF
+                    </span>
+                  </div>
+
+                  {/* Quantity */}
+                  <div className="flex items-center gap-4 mt-6">
+                    <div className="flex items-center border rounded-md">
+                      <button
+                        onClick={() =>
+                          setQuantity((prev) => Math.max(1, prev - 1))
+                        }
+                        className="px-3 py-2"
+                      >
+                        -
+                      </button>
+                      <span className="px-4">{quantity}</span>
+                      <button
+                        onClick={() => setQuantity((prev) => prev + 1)}
+                        className="px-3 py-2"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => router.get('/cartpage')}
+                      className="bg-primary text-white px-6 py-3 rounded-md"
+                    >
+                      Add To Cart
+                      <i className="fa-solid fa-cart-plus ml-2" />
                     </button>
-                    </div>
+                    <button className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition">
+                      <i className="fa-solid fa-bag-shopping mr-2" />
+                      Buy Now
+                    </button>
+                   
+                  </div>
+                  <button onClick={() => router.get('/ai-suggestion')} className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md bg-gray-900 text-white transition mt-6">
+                    <i className="fa-solid fa-robot mr-2" />
+                    AI Suggest
+                  </button>
                 </div>
+              </div>
 
                 {/* CUSTOMER FEEDBACK */}
                 <div className="mt-20 max-w-5xl">
@@ -298,7 +321,7 @@ export default function ProductDetails() {
                     </a>
                     <a
                     href="#"
-                    className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#b91c1c] text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary text-white"
                     >
                     1
                     </a>

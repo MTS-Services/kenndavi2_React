@@ -13,7 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
         Route::get('/users/list', [UserSelectionController::class, 'getUsers'])->name('users.list');
     });
-
+    
     // Profile Routes
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::post('/profile', [UserProfileController::class, 'update'])->name('user-profile.update');
