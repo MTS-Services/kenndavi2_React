@@ -28,27 +28,27 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/accessories');
     }
-    
+
     public function productdetails(): Response
     {
         return Inertia::render('frontend/productdetails');
     }
-    
+
     public function aisuggestion(): Response
     {
         return Inertia::render('frontend/aisuggestion');
     }
-    
+
     public function homeWomen(): Response
     {
         return Inertia::render('frontend/home-women');
     }
-    
+
     public function cartpage(): Response
     {
         return Inertia::render('frontend/cartpage');
     }
-    
+
     public function userlogin(): Response
     {
         return Inertia::render('frontend/User/userlogin');
@@ -64,7 +64,7 @@ class FrontendController extends Controller
         return Inertia::render('frontend/productdetails2');
     }
 
-    public function orderconfirmed(): Response 
+    public function orderconfirmed(): Response
     {
         return Inertia::render('frontend/orderconfirmed');
     }
@@ -78,5 +78,4 @@ class FrontendController extends Controller
         // Use the standard redirect to a route that returns Inertia::render().
         return redirect()->route('otp.verify');
     }
-    
 }
