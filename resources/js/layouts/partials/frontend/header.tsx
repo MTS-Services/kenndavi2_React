@@ -24,7 +24,7 @@ export function FrontendHeader() {
                 </div>
 
                 {/* Desktop Navigation */}
-                <ul className="hidden md:flex space-x-10 text-sm font-semibold tracking-wider">
+                <ul className="hidden md:flex space-x-10 text-md font-semibold tracking-wider font-[Libre_Franklin]">
                     {navigationItems.map((item) => (
                         <li key={item.name}>
                             <Link

@@ -29,7 +29,7 @@ export default function OrderConfirmed() {
                 <div className="relative w-25 h-25 mb-4">
                     <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse" />
                     <div className="relative flex items-center justify-center w-full h-full rounded-full text-white">
-                    <img src="images/Confit.png" alt="" />
+                    <img src="../../assets/images/Confit.png" alt="Confirmation" className="w-20 h-20" />
                     </div>
                 </div>
                 <h1 className="text-3xl font-bold mb-2 font-['Libre_Franklin']">
@@ -90,10 +90,10 @@ export default function OrderConfirmed() {
                         </div> 
                     </div>      
                     <div className="mt-8">
-                        <h2 className="text-xl font-bold mb-4 font-['Libre_Franklin']">
+                        <h2 className="text-xl font-bold mb-4 font-['Alumni_Sans']">
                         Shipped to Your Address
                         </h2>
-                        <p className="text-sm text-gray-500 mb-4 font-['Libre_Franklin']">
+                        <p className="text-sm text-gray-500 mb-4 font-['Alumni_Sans']">
                         3 items in this shipment
                         </p>
                         <div className="space-y-4">
@@ -121,10 +121,10 @@ export default function OrderConfirmed() {
                             </svg>
                             </div>
                             <div>
-                            <p className="font-bold text-sm font-['Libre_Franklin']">
+                            <p className="font-bold text-sm font-['Alumni_Sans']">
                                 Delivery Address
                             </p>
-                            <p className="text-sm text-gray-600 font-['Libre_Franklin']">
+                            <p className="text-sm text-gray-600 font-['Alumni_Sans']">
                                 4517 Washington Ave. Manchester, Kentucky 39495
                             </p>
                             </div>
@@ -147,10 +147,10 @@ export default function OrderConfirmed() {
                             </svg>
                             </div>
                             <div>
-                            <p className="font-bold text-sm font-['Libre_Franklin']">
+                            <p className="font-bold text-sm font-[Alumni_Sans]">
                                 Estimated delivery date
                             </p>
-                            <p className="text-sm text-gray-600 font-['Libre_Franklin']">
+                            <p className="text-sm text-gray-600 font-[Alumni_Sans]">
                                 Oct 8, 2025 - Oct 12, 2025
                             </p>
                             </div>
@@ -160,20 +160,20 @@ export default function OrderConfirmed() {
                     </div>
                 </div>
                 <div className="w-full lg:w-[380px] bg-[var(--bg-gray0)] p-8 rounded-sm self-start">
-                    <h2 className="text-lg font-bold mb-6 uppercase tracking-tight font-['Libre_Franklin']">
+                    <h2 className="text-lg font-bold mb-6 uppercase tracking-tight font-[Alumni_Sans]">
                     Order summery
                     </h2>
                     <div className="space-y-4 mb-8">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 flex items-center justify-center rounded shrink-0">
                         <img
-                            src="images/Rectangle 25 (4).png"
+                            src="/assets/images/Rectangle 25 (4).png"
                             alt="Hoodie"
                             className="h-12 object-contain"
                         />
                         </div>
                         <div className="text-xs">
-                        <p className="font-bold text-sm font-['Libre_Franklin']">
+                        <p className="font-bold text-sm font-[Libre_Franklin]">
                             Broon hoodie
                         </p>
                         <p className="text-gray-500">
@@ -184,13 +184,13 @@ export default function OrderConfirmed() {
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 flex items-center justify-center rounded shrink-0">
                         <img
-                            src="images/Frame 2147226352 (1).png"
+                            src="/assets/images/Frame 2147226352 (1).png"
                             alt="Hoodie"
                             className="h-12 object-contain"
                         />
                         </div>
                         <div className="text-xs">
-                        <p className="font-bold text-sm font-['Libre_Franklin']">
+                        <p className="font-bold text-sm font-[Libre_Franklin]">
                             Black pant
                         </p>
                         <p className="text-gray-500">
@@ -201,13 +201,13 @@ export default function OrderConfirmed() {
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 flex items-center justify-center rounded shrink-0">
                         <img
-                            src="images/Rectangle 28 (1).png"
+                            src="/assets/images/Rectangle 28 (1).png"
                             alt="Hoodie"
                             className="h-12 object-contain"
                         />
                         </div>
                         <div className="text-xs">
-                        <p className="font-bold text-sm font-['Libre_Franklin']">
+                        <p className="font-bold text-sm font-[Libre_Franklin]">
                             Black shoe
                         </p>
                         <p className="text-gray-500">
@@ -218,22 +218,22 @@ export default function OrderConfirmed() {
                     </div>
                     <div className="space-y-3 text-sm border-t border-gray-300 pt-6">
                     <div className="flex justify-between text-gray-600">
-                        <span className="font-['Libre_Franklin']">Sub-total</span>
-                        <span className="font-bold text-black">$210</span>
+                        <span className="font-bold font-[Libre_Franklin]">Sub-total</span>
+                        <span className="font-bold text-gray-900">$210</span>
                     </div>
                     <div className="flex justify-between text-gray-600 border-b border-gray-300 pb-3">
-                        <span className="font-['Libre_Franklin']">Shipping</span>
-                        <span className="font-bold text-black">$00</span>
+                        <span className="font-bold font-[Libre_Franklin]">Shipping</span>
+                        <span className="font-bold text-gray-900">$00</span>
                     </div>
                     <div className="flex justify-between pt-1 mb-8">
-                        <span className="font-bold font-['Libre_Franklin']">Total</span>
+                        <span className="font-bold font-[Libre_Franklin]">Total</span>
                         <span className="font-bold text-base">$210</span>
                     </div>
                     <div className="flex justify-between text-xs pt-4 border-t border-gray-300">
-                        <span className="text-gray-600 font-['Libre_Franklin']">
+                        <span className="text-gray-600 font-[Libre_Franklin]">
                         Payment Method:
                         </span>
-                        <span className="font-bold font-['Libre_Franklin']">
+                        <span className="font-bold font-[Libre_Franklin]">
                         Online payment
                         </span>
                     </div>
