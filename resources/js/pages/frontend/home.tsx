@@ -178,7 +178,7 @@ export default function Home() {
                     <div className="flex items-center justify-between mb-10">
                         <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">Featured Products</h2>
                     </div>
-
+     
                     <div className="grid grid-cols-2 gap-8">                         
 
                          <div className="relative overflow-hidden rounded-md group cursor-pointer h-[174px] lg:h-[820px] w-full">
