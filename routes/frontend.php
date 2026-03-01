@@ -16,5 +16,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/entercode', [FrontendController::class, 'entercode'])->name('entercode');
     Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
     Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
-    
+    Route::get('/hoodies-women', [FrontendController::class, 'hoodiesWomen'])->name('hoodies.women');
+    Route::get('/sweatsuitsmen', [FrontendController::class, 'sweatsuitsMen'])->name('sweatsuitsmen');
+
 });

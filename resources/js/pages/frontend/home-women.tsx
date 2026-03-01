@@ -90,7 +90,7 @@ const HomeWomen: React.FC = () => {
         
                                         {/* The Button with pop-up effect */}
                                         <button 
-                                            onClick={() => router.visit('/productdetails')} 
+                                            onClick={() => router.visit('/hoodies-women')} 
                                             className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
@@ -102,7 +102,7 @@ const HomeWomen: React.FC = () => {
                                             {/* Button shine effect */}
                                             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
                                                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
-                                            <span className="relative z-10">View Details</span>
+                                            <span  className="relative z-10">View Details</span>
                                         </button>
                                     </div>
                                     
@@ -142,7 +142,7 @@ const HomeWomen: React.FC = () => {
         
                                         {/* The Button with pop-up effect */}
                                         <button 
-                                            onClick={() => router.visit('/productdetails')} 
+                                            onClick={() => router.visit('/hoodies-women')} 
                                             className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
@@ -434,7 +434,7 @@ const HomeWomen: React.FC = () => {
                                     {/* Optional: Image border glow on hover */}
                                     <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/20 rounded-md transition-all duration-500 pointer-events-none"></div>
                                 </div>
-                                        <button className="bg-[var(--bg-red)] px-10 py-4 text-lg font-medium transition-colors hover:bg-[var(--bg-red-dark)] active:scale-95 mt-4 text-gray-100 rounded-md">
+                                        <button className="bg-[var(--bg-red)] px-10 py-4 text-lg font-medium transition-colors  active:scale-95 mt-4 text-gray-100 rounded-md">
                                             See All
                                         </button>
                                     </div>
@@ -492,8 +492,8 @@ const HomeWomen: React.FC = () => {
                                 </div>
                             </section>
                         </div>
-                </section>
-                </FrontendLayout>
+                   </section>
+        </FrontendLayout>
     );
 };
 
