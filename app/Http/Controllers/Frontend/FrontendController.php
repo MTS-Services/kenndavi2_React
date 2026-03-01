@@ -11,7 +11,6 @@ class FrontendController extends Controller
     public function index(): Response
     {
         return Inertia::render('frontend/home');
-        
     }
 
     public function men(): Response
@@ -58,4 +57,15 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/User/entercode');
     }
+
+    public function productdetails2(): Response
+    {
+        return Inertia::render('frontend/productdetails2');
+    }
+
+    public function orderconfirmed(): Response 
+    {
+        return Inertia::render('frontend/orderconfirmed');
+    }
+    
 }

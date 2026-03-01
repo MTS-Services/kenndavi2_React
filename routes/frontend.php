@@ -14,4 +14,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/cartpage', [FrontendController::class, 'cartpage'])->name('cartpage');
     Route::get('/userlogin', [FrontendController::class, 'userlogin'])->name('userlogin');
     Route::get('/entercode', [FrontendController::class, 'entercode'])->name('entercode');
+    Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
+    Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
+    
 });

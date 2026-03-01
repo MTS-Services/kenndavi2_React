@@ -162,6 +162,7 @@
 }
 
 :root {
+  --bg-nevired:#fcecec;
   --bg-gray0: #f4ecea;
   --bg-violet: #e8e0de;
   --bg-white-secondary: #f3ecea;
