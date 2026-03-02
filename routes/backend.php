@@ -11,6 +11,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/OrderManagement', [UserDashboardController::class, 'OrderManagement'])->name('OrderManagement');
     Route::get('/DashboarOrdersdetails', [UserDashboardController::class, 'DashboarOrdersdetails'])->name('DashboarOrdersdetails');
     Route::get('/DashboarProduct', [UserDashboardController::class, 'DashboarProduct'])->name('DashboarProduct');
+    Route::get('/DashboarOrdersAdd', [UserDashboardController::class, 'DashboarOrdersAdd'])->name('DashboarOrdersAdd');
+    Route::get('/DashboarCustomer', [UserDashboardController::class, 'DashboarCustomer'])->name('DashboarCustomer');
 
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');

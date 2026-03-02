@@ -53,4 +53,26 @@ class UserDashboardController extends Controller
 
         return Inertia::render('backend/User/DashboarProduct');
     }
+
+    public function DashboarOrdersAdd(Request $request): Response|RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->is_admin) {
+            return redirect()->route('admin.DashboarOrdersAdd');
+        }
+
+        return Inertia::render('backend/User/DashboarOrdersAdd');
+    }
+    
+    public function DashboarCustomer(Request $request): Response|RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->is_admin) {
+            return redirect()->route('admin.DashboarCustomer');
+        }
+
+        return Inertia::render('backend/User/DashboarCustomer');
+    }
 }
