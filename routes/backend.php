@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/OrderManagement', [UserDashboardController::class, 'OrderManagement'])->name('OrderManagement');
+    Route::get('/DashboarOrdersdetails', [UserDashboardController::class, 'DashboarOrdersdetails'])->name('DashboarOrdersdetails');
+    Route::get('/DashboarProduct', [UserDashboardController::class, 'DashboarProduct'])->name('DashboarProduct');
 
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');

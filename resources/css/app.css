@@ -162,6 +162,8 @@
 }
 
 :root {
+  --bg-grayslight0:#FFF9F8;
+  --bg-grayslight:#f4eded;
   --bg-nevired:#fcecec;
   --bg-gray0: #f4ecea;
   --bg-violet: #e8e0de;
@@ -354,6 +356,8 @@
   --color-bg-red: var(--bg-red);
   --color-bg-white-secondary: var(--bg-white-secondary);
   --color-bg-violet: var(--bg-violet);
+  --color-bg-animation: var(--bg-animation);
+  
    
 }
 
