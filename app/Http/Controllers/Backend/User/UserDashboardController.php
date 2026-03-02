@@ -75,4 +75,15 @@ class UserDashboardController extends Controller
 
         return Inertia::render('backend/User/DashboarCustomer');
     }
+
+    public function UserDashboard(Request $request): Response|RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->is_admin) {
+            return redirect()->route('admin.UserDashboard');
+        }
+
+        return Inertia::render('backend/User/UserDashboard');
+    }
 }

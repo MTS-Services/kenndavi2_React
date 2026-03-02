@@ -62,7 +62,7 @@ export default function UserDashboard() {
                     />
                 </div>
                 <div className="overflow-hidden">
-                    <p className="text-sm font-bold truncate">Super Admin</p>
+                    <p className="text-sm font-bold truncate text-gray-900">Super Admin</p>
                     <p className="text-xs text-gray-400 truncate">admin@platform.com</p>
                 </div>
                 </div>

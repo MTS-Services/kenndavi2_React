@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/DashboarProduct', [UserDashboardController::class, 'DashboarProduct'])->name('DashboarProduct');
     Route::get('/DashboarOrdersAdd', [UserDashboardController::class, 'DashboarOrdersAdd'])->name('DashboarOrdersAdd');
     Route::get('/DashboarCustomer', [UserDashboardController::class, 'DashboarCustomer'])->name('DashboarCustomer');
+    Route::get('/UserDashboard', [UserDashboardController::class, 'UserDashboard'])->name('UserDashboard');
 
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
