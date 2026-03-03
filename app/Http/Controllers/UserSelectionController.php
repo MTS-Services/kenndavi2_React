@@ -14,10 +14,7 @@ class UserSelectionController extends Controller
      */
     public function getUsers(Request $request)
     {
-        // Check if user is admin
-        if (! $request->user()->is_admin) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+        // Protected by admin middleware (auth:admin guard)
 
         // Get all users
         $users = User::select('name', 'email')

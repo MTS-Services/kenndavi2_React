@@ -1,4 +1,5 @@
 import UserLayout from '@/layouts/user-layout'; 
+import { Link } from '@inertiajs/react';
 export default function UserDashboard() {
     return (
         <UserLayout>
@@ -75,7 +76,10 @@ export default function UserDashboard() {
                   </aside>
                   <div className="container mx-auto flex items-center justify-center p-4">
                     <div className="bg-[var(--bg-animation)] w-full p-8 rounded-lg shadow-lg relative">
-                      <button className="absolute top-6 right-6 bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors">
+                      <Link
+                        href={route('admin.products.index')}
+                        className="absolute top-6 right-6 bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-6 w-6"
@@ -90,7 +94,7 @@ export default function UserDashboard() {
                             d="M6 18L18 6M6 6l12 12"
                           />
                         </svg>
-                      </button>
+                      </Link>
                       <h2 className="text-2xl font-bold text-stone-900 mb-8 font-[Alumni_Sans]">
                         Add new Product
                       </h2>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Frontend\FrontendController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,8 +13,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
     Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
     Route::get('/cartpage', [FrontendController::class, 'cartpage'])->name('cartpage');
-    Route::get('/userlogin', [FrontendController::class, 'userlogin'])->name('userlogin');
-    Route::get('/entercode', [FrontendController::class, 'entercode'])->name('entercode');
+
+    // User OTP login at /login (Fortify GET /login shows userlogin view); /userlogin redirects to /login
+    Route::redirect('/userlogin', '/login', 301)->name('userlogin');
+    Route::post('/login/send-code', [AuthController::class, 'sendCode'])->name('login.send-code');
+    Route::get('/login/verify', [AuthController::class, 'showVerify'])->name('login.verify');
+    Route::post('/login/verify-code', [AuthController::class, 'verifyCode'])->name('login.verify-code');
     Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
     Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
     Route::get('/hoodies-women', [FrontendController::class, 'hoodiesWomen'])->name('hoodies.women');

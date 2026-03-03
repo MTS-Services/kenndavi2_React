@@ -13,4 +13,29 @@ class AdminDashboardController extends Controller
     {
         return Inertia::render('backend/Admin/AdminDashboard');
     }
+
+    public function OrderManagement(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/OrderManagement');
+    }
+
+    public function DashboarOrdersdetails(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarOrdersdetails');
+    }
+
+    public function DashboarProduct(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarProduct');
+    }
+
+    public function DashboarOrdersAdd(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarOrdersAdd');
+    }
+
+    public function DashboarCustomer(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarCustomer');
+    }
 }

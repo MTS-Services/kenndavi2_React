@@ -1,4 +1,5 @@
 import UserLayout from '@/layouts/user-layout'; 
+import { Link } from '@inertiajs/react';
 export default function UserDashboard() {
     return (
         <UserLayout>
@@ -30,27 +31,27 @@ export default function UserDashboard() {
                         </div>
                         </div>
                         <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
-                        <a
-                            href="#"
+                        <Link
+                            href={route('admin.dashboard')}
                             className="flex items-center px-4 py-3 bg-red-50 border-l-4 border-red-600 rounded-l-md text-gray-900 font-medium"
                         >
                             <i className="fas fa-th-large w-5 text-red-600" />
                             <span className="ml-3 font-medium">Overview</span>
-                        </a>
-                        <a
-                            href="#"
+                        </Link>
+                        <Link
+                            href={route('admin.orders.index')}
                             className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
                         >
                             <i className="fas fa-shopping-cart w-5" />
                             <span className="ml-3 font-medium">Orders</span>
-                        </a>
-                        <a
-                            href="#"
+                        </Link>
+                        <Link
+                            href={route('admin.products.index')}
                             className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
                         >
                             <i className="fas fa-box w-5" />
                             <span className="ml-3 font-medium">Products</span>
-                        </a>
+                        </Link>
                         </nav>
                     </div>
                     <div className="px-6 border-t border-gray-400 pt-6">
@@ -67,10 +68,15 @@ export default function UserDashboard() {
                             <p className="text-xs text-gray-400 truncate">admin@platform.com</p>
                         </div>
                         </div>
-                        <button className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full">
-                        <i className="fas fa-sign-out-alt mr-2" />
-                        Log Out
-                        </button>
+                        <Link
+                        href={route('admin.logout')}
+                        method="post"
+                        as="button"
+                        className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full"
+                        >
+                            <i className="fas fa-sign-out-alt mr-2" />
+                            Log Out
+                        </Link>
                     </div>
                     </aside>
                     <main className="flex-1">

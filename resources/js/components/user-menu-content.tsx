@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 import {
@@ -9,15 +9,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import admin from '@/routes/admin';
 import { logout } from '@/routes';
-import { type User } from '@/types';
+import { type SharedData, type User } from '@/types';
 
 interface UserMenuContentProps {
     user: User;
 }
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
+    const { auth } = usePage<SharedData>().props;
     const cleanup = useMobileNavigation();
+    const logoutRoute = auth?.admin ? admin.logout() : logout();
 
     const handleLogout = () => {
         cleanup();
@@ -32,23 +35,28 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
-                    <Link
-                        className="block w-full cursor-pointer"
-                        href="/profile"
-                        onClick={cleanup}
-                    >
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        Profile
-                    </Link>
-                </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            {!auth?.admin && (
+                <>
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem asChild>
+                            <Link
+                                className="block w-full cursor-pointer"
+                                href="/profile"
+                                onClick={cleanup}
+                            >
+                                <UserIcon className="mr-2 h-4 w-4" />
+                                Profile
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                </>
+            )}
             <DropdownMenuItem asChild>
                 <Link
                     className="block w-full cursor-pointer"
-                    href={logout()}
+                    href={logoutRoute.url()}
+                    method="post"
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"

@@ -15,12 +15,12 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->is_admin) {
+        if (! auth('admin')->check()) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            return redirect()->route('dashboard')->with('error', 'You do not have permission to access this area.');
+            return redirect()->route('admin.login')->with('error', 'You do not have permission to access this area.');
         }
 
         return $next($request);

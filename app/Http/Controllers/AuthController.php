@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -25,7 +27,7 @@ class AuthController extends Controller
     public function sendCode(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ]);
 
         // Rate limiting - max 5 requests per minute
@@ -37,27 +39,32 @@ class AuthController extends Controller
             ]);
         }
 
-        // Find the user
+        // Find or create the user silently
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return back()->withErrors([
-                'email' => 'No user found with this email address.',
+        if (! $user) {
+            $name = Str::before($request->email, '@') ?: $request->email;
+
+            $user = User::create([
+                'name' => $name,
+                'email' => $request->email,
+                // Random password since login is via OTP, not password
+                'password' => Hash::make(Str::random(40)),
             ]);
         }
 
         // Generate a 6-digit code
         $code = rand(100000, 999999);
 
-        // Store code in session (in production, use proper OTP storage with expiration)
         session(['verification_code' => $code, 'verification_email' => $request->email]);
 
-        // In production, send the code via email
-        // Mail::raw("Your verification code is: $code", function ($message) use ($request) {
-        //     $message->to($request->email)->subject('Verification Code');
-        // });
-
-        // For development, log the code
+        try {
+            Mail::raw("Your sign-in verification code is: $code\n\nThis code expires in 10 minutes.", function ($message) use ($request) {
+                $message->to($request->email)->subject('Your verification code');
+            });
+        } catch (\Throwable $e) {
+            \Log::warning("Could not send OTP email: {$e->getMessage()}");
+        }
         \Log::info("Verification code for {$request->email}: $code");
 
         // Increment rate limiter
@@ -74,7 +81,7 @@ class AuthController extends Controller
     {
         $email = $request->query('email') ?? session('verification_email');
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('login')->withErrors([
                 'email' => 'Please enter your email first.',
             ]);
@@ -115,25 +122,29 @@ class AuthController extends Controller
             ])->withInput($request->except('code'));
         }
 
-        // Code is valid, log the user in
+        // Code is valid, find or create the user and log them in
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return back()->withErrors([
-                'code' => 'User not found.',
-            ])->withInput($request->except('code'));
+        if (! $user) {
+            $name = Str::before($request->email, '@') ?: $request->email;
+
+            $user = User::create([
+                'name' => $name,
+                'email' => $request->email,
+                'password' => Hash::make(Str::random(40)),
+            ]);
         }
 
         // Clear the verification code from session
         session()->forget(['verification_code', 'verification_email']);
 
-        // Log in the user
-        Auth::login($user);
+        // Log in the user (web guard)
+        Auth::guard('web')->login($user);
 
         // Regenerate session
         $request->session()->regenerate();
 
-        // Redirect to dashboard or home
-        return redirect()->intended(route('home'))->with('success', 'Login successful!');
+        // Always redirect to user dashboard (never to admin intended URL)
+        return redirect()->route('dashboard')->with('success', 'Login successful!');
     }
 }

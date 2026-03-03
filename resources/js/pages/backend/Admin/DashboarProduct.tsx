@@ -1,6 +1,12 @@
 import UserLayout from '@/layouts/user-layout'; 
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 export default function UserDashboard() {
+    const { url } = usePage();
+
+    const navLinkClasses = (isActive: boolean) =>
+        'flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition' +
+        (isActive ? ' bg-red-50 border-l-4 border-red-600 rounded-l-md text-gray-900 font-medium' : '');
+
     return (
         <UserLayout>
             <Head title="Order Management" />
@@ -32,27 +38,27 @@ export default function UserDashboard() {
                         </div>
                         </div>
                         <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
-                        <a
-                            href="#"
-                            className="flex items-center px-4 py-3 bg-red-50 border-l-4 border-red-600 rounded-l-md text-gray-900 font-medium"
+                        <Link
+                            href={route('admin.dashboard')}
+                            className={navLinkClasses(url === '/admin/dashboard')}
                         >
                             <i className="fas fa-th-large w-5 text-red-600" />
                             <span className="ml-3 font-medium">Overview</span>
-                        </a>
-                        <a
-                            href="#"
-                            className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
+                        </Link>
+                        <Link
+                            href={route('admin.orders.index')}
+                            className={navLinkClasses(url.startsWith('/admin/orders'))}
                         >
                             <i className="fas fa-shopping-cart w-5" />
                             <span className="ml-3 font-medium">Orders</span>
-                        </a>
-                        <a
-                            href="#"
-                            className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
+                        </Link>
+                        <Link
+                            href={route('admin.products.index')}
+                            className={navLinkClasses(url.startsWith('/admin/products'))}
                         >
                             <i className="fas fa-box w-5" />
                             <span className="ml-3 font-medium">Products</span>
-                        </a>
+                        </Link>
                         </nav>
                     </div>
                     <div className="px-6 border-t border-gray-400 pt-6">
@@ -69,10 +75,15 @@ export default function UserDashboard() {
                             <p className="text-xs text-gray-400 truncate">admin@platform.com</p>
                         </div>
                         </div>
-                        <button className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full">
+                        <Link
+                            href={route('admin.logout')}
+                            method="post"
+                            as="button"
+                            className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full"
+                        >
                         <i className="fas fa-sign-out-alt mr-2" />
                         Log Out
-                        </button>
+                        </Link>
                     </div>
                     </aside>
                     <div className="min-h-screen bg-[#f4eded] p-8 font-sans text-stone-800">
@@ -85,9 +96,12 @@ export default function UserDashboard() {
                             View, edit, and manage your inventory in one place.
                         </p>
                         </div>
-                        <button className="bg-red-700 hover:bg-red-800 text-white px-6 py-2.5 rounded shadow-sm transition-colors font-medium">
+                        <Link
+                        href={route('admin.products.create')}
+                        className="inline-flex items-center justify-center bg-red-700 hover:bg-red-800 text-white px-6 py-2.5 rounded shadow-sm transition-colors font-medium"
+                        >
                         Add New Product
-                        </button>
+                        </Link>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
@@ -110,7 +124,10 @@ export default function UserDashboard() {
                             </p>
                         </div>
                         <div className="mt-6 flex gap-3">
-                            <button className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium">
+                            <Link
+                            href={route('admin.products.create')}
+                            className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
+                            >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="w-4 h-4"
@@ -126,7 +143,7 @@ export default function UserDashboard() {
                                 />
                             </svg>
                             Edit
-                            </button>
+                            </Link>
                             <button className="flex-1 flex items-center justify-center gap-2 border border-red-200 text-red-600 py-2 rounded hover:bg-red-50 transition-colors text-sm font-medium">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +185,10 @@ export default function UserDashboard() {
                             </p>
                         </div>
                         <div className="mt-6 flex gap-3">
-                            <button className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium">
+                            <Link
+                            href={route('admin.products.create')}
+                            className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
+                            >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="w-4 h-4"
@@ -184,7 +204,7 @@ export default function UserDashboard() {
                                 />
                             </svg>
                             Edit
-                            </button>
+                            </Link>
                             <button className="flex-1 flex items-center justify-center gap-2 border border-red-200 text-red-600 py-2 rounded hover:bg-red-50 transition-colors text-sm font-medium">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -224,7 +244,10 @@ export default function UserDashboard() {
                             </p>
                         </div>
                         <div className="mt-6 flex gap-3">
-                            <button className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium">
+                            <Link
+                            href={route('admin.products.create')}
+                            className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
+                            >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="w-4 h-4"
@@ -240,7 +263,7 @@ export default function UserDashboard() {
                                 />
                             </svg>
                             Edit
-                            </button>
+                            </Link>
                             <button className="flex-1 flex items-center justify-center gap-2 border border-red-200 text-red-600 py-2 rounded hover:bg-red-50 transition-colors text-sm font-medium">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -282,7 +305,10 @@ export default function UserDashboard() {
                             </p>
                         </div>
                         <div className="mt-6 flex gap-3">
-                            <button className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium">
+                            <Link
+                            href={route('admin.products.create')}
+                            className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
+                            >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="w-4 h-4"
@@ -298,7 +324,7 @@ export default function UserDashboard() {
                                 />
                             </svg>
                             Edit
-                            </button>
+                            </Link>
                             <button className="flex-1 flex items-center justify-center gap-2 border border-red-200 text-red-600 py-2 rounded hover:bg-red-50 transition-colors text-sm font-medium">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

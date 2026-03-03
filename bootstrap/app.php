@@ -31,6 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
         ]);
+
+        // When guest:admin detects an authenticated admin, redirect to admin dashboard
+        $middleware->redirectUsersTo(fn (Request $request) => $request->is('admin/*')
+            ? route('admin.dashboard')
+            : route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {

@@ -1,0 +1,40 @@
+<?php
+
+use App\Http\Controllers\Backend\Admin\AdminAuthController;
+use App\Http\Controllers\Backend\Admin\AdminDashboardController;
+use App\Http\Controllers\UserSelectionController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Admin routes (admin guard)
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('/login', [AdminAuthController::class, 'create'])->name('login');
+        Route::post('/login', [AdminAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware(['admin'])->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'destroy'])->name('logout');
+
+        // Dashboard
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
+
+        // Orders
+        Route::get('/orders', [AdminDashboardController::class, 'OrderManagement'])->name('orders.index');
+        Route::get('/orders/details', [AdminDashboardController::class, 'DashboarOrdersdetails'])->name('orders.details');
+
+        // Products
+        Route::get('/products', [AdminDashboardController::class, 'DashboarProduct'])->name('products.index');
+        Route::get('/products/add', [AdminDashboardController::class, 'DashboarOrdersAdd'])->name('products.create');
+
+        // Customers
+        Route::get('/customers', [AdminDashboardController::class, 'DashboarCustomer'])->name('customers.index');
+
+        // Other admin utilities
+        Route::get('/users/list', [UserSelectionController::class, 'getUsers'])->name('users.list');
+    });
+});

@@ -5,7 +5,7 @@ interface Props {
     email?: string;
 }
 
-export default function EnterCode({ email = '' }: Props) {
+export default function AdminEnterCode({ email = '' }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         code: '',
         email,
@@ -13,25 +13,28 @@ export default function EnterCode({ email = '' }: Props) {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('login.verify-code'));
+        post(route('admin.login.verify-code'));
     };
 
     return (
         <FrontendLayout>
-            <Head title="Enter Code" />
+            <Head title="Enter code – Admin" />
             <div className="bg-[#FDF7F7] font-sans text-gray-900 flex items-center justify-center">
                 <div className="container mx-auto p-12 flex justify-center">
                     <div className="bg-[#f4ecea] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-[#1a1a1a]">
                         <div className="flex flex-col items-center mb-10">
                             <img src="/assets/images/Layer_1.png" alt="Logo" className="h-16 w-auto" />
                         </div>
-                        
+
                         <div className="mb-8">
                             <h2 className="text-lg font-bold font-['Libre_Franklin']">
                                 Enter code
                             </h2>
                             <p className="text-sm text-gray-500 mt-1 font-['Libre_Franklin']">
-                                Sent to <span className="font-semibold text-gray-700">{email || 'your email'}</span>
+                                Sent to{' '}
+                                <span className="font-semibold text-gray-700">
+                                    {email || 'your email'}
+                                </span>
                             </p>
                         </div>
 
@@ -62,8 +65,8 @@ export default function EnterCode({ email = '' }: Props) {
                             </button>
 
                             <div className="text-sm mt-4">
-                                <Link 
-                                    href={route('login')} 
+                                <Link
+                                    href={route('admin.login')}
                                     className="text-gray-900 hover:underline font-['Libre_Franklin']"
                                 >
                                     Sign in with a different email

@@ -1,6 +1,32 @@
+import { useState } from 'react';
 import UserLayout from '@/layouts/user-layout'; 
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 export default function UserDashboard() {
+    const { url } = usePage();
+
+    const navLinkClasses = (isActive: boolean) =>
+        'flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition' +
+        (isActive ? ' bg-red-50 border-l-4 border-red-600 rounded-l-md font-medium' : '');
+
+    type OrderStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
+
+    const [statusFilter, setStatusFilter] = useState<OrderStatus>('pending');
+
+    const countByStatus: Record<OrderStatus, number> = {
+        pending: 1,
+        shipped: 1,
+        delivered: 1,
+        cancelled: 1,
+    };
+
+    const filterButtonClasses = (isActive: boolean) =>
+        'flex items-center space-x-2 pb-4 flex-shrink-0 ' +
+        (isActive ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-500 hover:text-gray-700');
+
+    const badgeClasses = (isActive: boolean) =>
+        'text-[10px] px-2 py-1 rounded-full ' +
+        (isActive ? 'bg-red-600 text-white' : 'bg-gray-600 text-white');
+
     return (
         <UserLayout>
             <Head title="Order Management" />
@@ -31,27 +57,27 @@ export default function UserDashboard() {
                       </div>
                     </div>
                     <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
-                      <a
-                        href="#"
-                        className="flex items-center px-4 py-3 bg-red-50 border-l-4 border-red-600 rounded-l-md text-gray-900 font-medium"
+                      <Link
+                        href={route('admin.dashboard')}
+                        className={navLinkClasses(url === '/admin/dashboard')}
                       >
                         <i className="fas fa-th-large w-5 text-red-600" />
                         <span className="ml-3 font-medium">Overview</span>
-                      </a>
-                      <a
-                        href="#"
-                        className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
+                      </Link>
+                      <Link
+                        href={route('admin.orders.index')}
+                        className={navLinkClasses(url.startsWith('/admin/orders'))}
                       >
                         <i className="fas fa-shopping-cart w-5" />
                         <span className="ml-3 font-medium">Orders</span>
-                      </a>
-                      <a
-                        href="#"
-                        className="flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition"
+                      </Link>
+                      <Link
+                        href={route('admin.products.index')}
+                        className={navLinkClasses(url.startsWith('/admin/products'))}
                       >
                         <i className="fas fa-box w-5" />
                         <span className="ml-3 font-medium">Products</span>
-                      </a>
+                      </Link>
                     </nav>
                   </div>
                   <div className="px-6 border-t border-gray-400 pt-6">
@@ -68,10 +94,15 @@ export default function UserDashboard() {
                         <p className="text-xs text-gray-400 truncate">admin@platform.com</p>
                       </div>
                     </div>
-                    <button className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full">
+                    <Link
+                      href={route('admin.logout')}
+                      method="post"
+                      as="button"
+                      className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full"
+                    >
                       <i className="fas fa-sign-out-alt mr-2" />
                       Log Out
-                    </button>
+                    </Link>
                   </div>
                 </aside>
                 <main className="flex-1 p-4 md:p-8 bg-[var(--bg-grayslight)]">
@@ -83,7 +114,11 @@ export default function UserDashboard() {
                   </header>
                   <div className="bg-[var(--bg-animation)] p-4 md:p-8 font-sans text-slate-700 rounded-lg shadow-sm">
                     <div className="flex items-center space-x-4 md:space-x-8 border-b border-gray-200 mb-6 overflow-x-auto pb-1 no-scrollbar">
-                      <button className="flex items-center space-x-2 pb-4 border-b-2 border-red-600 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatusFilter('pending')}
+                        className={filterButtonClasses(statusFilter === 'pending')}
+                      >
                         <svg
                           className="w-5 h-5 text-red-600"
                           fill="none"
@@ -97,14 +132,18 @@ export default function UserDashboard() {
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        <span className="font-medium text-red-600 whitespace-nowrap">
+                        <span className="font-medium whitespace-nowrap">
                           Pending Shipments
                         </span>
-                        <span className="bg-red-600 text-white text-[10px] px-2 py-1 rounded-full">
-                          1
+                        <span className={badgeClasses(statusFilter === 'pending')}>
+                          {countByStatus.pending}
                         </span>
                       </button>
-                      <button className="flex items-center space-x-2 pb-4 text-gray-500 hover:text-gray-700 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatusFilter('shipped')}
+                        className={filterButtonClasses(statusFilter === 'shipped')}
+                      >
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -119,11 +158,15 @@ export default function UserDashboard() {
                           ></path>
                         </svg>
                         <span className="whitespace-nowrap">Shipped</span>
-                        <span className="bg-gray-600 text-white text-[10px] px-2 py-1 rounded-full">
-                          1
+                        <span className={badgeClasses(statusFilter === 'shipped')}>
+                          {countByStatus.shipped}
                         </span>
                       </button>
-                      <button className="flex items-center space-x-2 pb-4 text-gray-500 hover:text-gray-700 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatusFilter('delivered')}
+                        className={filterButtonClasses(statusFilter === 'delivered')}
+                      >
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -138,11 +181,15 @@ export default function UserDashboard() {
                           />
                         </svg>
                         <span className="whitespace-nowrap">Delivered</span>
-                        <span className="bg-gray-600 text-white text-[10px] px-2 py-1 rounded-full">
-                          1
+                        <span className={badgeClasses(statusFilter === 'delivered')}>
+                          {countByStatus.delivered}
                         </span>
                       </button>
-                      <button className="flex items-center space-x-2 pb-4 text-gray-500 hover:text-gray-700 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setStatusFilter('cancelled')}
+                        className={filterButtonClasses(statusFilter === 'cancelled')}
+                      >
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -157,8 +204,8 @@ export default function UserDashboard() {
                           />
                         </svg>
                         <span className="whitespace-nowrap">Cancelled</span>
-                        <span className="bg-gray-600 text-white text-[10px] px-2 py-1 rounded-full">
-                          1
+                        <span className={badgeClasses(statusFilter === 'cancelled')}>
+                          {countByStatus.cancelled}
                         </span>
                       </button>
                     </div>

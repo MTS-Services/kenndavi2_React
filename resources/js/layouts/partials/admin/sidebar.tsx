@@ -5,13 +5,13 @@ import * as React from 'react';
 import AppLogo from '@/components/app-logo';
 import { NavItem as NavItemComponent} from '@/components/ui/nav-item';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import admin from '@/routes/admin';
 import { type NavItem, type SharedData } from '@/types';
 // Navigation configuration
 const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: admin.dashboard().url(),
         icon: LayoutGrid,
         slug: 'dashboard',
     },
@@ -54,7 +54,7 @@ const adminNavItems: NavItem[] = [
                 children: [
                     {
                         title: 'All',
-                        href: route('admin.users.index'),
+                        href: route('admin.users.list'),
                         icon: User,
                         slug: 'admin-users'
                     },
