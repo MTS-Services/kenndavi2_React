@@ -83,4 +83,9 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/User/orders');
     }
+
+    public function orders2(): Response 
+    {
+        return Inertia::render('frontend/User/orders2');
+    }
 }
