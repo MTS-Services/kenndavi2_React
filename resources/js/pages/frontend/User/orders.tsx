@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 
 export default function UserDashboard() {
@@ -186,7 +186,7 @@ export default function UserDashboard() {
                             and street style.
                         </p>
                         <p className="text-xl font-bold mb-6 font-['Libre_Franklin']">$199</p>
-                        <button className="bg-[#c22e2e] text-white px-6 py-2 rounded-sm text-sm hover:bg-red-800 transition-colors font-['Libre_Franklin']">
+                        <button onClick={() => router.get('/orders2')} className="bg-[#c22e2e] text-white px-6 py-2 rounded-sm text-sm hover:bg-red-800 transition-colors font-['Libre_Franklin']">
                             Write A Review
                         </button>
                         </div>
