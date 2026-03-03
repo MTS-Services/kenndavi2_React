@@ -1,75 +1,109 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, User } from 'lucide-react';
+import { useState } from 'react';
 
-import AppLogo from '@/components/app-logo';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { UserInfo } from '@/components/user-info';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { type SharedData } from '@/types';
+const navigationItems = [
+    { name: 'Men', href: '/' },
+    { name: 'Women', href: '/home-women' },
+    { name: 'Accessories', href: '/accessories' }, 
+];
 
-interface UserHeaderProps {
-    showProfileMenu?: boolean;
-}
-
-export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
-    const { auth } = usePage<SharedData>().props;
-
-    const handleLogout = (): void => {
-        router.post(route('logout'));
-    };
+export function UserHeader() {
+    const { url } = usePage();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        // <header className='bg-primary-50 shadow z-50'>
-        //     <div className='container mx-auto flex items-center justify-between py-4 px-4 text-primary-500'>
-        //         <Link href="#" className="flex items-center gap-3">
-        //             <svg className="h-12 w-12" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        //                 <circle cx="50" cy="25" r="12" stroke="currentColor" strokeWidth="3" fill="none" />
-        //                 <path d="M15 40 Q50 20, 85 40" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
-        //             </svg>
-        //             <div>
-        //                 <div className="font-sans text-xl font-bold tracking-wider">HORIZON WILLS</div>
-        //                 <div className="text-xs text-primary-300 tracking-[0.3em]">PROTECTING YOUR ASSETS</div>
-        //             </div>
-        //         </Link>
+        <section className="bg-[var(--color-bg-animation)] font-sans text-gray-900 overflow-x-hidden">
+            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[var(--bg-white-secondary)] px-6 py-5 md:px-12">
 
-        //         {showProfileMenu ? (
-        //             <>
-        //                 <div className='hidden md:flex items-center gap-4'>
-        //                     <DropdownMenu>
-        //                         <DropdownMenuTrigger asChild>
-        //                             <Button variant="ghost" className="flex items-center gap-2 h-auto p-2 hover:bg-transparent hover:scale-105 transition-transform focus-visible:ring-0 focus-visible:ring-offset-0">
-        //                                 <UserInfo user={auth.user} />
-        //                             </Button>
-        //                         </DropdownMenuTrigger>
-        //                         <DropdownMenuContent className="w-64 p-2 shadow-sm border-none" align="end" sideOffset={8}>
-        //                             <UserMenuContent user={auth.user} />
-        //                         </DropdownMenuContent>
-        //                     </DropdownMenu>
-        //                 </div>
-        //                 <div className='md:hidden'>
-        //                     <DropdownMenu>
-        //                         <DropdownMenuTrigger asChild>
-        //                             <Button variant="ghost" className="relative h-9 w-9 rounded-md ring-offset-background transition-all hover:ring-2 hover:ring-ring">
-        //                                 <Menu className="size-6" />
-        //                             </Button>
-        //                         </DropdownMenuTrigger>
-        //                         <DropdownMenuContent className="w-64 p-2 shadow-sm border-none" align="end" sideOffset={8}>
-        //                             <UserMenuContent user={auth.user} />
-        //                         </DropdownMenuContent>
-        //                     </DropdownMenu>
-        //                 </div>
-        //             </>
-        //         ) : (
-        //             <Button variant="ghost" className="text-primary-500 hover:text-primary-600" onClick={handleLogout}>
-        //                 Log out
-        //             </Button>
-        //         )}
-        //     </div>
-        // </header>
+                {/* Logo */}
+                <div className="flex items-center gap-2">
+                    <Link href="/">
+                        <img src="/assets/images/Layer_1.png" alt="Logo" className="h-10 w-auto" />
+                    </Link>
+                </div>
 
-        <div>
-            
-        </div>
+                {/* Desktop Navigation */}
+                <ul className="hidden md:flex space-x-10 text-md font-semibold tracking-wider font-[Libre_Franklin]">
+                    {navigationItems.map((item) => (
+                        <li key={item.name}>
+                            <Link
+                                href={item.href}
+                                className={`transition hover:text-red-600 ${
+                                    url === item.href ? 'text-red-600' : ''
+                                }`}
+                            >
+                                {item.name}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+
+                {/* Right Side Icons */}
+                <div className="flex items-center gap-3 md:gap-6">
+
+                    {/* Search */}
+                    <div className="relative hidden sm:flex items-center gap-2 rounded bg-black px-4 py-2.5">
+                        <Search size={14} className="text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            className="w-20 md:w-32 bg-transparent text-xs text-white outline-none placeholder:text-gray-500"
+                        />
+                    </div>
+
+                    {/* Cart */}
+                    <button className="text-lg hover:text-red-600 transition">
+                        <ShoppingCart size={20} />
+                    </button>
+
+                    {/* User */}
+                    <button onClick={() => router.get('/userlogin')} className="text-lg hover:text-red-600 transition">
+                        <User size={20} />
+                    </button>
+
+                    {/* Mobile Toggle */}
+                    <button
+                        className="md:hidden text-2xl"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                    >
+                        {mobileOpen ? <X /> : <Menu />}
+                    </button>
+                </div>
+
+                {/* Mobile Menu */}
+                {mobileOpen && (
+                    <div className="absolute left-0 top-full w-full bg-[var(--bg-white-secondary)] border-t border-gray-200 p-6 md:hidden">
+                        <ul className="flex flex-col space-y-4 text-sm font-semibold uppercase tracking-wider">
+                            {navigationItems.map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        href={item.href}
+                                        className={`block ${
+                                            url === item.href ? 'text-red-600' : ''
+                                        }`}
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
+
+                            {/* Mobile Search */}
+                            <li className="pt-4 border-t border-gray-300">
+                                <div className="flex items-center gap-2 rounded bg-black px-4 py-2">
+                                    <Search size={14} className="text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search"
+                                        className="w-full bg-transparent text-xs text-white outline-none"
+                                    />
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                )}
+            </nav>
+        </section>
     );
 }
