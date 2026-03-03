@@ -3,7 +3,7 @@ export default function UserDashboard() {
     return (
         <UserLayout>
            
-         <div className="lg:hidden bg-[#FDF7F7] p-4 flex justify-between items-center border-b border-gray-200">
+         <div className="lg:hidden bg-[var(--bg-animation)] p-4 flex justify-between items-center border-b border-gray-200">
             <div className="w-8">
             <img src="/assets/images/Layer_1 (2).png" alt="Logo" className="max-w-full" />
             </div>
@@ -11,10 +11,10 @@ export default function UserDashboard() {
             <i className="fas fa-bars" />
             </button>
         </div>
-        <div className="flex min-h-screen relative bg-[#ebe4e4]">
+        <div className="flex min-h-screen relative bg-bg-cofyColor">
             <aside
             id="sidebar"
-            className="fixed inset-y-0 left-0 z-50 w-64 bg-[#FDF7F7] border-r border-gray-200 flex flex-col justify-between py-4 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
+            className="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-animation)] border-r border-gray-200 flex flex-col justify-between py-4 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
             >
             <div>
                 <button
@@ -56,7 +56,7 @@ export default function UserDashboard() {
                 <div className="flex items-center mb-6">
                 <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
                     <img
-                    src="/assets/images/Layer_1 (2).png"
+                    src="/assets/images/Rectangle 28 (4).png"
                     alt="User"
                     className="w-full h-full object-cover"
                     />
@@ -72,9 +72,9 @@ export default function UserDashboard() {
                 </button>
             </div>
             </aside>
-            <div className="container mx-auto bg-[#FDF7F7] p-6  font-sans text-[#1a1a1a] m-12">
+            <div className="container mx-auto bg-[var(--bg-animation)] p-6  font-sans text-gray-900 m-12">
             <div className="mb-6">
-                <button className="bg-[#c22e2e] hover:bg-red-800 text-white p-2 rounded transition-colors shadow-sm">
+                <button className="bg-bg-red hover:bg-red-800 text-white p-2 rounded transition-colors shadow-sm">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"
@@ -93,7 +93,7 @@ export default function UserDashboard() {
             </div>
             <h1 className="text-3xl font-bold mb-8 font-[Alumni_Sans]">Customer Feedback</h1>
             <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start lg:items-center">
-                <div className="bg-[#fff9f4] p-8 rounded-lg flex flex-col items-center justify-center w-full lg:w-64 shadow-sm border border-orange-50">
+                <div className="bg-[var(--bg-oranges)] p-8 rounded-lg flex flex-col items-center justify-center w-full lg:w-64 shadow-sm border border-[var(--bg-oranges)]">
                 <span className="text-5xl font-bold mb-2">4.7</span>
                 <div className="flex text-yellow-400 mb-2">
                     <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20">
@@ -220,7 +220,7 @@ export default function UserDashboard() {
                 <button className="w-8 h-8 flex items-center justify-center rounded bg-stone-100 text-stone-400">
                 ‹
                 </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded bg-[#c22e2e] text-white">
+                <button className="w-8 h-8 flex items-center justify-center rounded bg-[var(--bg-red)] text-white">
                 1
                 </button>
                 <button className="w-8 h-8 flex items-center justify-center rounded bg-stone-100 hover:bg-stone-200">
