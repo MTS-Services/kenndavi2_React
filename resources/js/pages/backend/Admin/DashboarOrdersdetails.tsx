@@ -9,7 +9,7 @@ export default function DashboarOrdersdetails() {
             <div className="p-4 md:p-8 font-sans text-gray-800">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm">
+                        <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Customer info</h2>
                             <div className="grid grid-cols-4 gap-4">
                                 <div className="flex flex-col">
@@ -46,7 +46,7 @@ export default function DashboarOrdersdetails() {
                             </div>
                         </div>
 
-                        <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm">
+                        <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Orders summary</h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
@@ -103,7 +103,7 @@ export default function DashboarOrdersdetails() {
                     </div>
 
                     <div className="lg:col-span-1">
-                        <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm h-full flex flex-col">
+                        <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm h-full flex flex-col">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Order summary</h2>
                             <div className="space-y-8 flex-grow px-2">
                                 <div className="flex items-center space-x-4 text-[10px] font-bold">
@@ -157,7 +157,7 @@ export default function DashboarOrdersdetails() {
                             </div>
 
                             <div className="mt-10">
-                                <button className="w-full border border-[#C13030] text-[#C13030] py-3 rounded-md font-medium text-xs hover:bg-red-50 transition-colors">
+                                <button className="w-full border border-[var(--bg-red)] text-[var(--bg-red)] py-3 rounded-md font-medium text-xs hover:bg-red-50 transition-colors">
                                     Back
                                 </button>
                             </div>

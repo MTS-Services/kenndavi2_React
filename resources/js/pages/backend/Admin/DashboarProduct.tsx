@@ -31,7 +31,7 @@ export default function UserDashboard() {
                         </Link>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -90,7 +90,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -151,7 +151,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -210,7 +210,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
