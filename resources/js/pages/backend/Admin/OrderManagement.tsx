@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import UserLayout from '@/layouts/user-layout'; 
 import { Head, Link, usePage } from '@inertiajs/react';
+import AdminLayout from '@/layouts/admin-layout';
 export default function UserDashboard() {
     const { url } = usePage();
 
@@ -28,90 +29,10 @@ export default function UserDashboard() {
         (isActive ? 'bg-red-600 text-white' : 'bg-gray-600 text-white');
 
     return (
-        <UserLayout>
-            <Head title="Order Management" />
+        <AdminLayout title="Order Management" description="Track, manage, and process all customer orders effectively.">
             <>
-              <div className="hidden bg-[var(--bg-animation)] p-4 flex justify-between items-center border-b border-gray-200">
-                <div className="w-8">
-                  <img src="/assets/images/Layer_1 (2).png" alt="Logo" className="max-w-full" />
-                </div>
-                <button id="menuBtn" className="text-red-600 text-2xl">
-                  <i className="fas fa-bars" />
-                </button>
-              </div>
-              <div className="flex min-h-screen relative">
-                <aside
-                  id="sidebar"
-                  className="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-animation)] border-r border-gray-200 flex flex-col justify-between py-4 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
-                >
-                  <div>
-                    <button
-                      id="closeBtn"
-                      className="lg:hidden absolute top-4 right-4 text-gray-500"
-                    >
-                      <i className="fas fa-times text-xl" />
-                    </button>
-                    <div className="px-6 mt-4 flex flex-col items-center p-6">
-                      <div className="mb-2">
-                        <img src="/assets/images/Layer_1 (2).png" alt="Logo" />
-                      </div>
-                    </div>
-                    <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
-                      <Link
-                        href={route('admin.dashboard')}
-                        className={navLinkClasses(url === '/admin/dashboard')}
-                      >
-                        <i className="fas fa-th-large w-5 text-red-600" />
-                        <span className="ml-3 font-medium">Overview</span>
-                      </Link>
-                      <Link
-                        href={route('admin.orders.index')}
-                        className={navLinkClasses(url.startsWith('/admin/orders'))}
-                      >
-                        <i className="fas fa-shopping-cart w-5" />
-                        <span className="ml-3 font-medium">Orders</span>
-                      </Link>
-                      <Link
-                        href={route('admin.products.index')}
-                        className={navLinkClasses(url.startsWith('/admin/products'))}
-                      >
-                        <i className="fas fa-box w-5" />
-                        <span className="ml-3 font-medium">Products</span>
-                      </Link>
-                    </nav>
-                  </div>
-                  <div className="px-6 border-t border-gray-400 pt-6">
-                    <div className="flex items-center mb-6">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
-                        <img
-                          src="/assets/images/Layer_1 (2).png"
-                          alt="User"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="text-sm font-bold truncate">Super Admin</p>
-                        <p className="text-xs text-gray-400 truncate">admin@platform.com</p>
-                      </div>
-                    </div>
-                    <Link
-                      href={route('admin.logout')}
-                      method="post"
-                      as="button"
-                      className="flex items-center text-red-500 text-sm font-medium hover:opacity-80 transition w-full"
-                    >
-                      <i className="fas fa-sign-out-alt mr-2" />
-                      Log Out
-                    </Link>
-                  </div>
-                </aside>
-                <main className="flex-1 p-4 md:p-8 bg-[var(--bg-grayslight)]">
-                  <header className="mb-8">
-                    <h2 className="text-2xl font-bold mb-1 text-sidebar font-[Alumni_Sans]">Order Management</h2>
-                    <p className="text-gray-600">
-                      Track, manage, and process all customer orders effectively.
-                    </p>
-                  </header>
+
+
                   <div className="bg-[var(--bg-animation)] p-4 md:p-8 font-sans text-slate-700 rounded-lg shadow-sm">
                     <div className="flex items-center space-x-4 md:space-x-8 border-b border-gray-200 mb-6 overflow-x-auto pb-1 no-scrollbar">
                       <button
@@ -410,10 +331,9 @@ export default function UserDashboard() {
                       </nav>
                     </div>
                   </div>
-                </main>
-              </div>
+
             </>
 
-        </UserLayout>
+        </AdminLayout>
     );
 }

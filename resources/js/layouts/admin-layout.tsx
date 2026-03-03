@@ -1,19 +1,28 @@
 import * as React from 'react';
-
-import { AdminHeader } from '@/layouts/partials/admin/header';
-
+import { AdminHeader } from './partials/admin/header';
 import { AdminFooter } from './partials/admin/footer';
+import { Logo } from './partials/admin/logo';
+import { AdminSidebar } from './partials/admin/sidebar';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
+    title?: string;
+    description?: string;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children, title, description }: AdminLayoutProps) {
     return (
-        <div className="flex min-h-screen flex-col">
-            <AdminHeader />
-            <main className="flex-1 flex flex-col">{children}</main>
-            <AdminFooter />
+        <>
+        <div className="min-h-screen bg-[var(--bg-grayslight)] flex">
+            <AdminSidebar />
+            <div className="flex-1 p-4 md:p-8 h-screen overflow-y-auto">
+                <AdminHeader title={title || ''} description={description || ''} />
+                {children}
+            </div>
+            
         </div>
+        {/* <AdminFooter /> */}
+        </>
+
     );
 }
