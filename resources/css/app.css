@@ -162,6 +162,8 @@
 }
 
 :root {
+  --bg-oranges: #fff9f4;
+  --bg-cofyColor:#ebe4e4;
   --bg-grayslight0:#FFF9F8;
   --bg-grayslight:#f4eded;
   --bg-nevired:#fcecec;
@@ -357,6 +359,8 @@
   --color-bg-white-secondary: var(--bg-white-secondary);
   --color-bg-violet: var(--bg-violet);
   --color-bg-animation: var(--bg-animation);
+  --color-bg-cofyColor: var(--bg-cofyColor);
+  --color-bg-oranges: var(--bg-cofyColor);
   
    
 }

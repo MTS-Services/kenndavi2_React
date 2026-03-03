@@ -3,10 +3,10 @@ export default function UserDashboard() {
     return (
         <UserLayout>
             <>
-               <div className="bg-[var(--bg-grayslight)] text-gray-800">
-                <div className="lg:hidden bg-[var(--bg-animasion)] p-4 flex justify-between items-center border-b border-gray-200">
+               <div className="bg-[#f4eded] text-gray-800">
+                <div className="lg:hidden bg-[#FDF7F7] p-4 flex justify-between items-center border-b border-gray-200">
                     <div className="w-8">
-                    <img src="/assets/images/Layer_1 (2).png" alt="Logo" className="max-w-full" />
+                    <img src="/assets/images/Layer_1.png" alt="Logo" className="max-w-full" />
                     </div>
                     <button id="menuBtn" className="text-red-600 text-2xl">
                     <i className="fas fa-bars" />
@@ -15,7 +15,7 @@ export default function UserDashboard() {
                 <div className="flex min-h-screen relative">
                     <aside
                     id="sidebar"
-                    className="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--bg-animation)] border-r border-gray-200 flex flex-col justify-between py-4 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
+                    className="fixed inset-y-0 left-0 z-50 w-64 bg-[#FDF7F7] border-r border-gray-200 flex flex-col justify-between py-4 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out"
                     >
                     <div>
                         <button
@@ -26,7 +26,7 @@ export default function UserDashboard() {
                         </button>
                         <div className="px-6 mt-4 flex flex-col items-center p-6">
                         <div className="mb-2">
-                            <img src="/assets/images/Layer_1 (2).png" alt="Logo" />
+                            <img src="/assets/images/Layer_1.png" alt="Logo" />
                         </div>
                         </div>
                         <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
@@ -57,7 +57,7 @@ export default function UserDashboard() {
                         <div className="flex items-center mb-6">
                         <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
                             <img
-                            src="/assets/images/Rectangle 25 (4).png"
+                            src="/assets/images/Layer_1.png"
                             alt="User"
                             className="w-full h-full object-cover"
                             />
@@ -77,7 +77,7 @@ export default function UserDashboard() {
                     <div className=" p-4 md:p-8 font-sans text-gray-800">
                         <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm">
+                            <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Customer info</h2>
                             <div className="grid grid-cols-4 gap-4">
                                 <div className="flex flex-col">
@@ -85,35 +85,35 @@ export default function UserDashboard() {
                                 <div className="flex items-center space-x-2">
                                     <div className="w-8 h-8 bg-gray-200 rounded overflow-hidden">
                                     <img
-                                        src="/assets/images/Rectangle 25 (4).png"
+                                        src="/assets/images/Rectangle 25.png"
                                         alt="Albert Flores"
                                         className="object-cover"
                                     />
                                     </div>
-                                    <p className="font-medium text-sm whitespace-nowrap">
+                                    <p className="font-medium text-[10px] font-nowrap">
                                     Albert Flores
                                     </p>
                                 </div>
                                 </div>
                                 <div>
                                 <p className="text-gray-400 text-sm mb-8">Phone</p>
-                                <p className="font-medium text-sm">(270) 555-0117</p>
+                                <p className="font-medium text-[10px] font-nowrap">(270) 555-0117</p>
                                 </div>
                                 <div>
                                 <p className="text-gray-400 text-sm mb-8">Gmail</p>
-                                <p className="font-medium text-sm lowercase">
-                                    albertflores@gmail.com
+                                <p className="font-medium text-[10px] font-nowrap">
+                                     admin@dev.com
                                 </p>
                                 </div>
                                 <div>
                                 <p className="text-gray-400 text-sm mb-8">Location</p>
-                                <p className="font-medium text-sm leading-tight">
-                                    2118 Thornridge Cir. Syracuse, Connecticut 35624
+                                <p className="font-medium text-[10px] font-nowrap">
+                                    2118 Thornridge Cir. Syracuse
                                 </p>
                                 </div>
                             </div>
                             </div>
-                            <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm">
+                            <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Orders summery</h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
@@ -130,7 +130,7 @@ export default function UserDashboard() {
                                     <tr>
                                     <td className="py-6 flex items-center space-x-4">
                                         <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
-                                        <img src="/assets/images/Rectangle 25 (4).png" alt="Hoodie" />
+                                        <img src="/assets/images/Rectangle 25.png" alt="Hoodie" />
                                         </div>
                                         <span>Broon hoodie</span>
                                     </td>
@@ -142,7 +142,7 @@ export default function UserDashboard() {
                                     <tr>
                                     <td className="py-6 flex items-center space-x-4">
                                         <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
-                                        <img src="/assets/images/Rectangle 25 (4).png" alt="Pant" />
+                                        <img src="/assets/images/Frame 2147226352.png" alt="Pant" />
                                         </div>
                                         <span>Black pant</span>
                                     </td>
@@ -169,12 +169,12 @@ export default function UserDashboard() {
                             </div>
                         </div>
                         <div className="lg:col-span-1">
-                            <div className="bg-[var(--bg-grayslight0)] rounded-md p-8 shadow-sm h-full flex flex-col">
+                            <div className="bg-[#FFF9F8] rounded-md p-8 shadow-sm h-full flex flex-col">
                             <h2 className="text-xl font-bold mb-10 font-[Alumni_Sans]">Order summery</h2>
                             <div className="space-y-8 flex-grow px-2">
                                 <div className="flex items-center space-x-4 text-[10px] font-bold">
                                 <div className="w-12 h-12 bg-gray-100 rounded">
-                                    <img src="/assets/images/Rectangle 25 (4).png" />
+                                    <img src="/assets/images/Rectangle 28.png" />
                                 </div>
                                 <div>
                                     <p className="mb-1">Broon hoodie</p>
@@ -185,7 +185,7 @@ export default function UserDashboard() {
                                 </div>
                                 <div className="flex items-center space-x-4 text-[10px] font-bold">
                                 <div className="w-12 h-12 bg-gray-100 rounded">
-                                    <img src="/assets/images/Rectangle 25 (4).png" />
+                                    <img src="/assets/images/Rectangle 25.png" />
                                 </div>
                                 <div>
                                     <p className="mb-1">Black pant</p>
@@ -196,7 +196,7 @@ export default function UserDashboard() {
                                 </div>
                                 <div className="flex items-center space-x-4 text-[10px] font-bold">
                                 <div className="w-12 h-12 bg-gray-100 rounded">
-                                    <img src="/assets/images/Rectangle 25 (4).png" />
+                                    <img src="/assets/images/Rectangle 25.png" />
                                 </div>
                                 <div>
                                     <p className="mb-1">Black shoe</p>
@@ -221,7 +221,7 @@ export default function UserDashboard() {
                                 </div>
                             </div>
                             <div className="mt-10">
-                                <button className="w-full border border-red-700 text-red-700 py-3 rounded-md font-medium text-xs hover:bg-red-50 transition-colors">
+                                <button className="w-full border border-[#C13030] text-[#C13030] py-3 rounded-md font-medium text-xs hover:bg-red-50 transition-colors">
                                 Back
                                 </button>
                             </div>
@@ -232,7 +232,6 @@ export default function UserDashboard() {
                     </main>
                 </div>
                 </div>
-
             </>
 
         </UserLayout>

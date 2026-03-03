@@ -7,7 +7,7 @@ export default function UserDashboard() {
             <>
               <div className="hidden bg-[var(--bg-animation)] p-4 flex justify-between items-center border-b border-gray-200">
                 <div className="w-8">
-                  <img src="#" alt="Logo" className="max-w-full" />
+                  <img src="/assets/images/Layer_1 (2).png" alt="Logo" className="max-w-full" />
                 </div>
                 <button id="menuBtn" className="text-red-600 text-2xl">
                   <i className="fas fa-bars" />
@@ -27,7 +27,7 @@ export default function UserDashboard() {
                     </button>
                     <div className="px-6 mt-4 flex flex-col items-center p-6">
                       <div className="mb-2">
-                        <img src="https://thumbs.dreamstime.com/b/beautiful-rain-forest-ang-ka-nature-trail-doi-inthanon-national-park-thailand-36703721.jpg" alt="Logo" />
+                        <img src="/assets/images/Layer_1 (2).png" alt="Logo" />
                       </div>
                     </div>
                     <nav className="space-y-2 pt-4 border-t border-gray-400 px-6">
@@ -58,7 +58,7 @@ export default function UserDashboard() {
                     <div className="flex items-center mb-6">
                       <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
                         <img
-                          src="https://thumbs.dreamstime.com/b/beautiful-rain-forest-ang-ka-nature-trail-doi-inthanon-national-park-thailand-36703721.jpg"
+                          src="/assets/images/Layer_1 (2).png"
                           alt="User"
                           className="w-full h-full object-cover"
                         />
