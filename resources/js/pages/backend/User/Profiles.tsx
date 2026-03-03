@@ -5,12 +5,12 @@ export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Dashboard" />
-           <div className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
-            <section className=" bg-[#fdf8f7] p-6 md:p-12 font-sans text-[#1a1a1a]">
+           <div className="bg-bg-animation font-sans text-gray-900 overflow-x-hidden">
+            <section className=" bg-bg-animation p-6 md:p-12 font-sans text-gray-900">
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-xl font-bold mb-6 font-['Alumni_Sans']">Profile</h1>
                 <div className="space-y-4">
-                  <div className="bg-[#f4ecea] p-8 rounded-sm">
+                  <div className="bg-[var(--bg-gray0)] p-8 rounded-sm">
                     <div className="space-y-6">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500 text-sm font-['Libre_Franklin']">
@@ -49,7 +49,7 @@ export default function UserHome() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-[#f4ecea] p-8 rounded-sm">
+                  <div className="bg-[var(--bg-gray0)] p-8 rounded-sm">
                     <div className="flex items-center gap-2 mb-6">
                       <span className="text-gray-500 text-sm font-['Libre_Franklin']">
                         Addresses
