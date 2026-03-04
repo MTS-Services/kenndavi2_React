@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Camera, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -68,6 +68,7 @@ export default function EditProfile({ user }: Props) {
                         <CardDescription>Update your profile information</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        
                         <form onSubmit={submit} className="space-y-6">
                             <div className="flex flex-col items-center gap-4">
                                 <div className="relative">

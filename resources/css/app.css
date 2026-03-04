@@ -162,6 +162,8 @@
 }
 
 :root {
+  --bg-yellows:#facc15;
+  --bg-fade: #fdf8f7;
   --bg-oranges: #fff9f4;
   --bg-cofyColor:#ebe4e4;
   --bg-grayslight0:#FFF9F8;

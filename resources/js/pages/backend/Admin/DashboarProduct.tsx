@@ -12,16 +12,9 @@ export default function UserDashboard() {
         <AdminLayout title="Manage your products" description="View, edit, and manage your inventory in one place.">
 
             <>
-
-     
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
-                        <h1 className="text-3xl font-bold text-stone-900 font-[Alumni_Sans]">
-                            Manage your products
-                        </h1>
-                        <p className="text-stone-600 mt-1">
-                            View, edit, and manage your inventory in one place.
-                        </p>
+                        
                         </div>
                         <Link
                         href={route('admin.products.create')}
@@ -31,7 +24,7 @@ export default function UserDashboard() {
                         </Link>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -90,7 +83,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -151,7 +144,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"
@@ -210,7 +203,7 @@ export default function UserDashboard() {
                             </button>
                         </div>
                         </div>
-                        <div className="bg-[#FDF7F7] p-4 rounded-sm shadow-sm flex flex-col">
+                        <div className="bg-[var(--bg-animation)] p-4 rounded-sm shadow-sm flex flex-col">
                         <div className="relative group overflow-hidden bg-gray-200">
                             <img
                             src="/assets/images/Frame 2147226402 (4).png"

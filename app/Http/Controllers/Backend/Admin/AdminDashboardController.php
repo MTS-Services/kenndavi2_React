@@ -38,4 +38,19 @@ class AdminDashboardController extends Controller
     {
         return Inertia::render('backend/Admin/DashboarCustomer');
     }
+
+    public function DashboarShipped(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarShipped');
+    }
+
+    public function DashboarDelivered(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarDelivered');
+    }
+
+    public function DashboarCancelled(Request $request): Response
+    {
+        return Inertia::render('backend/Admin/DashboarCancelled');
+    }
 }

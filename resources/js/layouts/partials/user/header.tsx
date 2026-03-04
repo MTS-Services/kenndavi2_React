@@ -1,16 +1,34 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Menu, X, Search, ShoppingCart, User } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { logout } from '@/routes';
+
 const navigationItems = [
-    { name: 'Men', href: '/' },
-    { name: 'Women', href: '/home-women' },
-    { name: 'Accessories', href: '/accessories' }, 
+    { name: 'Order', href: '/' },
+    { name: 'Profile', href: '/profiles' },
+    { name: 'Settings', href: '/settingx' }, 
 ];
 
-export function UserHeader() {
-    const { url } = usePage();
+interface UserHeaderProps {
+    showProfileMenu?: boolean;
+}
+
+export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
+    const { url, props } = usePage<{ auth?: { user?: { name: string; email: string; avatar_url?: string } } }>();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const user = props?.auth?.user;
+    const logoutRoute = logout();
 
     return (
         <section className="bg-[var(--color-bg-animation)] font-sans text-gray-900 overflow-x-hidden">
@@ -58,9 +76,65 @@ export function UserHeader() {
                     </button>
 
                     {/* User */}
-                    <button onClick={() => router.get('/userlogin')} className="text-lg hover:text-red-600 transition">
-                        <User size={20} />
-                    </button>
+                    {showProfileMenu && user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:text-gray-100">
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-label={user.name}
+                                >
+                                    <path d="M15.5 10.5C15.5 8.567 13.933 7 12 7C10.067 7 8.5 8.567 8.5 10.5C8.5 12.433 10.067 14 12 14C13.933 14 15.5 12.433 15.5 10.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M18 20C18 16.6863 15.3137 14 12 14C8.68629 14 6 16.6863 6 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profiles" className="cursor-pointer">
+                                        <User className="mr-2 h-4 w-4" />
+                                        Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/settingx" className="cursor-pointer">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Settings
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href={logoutRoute.url}
+                                        method="post"
+                                        as="button"
+                                        className="w-full cursor-pointer"
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Log out
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <button className="text-lg hover:text-red-600 transition">
+                            <User size={20} />
+                        </button>
+                    )}
 
                     {/* Mobile Toggle */}
                     <button

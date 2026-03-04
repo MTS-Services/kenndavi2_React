@@ -31,6 +31,4 @@ class UserSelectionController extends Controller
             'users' => $users,
         ]);
     }
-
-   
 }
