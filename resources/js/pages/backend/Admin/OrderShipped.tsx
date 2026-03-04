@@ -150,10 +150,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                              
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -167,10 +167,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -183,10 +183,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                            
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -200,10 +200,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -217,10 +217,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -234,10 +234,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -251,10 +251,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
+                          <td className="px-2 py-2 text-yellow-500 bg-yellow-50 rounded-sm text-center font-medium">Shipped</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -282,7 +282,7 @@ export default function UserDashboard() {
                       <div className="flex flex-col space-y-2">
                         
                         <button 
-                          onClick={() => router.get('/admin/orders/details')}
+                          onClick={() => router.get(route('admin.orders.details'))}
                           className="w-full border border-red-700 text-red-700 py-2 rounded text-xs font-medium"
                         >
                           View Details

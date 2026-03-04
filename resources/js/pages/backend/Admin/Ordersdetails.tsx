@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 
 export default function DashboarOrdersdetails() {
@@ -157,9 +158,12 @@ export default function DashboarOrdersdetails() {
                             </div>
 
                             <div className="mt-10">
-                                <button className="w-full border border-[var(--bg-red)] text-[var(--bg-red)] py-3 rounded-md font-medium text-[12px] hover:bg-red-50 transition-colors">
+                                <Link
+                                    href={route('admin.orders.index')}
+                                    className="block w-full text-center border border-[var(--bg-red)] text-[var(--bg-red)] py-3 rounded-md font-medium text-[12px] hover:bg-red-50 transition-colors"
+                                >
                                     Back
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     </div>

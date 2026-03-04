@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                                     <td className="py-4 font-[Alumni_Sans]">$70</td>
                                     <td className="py-4 font-[Alumni_Sans]">2pcs</td>
                                     <td className="py-4 text-right">
-                                        <button onClick={() => router.get('/admin/orders/details')}
+                                        <button onClick={() => router.get(route('admin.orders.details'))}
                                             className="px-3 py-1.5 bg-[var(--bg-red)] text-white text-xs rounded hover:bg-red-700 transition-colors">
                                             View Details
                                         </button>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                                     <td className="py-4">$70</td>
                                     <td className="py-4">1pc</td>
                                     <td className="py-4 text-right">
-                                        <button onClick={() => router.get('/admin/orders/details')}
+                                        <button onClick={() => router.get(route('admin.orders.details'))}
                                             className="px-3 py-1.5 bg-[var(--bg-red)] text-white text-xs rounded hover:bg-red-700 transition-colors">
                                             View Details
                                         </button>
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
                                     <td className="py-4">$70</td>
                                     <td className="py-4">4pcs</td>
                                     <td className="py-4 text-right">
-                                        <button onClick={() => router.get('/admin/orders/details')}
+                                        <button onClick={() => router.get(route('admin.orders.details'))}
                                             className="px-3 py-1.5 bg-[var(--bg-red)] text-white text-xs rounded hover:bg-red-700 transition-colors">
                                             View Details
                                         </button>

@@ -1,18 +1,29 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import UserLayout from '@/layouts/user-layout'; 
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
+import { th } from 'date-fns/locale';
 export default function UserDashboard() {
     const { url } = usePage();
 
-    const filterButtonClasses = (isActive: boolean) =>
-        'flex items-center space-x-2 pb-4 flex-shrink-0 ' +
-        (isActive ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-500 hover:text-gray-700');
+    const navLinkClasses = (isActive: boolean) =>
+        'flex items-center px-4 py-3 text-gray-900 hover:bg-gray-50 transition' +
+        (isActive ? ' bg-red-50 border-l-4 border-red-600 rounded-l-md font-medium' : '');
 
-    const countByStatus = {
+    type OrderStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
+
+    const [statusFilter, setStatusFilter] = useState<OrderStatus>('pending');
+
+    const countByStatus: Record<OrderStatus, number> = {
         pending: 1,
         shipped: 1,
         delivered: 1,
         cancelled: 1,
     };
+
+    const filterButtonClasses = (isActive: boolean) =>
+        'flex items-center space-x-2 pb-4 flex-shrink-0 ' +
+        (isActive ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-500 hover:text-gray-700');
 
     const badgeClasses = (isActive: boolean) =>
         'text-[10px] px-2 py-1 rounded-full ' +
@@ -25,8 +36,8 @@ export default function UserDashboard() {
                   <div className="flex items-center space-x-4 md:space-x-8 border-b border-gray-200 mb-6 overflow-x-auto pb-1 no-scrollbar">
                     <button
                       type="button"
-                      onClick={() => router.get('/admin/orders')}
-                      className={filterButtonClasses(url === '/admin/orders')}
+                      onClick={() => setStatusFilter('pending')}
+                      className={filterButtonClasses(statusFilter === 'pending')}
                     >
                       <svg
                         className="w-5 h-5 text-red-600"
@@ -44,14 +55,14 @@ export default function UserDashboard() {
                       <span className="font-medium whitespace-nowrap">
                         Pending Shipments
                       </span>
-                      <span className={badgeClasses(url === '/admin/orders')}>
+                      <span className={badgeClasses(statusFilter === 'pending')}>
                         {countByStatus.pending}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => router.get('/admin/orders/shipped')}
-                      className={filterButtonClasses(url === '/admin/orders/shipped')}
+                      onClick={() => setStatusFilter('shipped')}
+                      className={filterButtonClasses(statusFilter === 'shipped')}
                     >
                       <svg
                         className="w-5 h-5"
@@ -67,14 +78,14 @@ export default function UserDashboard() {
                         ></path>
                       </svg>
                       <span className="whitespace-nowrap">Shipped</span>
-                      <span className={badgeClasses(url === '/admin/orders/shipped')}>
+                      <span className={badgeClasses(statusFilter === 'shipped')}>
                         {countByStatus.shipped}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => router.get('/admin/orders/delivered')}
-                      className={filterButtonClasses(url === '/admin/orders/delivered')}
+                      onClick={() => setStatusFilter('delivered')}
+                      className={filterButtonClasses(statusFilter === 'delivered')}
                     >
                       <svg
                         className="w-5 h-5"
@@ -90,14 +101,14 @@ export default function UserDashboard() {
                         />
                       </svg>
                       <span className="whitespace-nowrap">Delivered</span>
-                      <span className={badgeClasses(url === '/admin/orders/delivered')}>
+                      <span className={badgeClasses(statusFilter === 'delivered')}>
                         {countByStatus.delivered}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => router.get('/admin/orders/cancelled')}
-                      className={filterButtonClasses(url === '/admin/orders/cancelled')}
+                      onClick={() => setStatusFilter('cancelled')}
+                      className={filterButtonClasses(statusFilter === 'cancelled')}
                     >
                       <svg
                         className="w-5 h-5"
@@ -113,7 +124,7 @@ export default function UserDashboard() {
                         />
                       </svg>
                       <span className="whitespace-nowrap">Cancelled</span>
-                      <span className={badgeClasses(url === '/admin/orders/cancelled')}>
+                      <span className={badgeClasses(statusFilter === 'cancelled')}>
                         {countByStatus.cancelled}
                       </span>
                     </button>
@@ -139,10 +150,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                              
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -156,10 +167,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -172,10 +183,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                            
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -189,10 +200,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -206,10 +217,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -223,10 +234,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -240,10 +251,10 @@ export default function UserDashboard() {
                           <td className="px-4 py-4 font-semibold text-gray-900">$120</td>
                           <td className="px-4 py-4 text-gray-600">Standard</td>
                           <td className="px-4 py-4 text-gray-600">9/4/26</td>
-                          <td className="px-2 py-2 text-white bg-green-400 rounded-sm text-center font-medium">Complete</td>
+                          <td className="px-2 py-2 text-red-500 bg-red-50 rounded-sm text-center font-medium">Canceled</td>
                           <td className="px-4 py-4 text-right space-x-2">
                             
-                            <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                            <button onClick={() => router.get(route('admin.orders.details'))} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                               View Details
                             </button>
                           </td>
@@ -271,7 +282,7 @@ export default function UserDashboard() {
                       <div className="flex flex-col space-y-2">
                         
                         <button 
-                          onClick={() => router.get('/admin/orders/details')}
+                          onClick={() => router.get(route('admin.orders.details'))}
                           className="w-full border border-red-700 text-red-700 py-2 rounded text-xs font-medium"
                         >
                           View Details

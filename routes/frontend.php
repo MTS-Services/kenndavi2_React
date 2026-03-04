@@ -4,7 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Frontend\FrontendController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')->group(function () {
+
     Route::get('/', [FrontendController::class, 'index'])->name('home');
     Route::get('/men', [FrontendController::class, 'men'])->name('men');
     Route::get('/women', [FrontendController::class, 'women'])->name('women');
@@ -26,4 +26,3 @@ Route::middleware('guest')->group(function () {
     Route::get('/orders', [FrontendController::class, 'orders'])->name('orders');
     Route::get('/orders2', [FrontendController::class, 'orders2'])->name('orders2');
 
-});

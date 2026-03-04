@@ -39,16 +39,24 @@ export function FrontendFooter() {
               </div>
 
               <div className="flex flex-col space-y-4">
-              <h3 className="font-semibold font-['Alumni_Sans'] text-2xl">Join for Exclusive</h3>
-              <form className="flex flex-col sm:flex-row gap-2">
+              <h3 className="font-semibold font-['Alumni_Sans'] text-2xl">
+                  Join for Exclusive Offers + Updates
+              </h3>
+              <p className="text-xs text-gray-600 font-['Libre_Franklin']">
+                  Be the first to know about drops, special offers, and news from Aces in Da Hole.
+              </p>
+              <form className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
                   <input 
-                  type="email" 
-                  placeholder="Enter you email" 
-                  className="flex-1 border border-gray-400 bg-transparent px-12 py-2 text-sm focus:outline-none focus:ring-1 rounded-md"
+                      type="email" 
+                      placeholder="Enter your email"
+                      className="flex-1 border border-gray-400 bg-transparent px-4 py-2 text-sm focus:outline-none focus:ring-1 rounded-md"
                   />
                   <button className="bg-[var(--bg-red)] px-6 py-3 text-white font-medium transition-colors rounded-md">
-                  Subscribe
+                      Subscribe
                   </button>
+                  </div>
+          
               </form>
               </div>
 

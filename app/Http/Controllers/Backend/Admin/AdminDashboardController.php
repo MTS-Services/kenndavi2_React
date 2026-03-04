@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,41 +17,49 @@ class AdminDashboardController extends Controller
 
     public function OrderManagement(Request $request): Response
     {
-        return Inertia::render('backend/Admin/OrderManagement');
+        $validTabs = ['pending', 'shipped', 'delivered', 'cancelled'];
+        $initialTab = $request->query('tab');
+        if (! in_array($initialTab, $validTabs, true)) {
+            $initialTab = 'pending';
+        }
+
+        return Inertia::render('backend/Admin/OrderManagement', [
+            'initialTab' => $initialTab,
+        ]);
     }
 
     public function DashboarOrdersdetails(Request $request): Response
     {
-        return Inertia::render('backend/Admin/DashboarOrdersdetails');
+        return Inertia::render('backend/Admin/Ordersdetails');
     }
 
     public function DashboarProduct(Request $request): Response
     {
-        return Inertia::render('backend/Admin/DashboarProduct');
+        return Inertia::render('backend/Admin/Product');
     }
 
     public function DashboarOrdersAdd(Request $request): Response
     {
-        return Inertia::render('backend/Admin/DashboarOrdersAdd');
+        return Inertia::render('backend/Admin/OrdersAdd');
     }
 
     public function DashboarCustomer(Request $request): Response
     {
-        return Inertia::render('backend/Admin/DashboarCustomer');
+        return Inertia::render('backend/Admin/Customer');
     }
 
-    public function DashboarShipped(Request $request): Response
+    public function DashboarShipped(Request $request): RedirectResponse
     {
-        return Inertia::render('backend/Admin/DashboarShipped');
+        return redirect()->route('admin.orders.index', ['tab' => 'shipped']);
     }
 
-    public function DashboarDelivered(Request $request): Response
+    public function DashboarDelivered(Request $request): RedirectResponse
     {
-        return Inertia::render('backend/Admin/DashboarDelivered');
+        return redirect()->route('admin.orders.index', ['tab' => 'delivered']);
     }
 
-    public function DashboarCancelled(Request $request): Response
+    public function DashboarCancelled(Request $request): RedirectResponse
     {
-        return Inertia::render('backend/Admin/DashboarCancelled');
+        return redirect()->route('admin.orders.index', ['tab' => 'cancelled']);
     }
 }
