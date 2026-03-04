@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import UserLayout from '@/layouts/user-layout'; 
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 export default function UserDashboard() {
     const { url } = usePage();
@@ -31,8 +31,6 @@ export default function UserDashboard() {
     return (
         <AdminLayout title="Order Management" description="Track, manage, and process all customer orders effectively.">
             <>
-
-
                   <div className="bg-[var(--bg-animation)] p-4 md:p-8 font-sans text-slate-700 rounded-lg shadow-sm">
                     <div className="flex items-center space-x-4 md:space-x-8 border-b border-gray-200 mb-6 overflow-x-auto pb-1 no-scrollbar">
                       <button
@@ -60,10 +58,9 @@ export default function UserDashboard() {
                           {countByStatus.pending}
                         </span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setStatusFilter('shipped')}
-                        className={filterButtonClasses(statusFilter === 'shipped')}
+                      <Link
+                        href="/admin/dashboar/shipped"
+                        className={filterButtonClasses(false)}
                       >
                         <svg
                           className="w-5 h-5"
@@ -79,10 +76,10 @@ export default function UserDashboard() {
                           ></path>
                         </svg>
                         <span className="whitespace-nowrap">Shipped</span>
-                        <span className={badgeClasses(statusFilter === 'shipped')}>
+                        <span className={badgeClasses(false)}>
                           {countByStatus.shipped}
                         </span>
-                      </button>
+                      </Link>
                       <button
                         type="button"
                         onClick={() => setStatusFilter('delivered')}
@@ -144,7 +141,7 @@ export default function UserDashboard() {
                           </tr>
                         </thead>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -152,17 +149,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-[var(--bg-red)] text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-[var(--bg-red)] text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -170,17 +167,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-bg-red text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-bg-red text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -188,17 +185,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -206,17 +203,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -224,17 +221,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-bg-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -242,17 +239,17 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
                           </tr>
                         </tbody>
                         <tbody className="text-sm">
-                          <tr className="bg-white hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
+                          <tr className="hover:bg-gray-50 transition-colors shadow-sm rounded-lg">
                             <td className="px-4 py-4 font-medium">#SLR980131-9N</td>
                             <td className="px-4 py-4 text-gray-600">Jerome Bell</td>
                             <td className="px-4 py-4 text-gray-600">Hoodie</td>
@@ -260,10 +257,10 @@ export default function UserDashboard() {
                             <td className="px-4 py-4 text-gray-600">Standard</td>
                             <td className="px-4 py-4 text-gray-600">9/4/26</td>
                             <td className="px-4 py-4 text-right space-x-2">
-                              <button className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
+                              <button onClick={() => router.get('/admin/dashboar/shipped')} className="bg-red-700 text-white px-4 py-2 rounded text-xs font-medium hover:bg-red-800 transition-colors">
                                 Mark As Shipped
                               </button>
-                              <button className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
+                              <button onClick={() => router.get('/admin/orders/details')} className="border border-red-700 text-red-700 px-4 py-2 rounded text-xs font-medium hover:bg-red-50 transition-colors">
                                 View Details
                               </button>
                             </td>
@@ -293,10 +290,13 @@ export default function UserDashboard() {
                           </div>
                         </div>
                         <div className="flex flex-col space-y-2">
-                          <button className="w-full bg-red-700 text-white py-2 rounded text-xs font-medium">
+                          <button onClick={() => router.get('/admin/dashboar/shipped')} className="w-full bg-red-700 text-white py-2 rounded text-xs font-medium">
                             Mark As Shipped
                           </button>
-                          <button className="w-full border border-red-700 text-red-700 py-2 rounded text-xs font-medium">
+                          <button 
+                            onClick={() => router.get('/admin/orders/details')}
+                            className="w-full border border-red-700 text-red-700 py-2 rounded text-xs font-medium"
+                          >
                             View Details
                           </button>
                         </div>

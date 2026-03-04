@@ -26,6 +26,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Orders
         Route::get('/orders', [AdminDashboardController::class, 'OrderManagement'])->name('orders.index');
         Route::get('/orders/details', [AdminDashboardController::class, 'DashboarOrdersdetails'])->name('orders.details');
+        Route::get('/dashboar/shipped', [AdminDashboardController::class, 'DashboarShipped'])->name('orders.shipped');
+        Route::get('/dashboar/delivered', [AdminDashboardController::class, 'DashboarDelivered'])->name('dashboar.delivered');
+        Route::get('/dashboar/cancelled', [AdminDashboardController::class, 'DashboarCancelled'])->name('dashboar.cancelled');
 
         // Products
         Route::get('/products', [AdminDashboardController::class, 'DashboarProduct'])->name('products.index');

@@ -16,8 +16,8 @@ export default function UserDashboard() {
     return (
         <FrontendLayout>
             <div>
-                <div className="bg-[#FDF7F7] font-sans text-gray-900 overflow-x-hidden">
-                <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[#f4eded] px-6 py-5 md:px-12">
+                <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
+                <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[var(--bg-grayslight)] px-6 py-5 md:px-12">
                     <div className="flex items-center gap-2">
                     <img src="/assets/images/Rectangle 4343 (1).png" alt="Logo" className="h-10 w-auto" />
                     </div>
@@ -67,7 +67,7 @@ export default function UserDashboard() {
                     </div>
                     <div
                     id="mobile-menu"
-                    className="absolute left-0 top-full hidden w-full bg-[#f4eded] border-t border-gray-200 p-6 md:hidden"
+                    className="absolute left-0 top-full hidden w-full bg-[var(--bg-grayslight)] border-t border-gray-200 p-6 md:hidden"
                     >
                     <ul className="flex flex-col space-y-4 text-sm font-semibold uppercase tracking-wider font-['Libre_Franklin']">
                         <li>
@@ -98,9 +98,9 @@ export default function UserDashboard() {
                     </ul>
                     </div>
                 </nav>
-                <div className="min-h-screen bg-[#fdf8f7] p-4 md:p-10 font-sans text-[#1a1a1a]">
+                <div className="min-h-screen bg-[var(--bg-fade)] p-4 md:p-10 font-sans text-gray-900">
                     <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="bg-[#f4ecea] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
+                    <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
                         <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                         <img
                             src="/assets/images/Rectangle 4343 (1).png"
@@ -131,7 +131,7 @@ export default function UserDashboard() {
                         </button>
                         </div>
                     </div>
-                    <div className="bg-[#f4ecea] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
+                    <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
                         <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                         <img
                             src="/assets/images/Rectangle 4343 (1).png"
@@ -161,7 +161,7 @@ export default function UserDashboard() {
                         </button>
                         </div>
                     </div>
-                    <div className="bg-[#f4ecea] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
+                    <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
                         <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                         <img
                             src="/assets/images/Rectangle 4343 (1).png"
@@ -186,7 +186,7 @@ export default function UserDashboard() {
                             and street style.
                         </p>
                         <p className="text-xl font-bold mb-6 font-['Libre_Franklin']">$199</p>
-                        <button onClick={() => router.get('/orders2')} className="bg-[#c22e2e] text-white px-6 py-2 rounded-sm text-sm hover:bg-red-800 transition-colors font-['Libre_Franklin']">
+                        <button onClick={() => router.get('/orders2')} className="bg-bg-red text-white px-6 py-2 rounded-sm text-sm hover:bg-red-800 transition-colors font-['Libre_Franklin']">
                             Write A Review
                         </button>
                         </div>

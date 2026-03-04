@@ -53,7 +53,7 @@ export function FrontendHeader() {
                     </div>
 
                     {/* Cart */}
-                    <button className="text-lg hover:text-red-600 transition">
+                    <button onClick={() => router.get('/cartpage')} className="text-lg hover:text-red-600 transition">
                         <ShoppingCart size={20} />
                     </button>
 

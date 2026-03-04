@@ -12,16 +12,9 @@ export default function UserDashboard() {
         <AdminLayout title="Manage your products" description="View, edit, and manage your inventory in one place.">
 
             <>
-
-     
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
-                        <h1 className="text-3xl font-bold text-stone-900 font-[Alumni_Sans]">
-                            Manage your products
-                        </h1>
-                        <p className="text-stone-600 mt-1">
-                            View, edit, and manage your inventory in one place.
-                        </p>
+                        
                         </div>
                         <Link
                         href={route('admin.products.create')}
