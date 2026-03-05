@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -88,4 +87,21 @@ class FrontendController extends Controller
     {
         return Inertia::render('frontend/User/orders2');
     }
+
+    public function shippings(): Response 
+    {
+        return Inertia::render('frontend/shippings');
+    }
+
+    public function privacyPolicy(): Response 
+    {
+        return Inertia::render('frontend/privacy-policy');
+    }
+
+    public function termsAndConditions(): Response 
+    {
+        return Inertia::render('frontend/terms-and-conditions');
+    }
+
+    
 }
