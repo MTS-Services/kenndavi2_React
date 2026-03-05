@@ -25,4 +25,6 @@ use Illuminate\Support\Facades\Route;
     Route::get('/sweatsuitsmen', [FrontendController::class, 'sweatsuitsMen'])->name('sweatsuitsmen');
     Route::get('/orders', [FrontendController::class, 'orders'])->name('orders');
     Route::get('/orders2', [FrontendController::class, 'orders2'])->name('orders2');
-
+    Route::get('/shippings', [FrontendController::class, 'shippings'])->name('shippings');
+    Route::get('/privacy-policy', [FrontendController::class, 'privacyPolicy'])->name('privacy.policy');
+    Route::get('/terms-and-conditions', [FrontendController::class, 'termsAndConditions'])->name('terms.and.conditions');

@@ -1,5 +1,5 @@
 import AppLogo from '@/components/app-logo';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import logo from "./assets/Layer_1.png";
 export function FrontendFooter() {
     return (
@@ -33,9 +33,9 @@ export function FrontendFooter() {
               </div>
 
               <div className="flex flex-col space-y-4">
-              <a href="#" className="hover:underline underline-offset-4">Shipping & returns</a>
-              <a href="#" className="hover:underline underline-offset-4">Privacy policy</a>
-              <a href="#" className="hover:underline underline-offset-4">Terms & conditions</a>
+              <a href="#" onClick={() => router.visit('/shippings')} className="hover:underline underline-offset-4">Shipping & returns</a>
+              <a href="#" onClick={() => router.visit('/privacy-policy')} className="hover:underline underline-offset-4">Privacy policy</a>
+              <a href="#" onClick={() => router.visit('/terms-and-conditions')} className="hover:underline underline-offset-4">Terms & conditions</a>
               </div>
 
               <div className="flex flex-col space-y-4">
