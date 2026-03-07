@@ -1,4 +1,5 @@
 import React from 'react';
+
 import type { Beneficiary } from './will-types';
 import { UK_COUNTRY_OPTIONS } from './wizard-constants';
 

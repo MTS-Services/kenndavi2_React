@@ -1,4 +1,5 @@
 import { Head, router } from "@inertiajs/react";
+
 import FrontendLayout from "@/layouts/frontend-layout";
 
 export default function ProductDetails2() {

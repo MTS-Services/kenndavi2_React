@@ -1,6 +1,7 @@
+import { Head, Link, usePage } from '@inertiajs/react';
+
 import AdminLayout from '@/layouts/admin-layout';
 import UserLayout from '@/layouts/user-layout'; 
-import { Head, Link, usePage } from '@inertiajs/react';
 export default function UserDashboard() {
     const { url } = usePage();
 

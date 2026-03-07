@@ -1,6 +1,7 @@
-import FrontendLayout from '@/layouts/frontend-layout';
 import { Head, router } from '@inertiajs/react';
 import React from 'react';
+
+import FrontendLayout from '@/layouts/frontend-layout';
 
 // Reusable Hover Component specifically for the AI Assistant layout
 const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: { 

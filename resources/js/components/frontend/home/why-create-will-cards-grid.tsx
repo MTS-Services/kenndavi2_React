@@ -1,6 +1,6 @@
+import { PoundSterling } from 'lucide-react';
 import React from 'react';
 
-import { PoundSterling } from 'lucide-react';
 
 import { useReveal } from '@/hooks/use-reveal';
 

@@ -1,11 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Menu, X, Search, ShoppingCart, User } from 'lucide-react';
+import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useState } from 'react';
 
 const navigationItems = [
     { name: 'Men', href: '/' },
     { name: 'Women', href: '/home-women' },
-    { name: 'Accessories', href: '/accessories' }, 
+    { name: 'Accessories', href: '/accessories' },
 ];
 
 export function FrontendHeader() {
@@ -13,24 +13,27 @@ export function FrontendHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <section className="bg-[var(--color-bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[var(--bg-white-secondary)] px-6 py-5 md:px-12">
-
+        <section className="overflow-x-hidden bg-[var(--bg-animation)] font-sans text-white">
+            <nav className="relative z-50 container mx-auto mt-10 flex items-center justify-between bg-black/30 backdrop-blur-md px-6 py-5 md:px-12 border-b border-white/10">
                 {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link href="/">
-                        <img src="/assets/images/Layer_1.png" alt="Logo" className="h-10 w-auto" />
+                        <img
+                            src="/assets/images/Layer_1.png"
+                            alt="Logo"
+                            className="h-10 w-auto"
+                        />
                     </Link>
                 </div>
 
                 {/* Desktop Navigation */}
-                <ul className="hidden md:flex space-x-10 text-md font-semibold tracking-wider font-[Libre_Franklin]">
+                <ul className="text-md hidden space-x-10 font-[Libre_Franklin] font-semibold tracking-wider md:flex">
                     {navigationItems.map((item) => (
                         <li key={item.name}>
                             <Link
                                 href={item.href}
-                                className={`transition hover:text-red-600 ${
-                                    url === item.href ? 'text-red-600' : ''
+                                className={`transition hover:text-white ${
+                                    url === item.href ? 'text-white font-bold' : 'text-gray-300'
                                 }`}
                             >
                                 {item.name}
@@ -41,30 +44,35 @@ export function FrontendHeader() {
 
                 {/* Right Side Icons */}
                 <div className="flex items-center gap-3 md:gap-6">
-
                     {/* Search */}
-                    <div className="relative hidden sm:flex items-center gap-2 rounded bg-black px-4 py-2.5">
-                        <Search size={14} className="text-gray-400" />
+                    <div className="relative hidden items-center gap-2 rounded bg-gray-900 px-4 py-2.5 sm:flex">
+                        <Search size={14} className="text-gray-100" />
                         <input
                             type="text"
                             placeholder="Search"
-                            className="w-20 md:w-32 bg-transparent text-xs text-white outline-none placeholder:text-gray-500"
+                            className="w-20 bg-transparent text-xs text-white outline-none placeholder:text-gray-100 md:w-32"
                         />
                     </div>
 
                     {/* Cart */}
-                    <button onClick={() => router.get('/cartpage')} className="text-lg hover:text-red-600 transition">
+                    <button
+                        onClick={() => router.get('/cartpage')}
+                        className="text-lg transition hover:text-white text-gray-300"
+                    >
                         <ShoppingCart size={20} />
                     </button>
 
                     {/* User */}
-                    <button onClick={() => router.get('/userlogin')} className="text-lg hover:text-red-600 transition">
+                    <button
+                        onClick={() => router.get('/userlogin')}
+                        className="text-lg transition hover:text-white text-gray-300"
+                    >
                         <User size={20} />
                     </button>
 
                     {/* Mobile Toggle */}
                     <button
-                        className="md:hidden text-2xl"
+                        className="text-2xl md:hidden"
                         onClick={() => setMobileOpen(!mobileOpen)}
                     >
                         {mobileOpen ? <X /> : <Menu />}
@@ -73,14 +81,16 @@ export function FrontendHeader() {
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div className="absolute left-0 top-full w-full bg-[var(--bg-white-secondary)] border-t border-gray-200 p-6 md:hidden">
-                        <ul className="flex flex-col space-y-4 text-sm font-semibold uppercase tracking-wider">
+                    <div className="absolute top-full left-0 w-full border-t border-white/10 bg-black/90 backdrop-blur-md p-6 md:hidden">
+                        <ul className="flex flex-col space-y-4 text-sm font-semibold tracking-wider uppercase">
                             {navigationItems.map((item) => (
                                 <li key={item.name}>
                                     <Link
                                         href={item.href}
                                         className={`block ${
-                                            url === item.href ? 'text-red-600' : ''
+                                            url === item.href
+                                                ? 'text-white font-bold'
+                                                : 'text-gray-300'
                                         }`}
                                         onClick={() => setMobileOpen(false)}
                                     >
@@ -90,13 +100,16 @@ export function FrontendHeader() {
                             ))}
 
                             {/* Mobile Search */}
-                            <li className="pt-4 border-t border-gray-300">
-                                <div className="flex items-center gap-2 rounded bg-black px-4 py-2">
-                                    <Search size={14} className="text-gray-400" />
+                            <li className="border-t border-white/10 pt-4">
+                                <div className="flex items-center gap-2 rounded bg-white/10 px-4 py-2">
+                                    <Search
+                                        size={14}
+                                        className="text-gray-400"
+                                    />
                                     <input
                                         type="text"
                                         placeholder="Search"
-                                        className="w-full bg-transparent text-xs text-white outline-none"
+                                        className="w-full bg-transparent text-xs text-white outline-none placeholder:text-gray-400"
                                     />
                                 </div>
                             </li>

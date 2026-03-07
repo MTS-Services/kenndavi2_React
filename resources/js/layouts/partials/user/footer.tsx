@@ -1,5 +1,7 @@
-import AppLogo from '@/components/app-logo';
 import { Link } from '@inertiajs/react';
+
+import AppLogo from '@/components/app-logo';
+
 import logo from "./assets/Layer_1.png";
 export function UserFooter() {
     return (

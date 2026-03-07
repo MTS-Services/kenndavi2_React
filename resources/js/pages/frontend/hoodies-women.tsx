@@ -1,6 +1,7 @@
-import FrontendLayout from '@/layouts/frontend-layout';
 import { Head, router } from '@inertiajs/react';
 import React from 'react';
+
+import FrontendLayout from '@/layouts/frontend-layout';
 
 interface GalleryItemProps {
     src: string;

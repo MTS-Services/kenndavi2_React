@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import type { Child } from './will-types';
+
 import SmoothCollapse from './smooth-collapse';
+import type { Child } from './will-types';
 
 const CHILDREN_FAQ = [
     { question: 'Should I list step-children?', answer: 'Yes. Any child or dependent you want covered by your will should be listed so the document can reference them explicitly.' },

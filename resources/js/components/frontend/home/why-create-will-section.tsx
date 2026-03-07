@@ -1,11 +1,12 @@
-import React from 'react';
 
 import { Link } from '@inertiajs/react';
 import { PoundSterling } from 'lucide-react';
+import React from 'react';
 
-import { WhyCreateWillHeroSection } from './why-create-will-hero-section';
-import { WhyCreateWillCardsGrid } from './why-create-will-cards-grid';
 import { useReveal } from '@/hooks/use-reveal';
+
+import { WhyCreateWillCardsGrid } from './why-create-will-cards-grid';
+import { WhyCreateWillHeroSection } from './why-create-will-hero-section';
 
 type WhyCard = {
     title: string;

@@ -1,5 +1,6 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
+import React from 'react';
+
 import AppLogo from '@/components/app-logo';
 
 const StepsHeader: React.FC = () => (

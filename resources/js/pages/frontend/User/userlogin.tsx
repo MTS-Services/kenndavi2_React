@@ -1,4 +1,5 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+
 import FrontendLayout from '@/layouts/frontend-layout';
 
 export default function UserLogin() {
@@ -15,7 +16,16 @@ export default function UserLogin() {
         <FrontendLayout>
             <Head title="User Login" />
 
-            <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans">
+            <div
+                className="font-sans text-white overflow-x-hidden relative min-h-screen"
+                style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans">
                 <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-sidebar">
                     
                     <div className="flex flex-col items-center mb-10">
@@ -67,6 +77,7 @@ export default function UserLogin() {
                         </Link>
                     </div>
                 </div>
+            </div>
             </div>
         </FrontendLayout>
     );

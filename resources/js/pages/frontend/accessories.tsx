@@ -1,6 +1,7 @@
-import FrontendLayout from '@/layouts/frontend-layout';
 import { router } from '@inertiajs/react';
 import React from 'react';
+
+import FrontendLayout from '@/layouts/frontend-layout';
 
 // Reusable Hover Component
 const GalleryItem = ({ src, alt = '', title, colSpan = '', height = 'h-full' }: { src?: string; alt?: string; title?: string; colSpan?: string; height?: string }) => {
@@ -41,20 +42,20 @@ const GalleryItem = ({ src, alt = '', title, colSpan = '', height = 'h-full' }: 
 
 const BeltGallery = () => {
   return (
-    <div className="bg-[var(--bg-accessories)] font-sans text-gray-900 overflow-x-hidden">
-      
+    <div className="bg-[var(--bg-animation)] font-sans text-white overflow-x-hidden relative" style={{ backgroundImage: `url("/assets/images/bg.png")`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
+       <div className="absolute inset-0 bg-sidebar/50 z-0"></div>
       {/* SECTION 1: 3-Column Grid */}
-      <section className="py-12 px-4 md:px-8">
+      <section className="py-12 px-4 md:px-8" >
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <GalleryItem src="assets/images/Rectangle 16 (3).png" title="Brown Leather" height="h-[600px] md:h-[1064px]" />
+            <GalleryItem src="/assets/images/Rectangle 16 (3).png" title="Brown Leather" height="h-[600px] md:h-[1064px]" />
             
             <div className="flex flex-col gap-6">
-              <GalleryItem src="assets/images/Rectangle 18 (4).png" title="Gift Set" height="h-[520px]" />
-              <GalleryItem src="assets/images/Frame 98 (3).png" title="Classic Wear" height="h-[520px]" />
+              <GalleryItem src="/assets/images/Rectangle 18 (4).png" title="Gift Set" height="h-[520px]" />
+              <GalleryItem src="/assets/images/Frame 98 (3).png" title="Classic Wear" height="h-[520px]" />
             </div>
 
-            <GalleryItem src="assets/images/Rectangle 15 (3).png" title="Man Collection" height="h-[600px] md:h-[1064px]" />
+            <GalleryItem src="/assets/images/Rectangle 15 (3).png" title="Man Collection" height="h-[600px] md:h-[1064px]" />
           </div>
         </div>
       </section>
@@ -62,11 +63,11 @@ const BeltGallery = () => {
       {/* SECTION 2: 2/3 and 1/3 Grid */}
       <section className="p-4 md:p-10">
         <div className="container mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <GalleryItem src="assets/images/Rectangle 16 (4).png" title="Signature Series" colSpan="lg:col-span-2" height="h-[650px]" />
+          <GalleryItem src="/assets/images/Rectangle 16 (4).png" title="Signature Series" colSpan="lg:col-span-2" height="h-[650px]" />
           
           <div className="flex flex-col gap-6 h-[650px]">
-            <GalleryItem src="assets/images/Rectangle 18 (5).png" title="Leather Detail" height="flex-1" />
-            <GalleryItem src="assets/images/Frame 98 (4).png" title="Daily Belt" height="flex-1" />
+            <GalleryItem src="/assets/images/Rectangle 18 (5).png" title="Leather Detail" height="flex-1" />
+            <GalleryItem src="/assets/images/Frame 98 (4).png" title="Daily Belt" height="flex-1" />
           </div>
         </div>
       </section>
@@ -74,14 +75,14 @@ const BeltGallery = () => {
       {/* SECTION 3: Balanced 3-Column Grid */}
       <section className="p-4 md:p-10">
         <div className="container mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <GalleryItem src="assets/images/Rectangle 16 (5).png" title="Vintage Brown" height="h-[700px]" />
+          <GalleryItem src="/assets/images/Rectangle 16 (5).png" title="Vintage Brown" height="h-[700px]" />
           
           <div className="flex flex-col gap-6 h-[700px]">
-            <GalleryItem src="assets/images/Rectangle 18 (6).png" title="Elite Box" height="flex-1" />
-            <GalleryItem src="assets/images/Frame 98 (5).png" title="Jean Style" height="flex-1" />
+            <GalleryItem src="/assets/images/Rectangle 18 (6).png" title="Elite Box" height="flex-1" />
+            <GalleryItem src="/assets/images/Frame 98 (5).png" title="Jean Style" height="flex-1" />
           </div>
 
-          <GalleryItem src="assets/images/Rectangle 15 (4).png" title="Office Wear" height="h-[700px]" />
+          <GalleryItem src="/assets/images/Rectangle 15 (4).png" title="Office Wear" height="h-[700px]" />
         </div>
       </section>
 

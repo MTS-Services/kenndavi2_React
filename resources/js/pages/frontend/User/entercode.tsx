@@ -1,4 +1,5 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+
 import FrontendLayout from '@/layouts/frontend-layout';
 
 interface Props {

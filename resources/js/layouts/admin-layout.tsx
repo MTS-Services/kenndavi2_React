@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { AdminHeader } from './partials/admin/header';
+
 import { AdminFooter } from './partials/admin/footer';
+import { AdminHeader } from './partials/admin/header';
 import { Logo } from './partials/admin/logo';
 import { AdminSidebar } from './partials/admin/sidebar';
 

@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
-import FrontendLayout from '@/layouts/frontend-layout'; 
 import { useState, useEffect } from 'react';
+
+import FrontendLayout from '@/layouts/frontend-layout'; 
 
 const heroSlides = [
     {
@@ -24,10 +25,16 @@ const heroSlides = [
         secondaryCta: 'Discover More',
         image: '/assets/images/Rectangle 11.jpg',
     },
+    {
+        id: 3,
+        title: 'Teal sweatsuits',
+        primaryCta: 'View Details',
+        secondaryCta: '',
+        image: '/assets/images/Rectangle 13 (2).png',
+    },
 ];
 
 export default function Home() {
-    const [activeTab, setActiveTab] = useState('men');
     const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
     const totalHeroSlides = heroSlides.length;
@@ -53,8 +60,8 @@ export default function Home() {
     return (
         <FrontendLayout>
             <Head title="Home Page" />
-            <section className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-
+            <section className="bg-[var(--bg-animation)] font-sans text-white overflow-x-hidden" style={{ backgroundImage: 'url("/assets/images/bg.png")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
+                <div className="absolute inset-0 bg-gray-900/48 z-0"></div>
                 <section className="relative min-h-[90vh] lg:h-[80vh] flex flex-col lg:flex-row items-center px-6 md:px-12 lg:px-24 overflow-hidden container mx-auto lg:pt-20 pt-8">
             
                 <div className="relative max-w-xl z-20 text-center lg:text-left">
@@ -68,9 +75,11 @@ export default function Home() {
                     <button className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-black transition w-full sm:w-auto">
                         {heroSlides[currentHeroIndex].primaryCta}
                     </button>
-                    <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
-                        {heroSlides[currentHeroIndex].secondaryCta}
-                    </button>
+                    {heroSlides[currentHeroIndex].secondaryCta && (
+                        <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
+                            {heroSlides[currentHeroIndex].secondaryCta}
+                        </button>
+                    )}
                     </div>
                 </div>
 

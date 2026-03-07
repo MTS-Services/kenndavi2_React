@@ -1,5 +1,5 @@
-import React from 'react';
 import { router } from '@inertiajs/react';
+import React from 'react';
 
 const heroContent = {
     image: 'https://images.pexels.com/photos/4069291/pexels-photo-4069291.jpeg?auto=compress&cs=tinysrgb&w=1200',
