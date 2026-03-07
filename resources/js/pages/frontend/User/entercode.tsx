@@ -20,8 +20,17 @@ export default function EnterCode({ email = '' }: Props) {
     return (
         <FrontendLayout>
             <Head title="Enter Code" />
-            <div className="bg-[var(--bg-animation)] font-sans text-gray-900 flex items-center justify-center">
-                <div className="container mx-auto p-12 flex justify-center">
+            <div
+                className="font-sans text-white overflow-x-hidden relative min-h-screen"
+                style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
+                <div className="container mx-auto p-12 flex justify-center relative z-10">
                     <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-[#1a1a1a]">
                         <div className="flex flex-col items-center mb-10">
                             <img src="/assets/images/Layer_1.png" alt="Logo" className="h-16 w-auto" />

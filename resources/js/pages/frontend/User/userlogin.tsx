@@ -25,7 +25,9 @@ export default function UserLogin() {
                     backgroundPosition: 'center',
                 }}
             >
-                <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans">
+                
+                <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
+                <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans relative z-10">
                 <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-sidebar">
                     
                     <div className="flex flex-col items-center mb-10">

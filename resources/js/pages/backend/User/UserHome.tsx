@@ -6,8 +6,17 @@ export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Dashboard" />
-            <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-             <div className="min-h-screen bg-[var(--bg-fade)] p-4 md:p-10 font-sans text-gray-900">
+            <div
+                className="font-sans text-gray-900 overflow-x-hidden relative min-h-screen"
+                style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <div className="absolute inset-0 bg-gray-900/30 z-10"></div>
+                <div className="min-h-screen bg-[var(--bg-fade)] p-4 md:p-10 font-sans text-gray-900 relative z-10">
                 <div className="max-w-4xl mx-auto space-y-6">
                 <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6 relative">
                     <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
@@ -101,7 +110,7 @@ export default function UserHome() {
                     </div>
                 </div>
                 </div>
-             </div>
+                </div>
             </div>
 
         </UserLayout>
