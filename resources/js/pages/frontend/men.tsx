@@ -119,9 +119,9 @@ export default function Home() {
 
 
                <div className="text-black container mx-auto">
-                <section className="px-10 lg:px-24 lg:py-20 py-6">
+                <section className="px-10 lg:px-24 lg:py-20 py-6 relative z-10">
                     <div className="flex items-center justify-between mb-10">
-                        <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">Featured Products</h2>
+                        <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans'] text-gray-100">Featured Products</h2>
                     </div>
 
                     <div className="grid grid-cols-2 gap-8">
