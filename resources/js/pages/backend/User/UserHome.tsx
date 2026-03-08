@@ -6,28 +6,15 @@ export default function UserHome() {
         <UserLayout>
             <Head title="Dashboard" />
 
-            {/* Main Wrapper with Background */}
-            <div
-                    className="relative min-h-screen w-full font-sans text-gray-900 bg-fixed pt-12"
-                    style={{
-                        backgroundImage: 'url("/assets/images/bg.png")',
-                        backgroundSize: 'cover',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
-                        backgroundAttachment: 'fixed',
-                    }}
-                >
-                    {/* Dark Overlay to make text pop */}
-                    <div className="absolute inset-0 bg-gray-900/40 z-0"></div>
-                        <div className="relative z-10 max-w-4xl mx-4 md:mx-auto space-y-6 ">
-                            
-                            
+            {/* Main Wrapper (inherits layout background) */}
+            <div className="relative min-h-screen w-full font-sans text-gray-900 pt-12">
+                <div className="relative z-10 max-w-4xl mx-4 md:mx-auto space-y-6 ">
                             {/* Order Card: Pending */}
-                            <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6">
+                            <div className="bg-[var(--bg-gray0)] p-2 rounded-sm flex flex-col md:flex-row gap-6">
                                 <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                                     <img
                                         src="/assets/images/Rectangle 4343.png"
-                                        alt="Broon Hoodie"
+                                        alt="1Broon Hoodie"
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
@@ -53,7 +40,7 @@ export default function UserHome() {
                             </div>
 
                             {/* Order Card: Packed */}
-                            <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6">
+                            <div className="bg-[var(--bg-gray0)] p-2 rounded-sm flex flex-col md:flex-row gap-6">
                                 <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                                     <img src="/assets/images/Rectangle 4343.png" alt="Broon Hoodie" className="w-full h-full object-cover" />
                                 </div>
@@ -70,7 +57,7 @@ export default function UserHome() {
                             </div>
 
                             {/* Order Card: Delivered */}
-                            <div className="bg-[var(--bg-gray0)] p-6 rounded-sm flex flex-col md:flex-row gap-6">
+                            <div className="bg-[var(--bg-gray0)] p-2 rounded-sm flex flex-col md:flex-row gap-6">
                                 <div className="w-full md:w-48 aspect-square bg-gray-200 overflow-hidden rounded-sm">
                                     <img src="/assets/images/Rectangle 4343.png" alt="Broon Hoodie" className="w-full h-full object-cover" />
                                 </div>
@@ -82,15 +69,14 @@ export default function UserHome() {
                                     <h3 className="text-xl font-bold mb-2 font-[Alumni_Sans]">Broon Hoodie</h3>
                                     <p className="text-sm text-gray-600 mb-4 max-w-lg font-[Libre_Franklin]">A premium, smooth hoodie crafted for street style.</p>
                                     <p className="text-xl font-bold mb-6 font-[Libre_Franklin]">$199</p>
-                                    <button 
-                                        onClick={() => router.get('/review')} 
+                                    <button
+                                        onClick={() => router.get('/review')}
                                         className="bg-red-600 text-white px-6 py-2 rounded-sm text-sm hover:bg-red-700 transition-colors font-[Libre_Franklin]"
                                     >
                                         Write A Review
                                     </button>
                                 </div>
                             </div>
-
                         </div>
                     </div>
             </UserLayout>

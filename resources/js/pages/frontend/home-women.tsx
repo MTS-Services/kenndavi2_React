@@ -13,17 +13,17 @@ const heroSlidesWomen = [
     },
     {
         id: 1,
-        title: 'Signature women’s hoodies tailored for all–day comfort and standout style.',
+        title: "Signature women's hoodies tailored for all–day comfort and standout style.",
         primaryCta: 'Shop Women',
         secondaryCta: 'View Collection',
-        image: '/assets/images/Rectangle 9.png',
+        image: '/assets/images/AdobeExpress(2).png',
     },
     {
         id: 2,
         title: 'Statement pieces that move with you—from coffee runs to night outs.',
         primaryCta: 'Explore Looks',
         secondaryCta: 'Discover More',
-        image: '/assets/images/Frame 42.png',
+        image: '/assets/images/Rectangle 9-Photoroom.png',
     },
 ];
 
@@ -52,9 +52,8 @@ const HomeWomen: React.FC = () => {
 
     return (
         <FrontendLayout>
-            <Head title="Home Page" />
-            <section className="bg-[var(--bg-animation)] font-sans text-white overflow-x-hidden relative" style={{ backgroundImage: 'url("/assets/images/bg.png")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
-                <div className="absolute inset-0 bg-sidebar/50 z-0"></div>
+            <Head title="Home Page " />
+            <section className="font-sans text-white overflow-x-hidden relative bg-transparent">
                 <section className="relative min-h-[90vh] lg:h-[80vh] flex flex-col lg:flex-row items-center px-6 md:px-12 lg:px-24 overflow-hidden container mx-auto lg:pt-20 pt-8">
                     <div className="relative max-w-xl z-20 text-center lg:text-left">
                         <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
@@ -108,7 +107,7 @@ const HomeWomen: React.FC = () => {
 
 
 
-                <div className="text-black container mx-auto">
+                <div className="text-white container mx-auto">
                     <section className="px-10 lg:px-24 lg:py-20 py-6">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="lg:text-5xl text-3xl font-semibold tracking-tight font-['Alumni_Sans']">Featured Products</h2>
@@ -128,7 +127,7 @@ const HomeWomen: React.FC = () => {
                                 </div>
 
                                 {/* Content Container with multiple animations */}
-                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out 
+                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out
                                                     translate-y-4 opacity-90 group-hover:translate-y-0 group-hover:opacity-100">
 
                                     {/* Title with slide-up and fade effect */}
@@ -146,7 +145,7 @@ const HomeWomen: React.FC = () => {
                                     {/* The Button with pop-up effect */}
                                     <button
                                         onClick={() => router.visit('/productdetails')}
-                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
+                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
                                                     group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0 group-hover:pointer-events-auto
@@ -155,7 +154,7 @@ const HomeWomen: React.FC = () => {
                                                     relative overflow-hidden"
                                     >
                                         {/* Button shine effect */}
-                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
                                                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
                                         <span className="relative z-10">View Details</span>
                                     </button>
@@ -177,7 +176,7 @@ const HomeWomen: React.FC = () => {
                                 </div>
 
                                 {/* Content Container with multiple animations */}
-                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out 
+                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out
                                                     translate-y-4 opacity-90 group-hover:translate-y-0 group-hover:opacity-100">
 
                                     {/* Title with slide-up and fade effect */}
@@ -195,7 +194,7 @@ const HomeWomen: React.FC = () => {
                                     {/* The Button with pop-up effect */}
                                     <button
                                         onClick={() => router.visit('/productdetails')}
-                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
+                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
                                                     group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0 group-hover:pointer-events-auto
@@ -204,7 +203,7 @@ const HomeWomen: React.FC = () => {
                                                     relative overflow-hidden"
                                     >
                                         {/* Button shine effect */}
-                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
                                                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
                                         <span className="relative z-10">View Details</span>
                                     </button>
@@ -226,7 +225,7 @@ const HomeWomen: React.FC = () => {
                                 </div>
 
                                 {/* Content Container with multiple animations */}
-                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out 
+                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out
                                                     translate-y-4 opacity-90 group-hover:translate-y-0 group-hover:opacity-100">
 
                                     {/* Title with slide-up and fade effect */}
@@ -244,7 +243,7 @@ const HomeWomen: React.FC = () => {
                                     {/* The Button with pop-up effect */}
                                     <button
                                         onClick={() => router.visit('/productdetails')}
-                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
+                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
                                                     group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0 group-hover:pointer-events-auto
@@ -253,7 +252,7 @@ const HomeWomen: React.FC = () => {
                                                     relative overflow-hidden"
                                     >
                                         {/* Button shine effect */}
-                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
                                                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
                                         <span className="relative z-10">View Details</span>
                                     </button>
@@ -275,7 +274,7 @@ const HomeWomen: React.FC = () => {
                                 </div>
 
                                 {/* Content Container with multiple animations */}
-                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out 
+                                <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out
                                                     translate-y-4 opacity-90 group-hover:translate-y-0 group-hover:opacity-100">
 
                                     {/* Title with slide-up and fade effect */}
@@ -293,7 +292,7 @@ const HomeWomen: React.FC = () => {
                                     {/* The Button with pop-up effect */}
                                     <button
                                         onClick={() => router.visit('/productdetails')}
-                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium 
+                                        className="bg-[var(--bg-red)] lg:w-full max-w-[200px] sm:w-auto px-10 py-3 md:py-4 text-base md:text-lg font-medium
                                                     transition-all duration-700 delay-300 ease-elastic
                                                     opacity-0 scale-75 rotate-[-5deg] pointer-events-none
                                                     group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0 group-hover:pointer-events-auto
@@ -302,7 +301,7 @@ const HomeWomen: React.FC = () => {
                                                     relative overflow-hidden"
                                     >
                                         {/* Button shine effect */}
-                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
                                                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
                                         <span className="relative z-10">View Details</span>
                                     </button>

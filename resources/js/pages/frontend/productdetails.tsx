@@ -21,7 +21,7 @@ export default function ProductDetails() {
       "assets/images/rectangle1.png",
       "assets/images/rechangle22.png",
       "assets/images/rechangle74.png",
-      "assets/images/rechangle22.jpg", 
+      "assets/images/rechangle22.jpg",
     ],
     colors: [
       { name: "Maroon", value: "bg-red-800" },
@@ -44,20 +44,9 @@ export default function ProductDetails() {
   return (
         <FrontendLayout>
             <Head title="Product Details" />
- 
-            <div
-                className="bg-[var(--bg-animation)] font-sans text-white overflow-x-hidden relative text-gray-100"
-                style={{
-                    backgroundImage: 'url("/assets/images/bg.png")',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                }}
-            >
 
-               <div className="absolute inset-0 bg-gray-900/45 z-0"></div>
-            
-            <section className="text-gray-100">
+            <div className="font-sans text-white overflow-x-hidden relative">
+                <section className="text-gray-100">
                 <div className="container mx-auto px-6 py-10 relative z-10">
 
                 {/* BREADCRUMB */}
@@ -214,11 +203,11 @@ export default function ProductDetails() {
                       Add To Cart
                       <i className="fa-solid fa-cart-plus ml-2" />
                     </button>
-                    <button className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition">
+                    <button onClick={() => router.get('/productdetails2')} className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition">
                       <i className="fa-solid fa-bag-shopping mr-2" />
                       Buy Now
                     </button>
-                   
+
                   </div>
                   <button onClick={() => router.get('/ai-suggestion')} className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md bg-gray-900 text-white transition mt-6">
                     <i className="fa-solid fa-robot mr-2" />
@@ -297,7 +286,7 @@ export default function ProductDetails() {
                                 img.onerror = null;
                                 img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
                             }}
-                        />   
+                        />
                         <div>
                             <p className="font-medium">Daniel Marshall</p>
                             <div className="text-orange-500 text-sm">★★★★★</div>
@@ -320,7 +309,7 @@ export default function ProductDetails() {
                                 img.onerror = null;
                                 img.src = "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png";
                             }}
-                        />                       
+                        />
                         <div>
                             <p className="font-medium">Brooklyn Simmons</p>
                             <div className="text-orange-500 text-sm">★★★★★</div>
@@ -390,9 +379,9 @@ export default function ProductDetails() {
 
                 </div>
             </section>
-            
+
             </div>
 
         </FrontendLayout>
     );
-}   
+}

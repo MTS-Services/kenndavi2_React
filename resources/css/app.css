@@ -204,7 +204,7 @@
   --chart-4: #9B9B9F;
   --chart-5: #FDF5E6;
   --radius: 0.625rem;
-  --sidebar: #121711;
+  --sidebar: #000000;
   --sidebar-foreground: #F3F3F3;
   --sidebar-primary: #D02738;
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -363,8 +363,8 @@
   --color-bg-animation: var(--bg-animation);
   --color-bg-cofyColor: var(--bg-cofyColor);
   --color-bg-oranges: var(--bg-cofyColor);
-  
-   
+
+
 }
 
 @layer base {

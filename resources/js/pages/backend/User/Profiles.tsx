@@ -7,22 +7,13 @@ export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Profile" />
-            
-            {/* 1. Main Wrapper: Sets the background image and fixed positioning */}
-            <div 
-                className="min-h-screen w-full font-sans text-gray-900 relative"
-                style={{
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("${bgImage}")`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed' // Parallax effect: content scrolls, bg stays
-                }}
-            >
-                {/* 2. Content Overlay: Uses bg-fade for that semi-transparent look */}
-                <div className="min-h-screen bg-[var(--bg-fade)] p-6 md:p-12">
+
+            {/* Main content (inherits layout background) */}
+            <div className=" w-full font-sans text-gray-900 relative">
+                <div className=" p-6 md:p-12">
                     <div className="max-w-4xl mx-auto">
                         <h1 className="text-3xl font-bold mb-6 font-['Alumni_Sans'] text-white">Profile</h1>
-                        
+
                         <div className="space-y-4">
                             {/* Personal Info Card */}
                             <div className="bg-[var(--bg-gray0)] p-8 rounded-sm shadow-sm backdrop-blur-sm">
@@ -37,7 +28,7 @@ export default function UserHome() {
                                             </svg>
                                         </button>
                                     </div>
-                                    
+
                                     <div>
                                         <p className="text-gray-500 text-sm mb-1 font-['Libre_Franklin']">Number</p>
                                         <p className="font-medium text-lg">06541451</p>

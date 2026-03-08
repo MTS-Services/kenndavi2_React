@@ -3,9 +3,10 @@ import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useState } from 'react';
 
 const navigationItems = [
-    { name: 'Men', href: '/' },
-    { name: 'Women', href: '/home-women' },
-    { name: 'Accessories', href: '/accessories' },
+  { name: 'Home', href: '/' },
+  { name: 'Men', href: '/men' },
+  { name: 'Women', href: '/home-women' },
+  { name: 'Accessories', href: '/accessories' },
 ];
 
 export function FrontendHeader() {
@@ -13,13 +14,13 @@ export function FrontendHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <section className="overflow-x-hidden bg-[var(--bg-animation)] font-sans text-white">
-            <nav className="relative z-50 container mx-auto mt-10 flex items-center justify-between bg-black/30 backdrop-blur-md px-6 py-5 md:px-12 border-b border-white/10">
+        <section className="overflow-x-hidden font-sans text-gray-900 relative z-10">
+            <nav className="relative z-50 container mx-auto mt-10 flex items-center justify-between bg-bg-red backdrop-blur-md px-6 py-5 md:px-12 border-b border-white/10">
                 {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link href="/">
                         <img
-                            src="/assets/images/Layer_1.png"
+                            src="/assets/images/Layer_1 (3).png"
                             alt="Logo"
                             className="h-10 w-auto"
                         />
@@ -33,7 +34,7 @@ export function FrontendHeader() {
                             <Link
                                 href={item.href}
                                 className={`transition hover:text-white ${
-                                    url === item.href ? 'text-white font-bold' : 'text-gray-300'
+                                    url === item.href ? 'text-white font-bold' : 'text-gray-900'
                                 }`}
                             >
                                 {item.name}
@@ -57,7 +58,7 @@ export function FrontendHeader() {
                     {/* Cart */}
                     <button
                         onClick={() => router.get('/cartpage')}
-                        className="text-lg transition hover:text-white text-gray-300"
+                        className="text-lg transition hover:text-white text-gray-900"
                     >
                         <ShoppingCart size={20} />
                     </button>
@@ -65,7 +66,7 @@ export function FrontendHeader() {
                     {/* User */}
                     <button
                         onClick={() => router.get('/userlogin')}
-                        className="text-lg transition hover:text-white text-gray-300"
+                        className="text-lg transition hover:text-white text-gray-900"
                     >
                         <User size={20} />
                     </button>

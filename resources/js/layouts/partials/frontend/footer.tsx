@@ -1,7 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 export function FrontendFooter() {
     return (
-        <section className="overflow-x-hidden bg-[var(--bg-animation)] font-sans text-gray-900">
+        <section className="overflow-x-hidden bg-[var(--bg-animation)] font-sans text-gray-900 relative z-10">
             <footer className="bg-[var(--sidebar)] px-6 py-12 text-[var(--bg-black)]">
                 <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-4">
                     <div className="flex flex-col items-center space-y-6 md:items-start">
@@ -104,12 +104,18 @@ export function FrontendFooter() {
                             Be the first to know about drops, special offers,
                             and news from Aces in Da Hole.
                         </p>
-                        <form className="flex flex-col gap-3 sm:flex-row">
-                            <div className="flex flex-col gap-2 sm:flex-row">
+                        <form className="flex flex-row ">
+                            <div className="gap-4 space-y-2">
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
-                                    className="flex-1 rounded-md border border-gray-400 bg-transparent px-4 py-2 text-sm text-gray-100 placeholder-gray-100 focus:ring-1 focus:outline-none"
+                                    className="flex-1 rounded border border-gray-400 bg-transparent px-6 py-2 text-sm text-gray-100 placeholder-gray-100 focus:ring-1 focus:outline-none"
+                                />
+
+                                 <input
+                                    type="text"
+                                    placeholder="Enter text"
+                                    className="flex-1 rounded border border-gray-400 bg-transparent px-6 py-6 text-sm text-gray-100 placeholder-gray-100 focus:ring-1 focus:outline-none"
                                 />
 
                                 <button className="rounded-md bg-[var(--bg-red)] px-6 py-3 font-medium text-white transition-colors">

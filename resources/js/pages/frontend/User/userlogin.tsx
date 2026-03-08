@@ -16,20 +16,10 @@ export default function UserLogin() {
         <FrontendLayout>
             <Head title="User Login" />
 
-            <div
-                className="font-sans text-white overflow-x-hidden relative min-h-screen"
-                style={{
-                    backgroundImage: 'url("/assets/images/bg.png")',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                }}
-            >
-                
-                <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
+            <div className="font-sans text-white overflow-x-hidden relative min-h-screen">
                 <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans relative z-10">
                 <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-sidebar">
-                    
+
                     <div className="flex flex-col items-center mb-10">
                         <img src="assets/images/Layer_1.png" alt="Logo" className="h-16 w-auto" />
                     </div>
@@ -37,7 +27,7 @@ export default function UserLogin() {
                     <div className="mb-8">
                         <h2 className="text-xl font-bold font-['Alumni_Sans']">Sign in</h2>
                         <p className="text-sm text-sidebar mt-1 font-['Libre_Franklin']">
-                            Sign in or create an account
+                           Sign in or create an account
                         </p>
                     </div>
 

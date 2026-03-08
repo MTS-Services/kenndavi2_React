@@ -4,17 +4,17 @@ import React from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 
 // Reusable Hover Component specifically for the AI Assistant layout
-const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: { 
-  src: string; 
-  alt?: string; 
-  title: string; 
-  height?: string; 
-  colSpan?: string 
+const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: {
+  src: string;
+  alt?: string;
+  title: string;
+  height?: string;
+  colSpan?: string
 }) => {
   return (
     <div className={`relative overflow-hidden rounded-md group cursor-pointer bg-white ${height} ${colSpan}`}>
       {/* Background Image with Zoom Effect */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out group-hover:scale-110"
         style={{ backgroundImage: `url('${src}')` }}
       >
@@ -43,17 +43,7 @@ const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: {
 
 const AISuggestionSection: React.FC = () => {
   return (
-    <section
-      className="font-sans text-gray-900 overflow-x-hidden pb-20 relative"
-      style={{
-        backgroundImage: 'url("/assets/images/bg.png")',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        
-      }}
-    >
-      <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
+    <section className="font-sans text-gray-900 overflow-x-hidden pb-20 relative">
 
       {/* SUGGESTION 1 */}
       <div className="max-w-4xl mx-auto font-sans mt-10 px-4 relative z-10">
@@ -96,7 +86,7 @@ const AISuggestionSection: React.FC = () => {
 
         <div className="flex justify-center">
             <button className="bg-[var(--bg-red)] text-white px-8 py-4 rounded-md mb-6 hover:bg-red-800 transition-all duration-300 mt-10 flex items-center gap-2 group shadow-xl">
-                <i className="fa-solid fa-rotate group-hover:rotate-180 transition-transform duration-500" /> 
+                <i className="fa-solid fa-rotate group-hover:rotate-180 transition-transform duration-500" />
                 <span>More AI Suggest</span>
             </button>
         </div>

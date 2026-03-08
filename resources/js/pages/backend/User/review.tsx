@@ -6,9 +6,9 @@ export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Dashboard" />
-          <div className="bg-bg-animation font-sans text-gray-900 overflow-x-hidden">
-  
-            <div className=" bg-bg-fade flex items-center justify-center font-sans p-4">
+          <div className="font-sans text-gray-900 overflow-x-hidden">
+
+            <div className="flex items-center justify-center font-sans p-4 relative z-10">
                 <div className="bg-[var(--bg-gray0)] w-full max-w-5xl p-8 md:p-12 rounded-sm shadow-sm text-gray-900">
                 <div className="mb-8">
                     <h2 className="text-xl font-bold font-['Alumni_Sans']">
