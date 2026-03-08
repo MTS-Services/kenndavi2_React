@@ -177,8 +177,8 @@ export default function ProductDetails() {
                   </div>
 
                   {/* Quantity */}
-                  <div className="flex items-center gap-4 mt-6">
-                    <div className="flex items-center border rounded-md">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
+                    <div className="flex items-center border rounded-md w-fit">
                       <button
                         onClick={() =>
                           setQuantity((prev) => Math.max(1, prev - 1))
@@ -197,19 +197,49 @@ export default function ProductDetails() {
                     </div>
 
                     <button
-                      onClick={() => router.get('/cartpage')}
-                      className="bg-primary text-white px-6 py-3 rounded-md"
+                      onClick={() => {
+                        if (!selectedColor || !selectedSize) {
+                          alert('Please select color and size');
+                          return;
+                        }
+                        router.post('/cart/add', {
+                          product_id: product.title,
+                          quantity,
+                          color: selectedColor,
+                          size: selectedSize,
+                          price: finalPrice
+                        });
+                      }}
+                      className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary/90 transition flex-1 sm:flex-initial"
                     >
                       Add To Cart
                       <i className="fa-solid fa-cart-plus ml-2" />
                     </button>
-                    <button onClick={() => router.get('/productdetails2')} className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition">
+                    
+                    <button
+                      onClick={() => {
+                        if (!selectedColor || !selectedSize) {
+                          alert('Please select color and size');
+                          return;
+                        }
+                        router.post('/cart/add', {
+                          product_id: product.title,
+                          quantity,
+                          color: selectedColor,
+                          size: selectedSize,
+                          price: finalPrice
+                        }, {
+                          onSuccess: () => router.get('/checkout')
+                        });
+                      }}
+                      className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition flex-1 sm:flex-initial"
+                    >
                       <i className="fa-solid fa-bag-shopping mr-2" />
                       Buy Now
                     </button>
 
                   </div>
-                  <button onClick={() => router.get('/ai-suggestion')} className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md bg-gray-900 text-white transition mt-6">
+                  <button onClick={() => router.get('/ai-suggestion')} className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md bg-gray-900 text-white transition mt-6 w-full sm:w-auto">
                     <i className="fa-solid fa-robot mr-2" />
                     AI Suggest
                   </button>
