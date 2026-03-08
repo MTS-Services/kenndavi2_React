@@ -202,7 +202,7 @@ export default function ProductDetails() {
                           alert('Please select color and size');
                           return;
                         }
-                        router.post('/cart/add', {
+                        router.post('/cartpage', {
                           product_id: product.title,
                           quantity,
                           color: selectedColor,
@@ -215,21 +215,19 @@ export default function ProductDetails() {
                       Add To Cart
                       <i className="fa-solid fa-cart-plus ml-2" />
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         if (!selectedColor || !selectedSize) {
                           alert('Please select color and size');
                           return;
                         }
-                        router.post('/cart/add', {
+                        router.post('/cartpage', {
                           product_id: product.title,
                           quantity,
                           color: selectedColor,
                           size: selectedSize,
                           price: finalPrice
-                        }, {
-                          onSuccess: () => router.get('/checkout')
                         });
                       }}
                       className="border border-red-600 text-red-600 px-6 py-3 rounded-md hover:bg-red-50 transition flex-1 sm:flex-initial"

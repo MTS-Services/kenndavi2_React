@@ -48,6 +48,23 @@ class FrontendController extends Controller
         return Inertia::render('frontend/cartpage');
     }
 
+    public function addToCart(): \Illuminate\Http\RedirectResponse
+    {
+        $cart = session()->get('cart', []);
+
+        $cart[] = [
+            'product_id' => request('product_id'),
+            'quantity' => request('quantity'),
+            'color' => request('color'),
+            'size' => request('size'),
+            'price' => request('price'),
+        ];
+
+        session()->put('cart', $cart);
+
+        return to_route('cartpage');
+    }
+
     public function userlogin(): Response
     {
         return Inertia::render('frontend/User/userlogin');
@@ -78,30 +95,28 @@ class FrontendController extends Controller
         return Inertia::render('frontend/sweatsuitsmen');
     }
 
-    public function orders(): Response 
+    public function orders(): Response
     {
         return Inertia::render('frontend/User/orders');
     }
 
-    public function orders2(): Response 
+    public function orders2(): Response
     {
         return Inertia::render('frontend/User/orders2');
     }
 
-    public function shippings(): Response 
+    public function shippings(): Response
     {
         return Inertia::render('frontend/shippings');
     }
 
-    public function privacyPolicy(): Response 
+    public function privacyPolicy(): Response
     {
         return Inertia::render('frontend/privacy-policy');
     }
 
-    public function termsAndConditions(): Response 
+    public function termsAndConditions(): Response
     {
         return Inertia::render('frontend/terms-and-conditions');
     }
-
-    
 }

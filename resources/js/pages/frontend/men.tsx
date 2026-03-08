@@ -72,7 +72,7 @@ export default function Home() {
                     </h1>
 
                     <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                    <button className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded hover:bg-black transition w-full sm:w-auto">
+                    <button onClick={() => router.visit('/sweatsuitsmen')} className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded hover:bg-black transition w-full sm:w-auto">
                         {heroSlides[currentHeroIndex].primaryCta}
                     </button>
                     {heroSlides[currentHeroIndex].secondaryCta && (
