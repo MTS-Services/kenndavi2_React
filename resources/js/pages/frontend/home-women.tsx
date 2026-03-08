@@ -7,22 +7,22 @@ const heroSlidesWomen = [
     {
         id: 0,
         title: "Aces in Da Hole is not your ordinary clothing brand. It's where friendship, culture, lifestyle, and fashion come together.",
-        primaryCta: 'Buy Now',
-        secondaryCta: 'Learn More',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'Learn More',
         image: '/assets/images/wommen1.png',
     },
     {
         id: 1,
         title: "Signature women's hoodies tailored for all–day comfort and standout style.",
-        primaryCta: 'Shop Women',
-        secondaryCta: 'View Collection',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'View Collection',
         image: '/assets/images/AdobeExpress(2).png',
     },
     {
         id: 2,
         title: 'Statement pieces that move with you—from coffee runs to night outs.',
-        primaryCta: 'Explore Looks',
-        secondaryCta: 'Discover More',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'Discover More',
         image: '/assets/images/Rectangle 9-Photoroom.png',
     },
 ];
@@ -63,12 +63,12 @@ const HomeWomen: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                            <button className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-black transition w-full sm:w-auto">
+                            <button onClick={() => router.get('/hoodies-women')} className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-black transition w-full sm:w-auto">
                                 {heroSlidesWomen[currentHeroIndex].primaryCta}
                             </button>
-                            <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
+                            {/* <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
                                 {heroSlidesWomen[currentHeroIndex].secondaryCta}
-                            </button>
+                            </button> */}
                         </div>
                     </div>
 

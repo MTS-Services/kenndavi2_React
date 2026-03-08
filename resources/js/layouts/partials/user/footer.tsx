@@ -48,11 +48,7 @@ export function UserFooter() {
                   placeholder="Enter you email"
                   className="flex-1 border border-gray-400 bg-transparent px-12 py-2 text-sm focus:outline-none focus:ring-1 rounded"
                   />
-                  <input
-                  type="Text"
-                  placeholder="Enter Text"
-                  className="flex-1 border border-gray-400 bg-transparent px-12 py-6 text-sm focus:outline-none focus:ring-1 rounded"
-                  />
+                   
                   <button className="bg-[var(--bg-red)] px-6 py-3 text-white font-medium transition-colors rounded-md">
                   Subscribe
                   </button>

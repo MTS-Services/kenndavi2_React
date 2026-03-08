@@ -7,28 +7,28 @@ const heroSlides = [
     {
         id: 0,
         title: "Aces in Da Hole is not your ordinary clothing brand. It's where friendship, culture, lifestyle, and fashion come together.",
-        primaryCta: 'Buy Now',
-        secondaryCta: 'Learn More',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'Learn More',
         image: '/assets/images/heads.png',
     },
     {
         id: 1,
         title: 'Level up your everyday look with premium hoodies designed to move with you.',
-        primaryCta: 'Shop Hoodies',
-        secondaryCta: 'View Collection',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'View Collection',
         image: '/assets/images/Adobe Express - file.png',
     },
     {
         id: 2,
         title: 'From chill days to late nights, our fits keep your style on point.',
-        primaryCta: 'Explore Fits',
-        secondaryCta: 'Discover More',
+        primaryCta: 'Shop Now',
+        // secondaryCta: 'Discover More',
         image: '/assets/images/Adobe Express - file (1).png',
     },
     {
         id: 3,
         title: 'Teal sweatsuits',
-        primaryCta: 'View Details',
+        primaryCta: 'Shop Now',
         secondaryCta: '',
         image: '/assets/images/rechangele.png',
     },
@@ -72,11 +72,11 @@ export default function Home() {
                     </h1>
 
                     <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                    <button className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-black transition w-full sm:w-auto">
+                    <button className="bg-[var(--bg-red)] text-white px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded hover:bg-black transition w-full sm:w-auto">
                         {heroSlides[currentHeroIndex].primaryCta}
                     </button>
                     {heroSlides[currentHeroIndex].secondaryCta && (
-                        <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded-md hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
+                        <button className="border border-[var(--bg-red)] text-[var(--bg-red)] px-10 py-3.5 text-sm font-medium font-['Libre_Franklin'] rounded hover:bg-[var(--bg-red)] hover:text-white transition w-full sm:w-auto">
                             {heroSlides[currentHeroIndex].secondaryCta}
                         </button>
                     )}

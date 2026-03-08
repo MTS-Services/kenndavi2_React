@@ -16,7 +16,7 @@ const Cartpage: React.FC = () => {
                 }}
             >
                 <div className="absolute inset-0 bg-sidebar/50 z-0"></div>
-                <div className="min-h-screen relative z-10 p-4 md:p-10 font-sans">
+                <div className=" relative z-10 p-4 md:p-10 font-sans">
                     <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
                     <div className="flex-grow bg-[var(--bg-gray0)] p-6 md:p-8 rounded-sm">
                         <h1 className="text-xl font-[Alumni_Sans] font-semibold mb-8 text-gray-900">

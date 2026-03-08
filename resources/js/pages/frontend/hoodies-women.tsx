@@ -15,7 +15,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ src, alt, title, colSpan = "m
   return (
     <div className={`${colSpan} ${height} relative overflow-hidden rounded-md group cursor-pointer bg-gray-200`}>
       {/* Background Image with Zoom Effect */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center w-full h-full transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
         style={{ backgroundImage: `url('${src}')` }}
         role="img"
@@ -28,7 +28,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ src, alt, title, colSpan = "m
 
       {/* Content Container (Slide up and Fade in) */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
-        
+
         <h3 className="mb-4 text-xl md:text-2xl font-[Alumni_Sans] tracking-widest text-center uppercase">
           {title}
         </h3>
@@ -51,8 +51,9 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ src, alt, title, colSpan = "m
 
 const ProductGallery: React.FC = () => {
   return (
-    <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-      
+    <div className="relative bg-transparent font-sans text-gray-900 overflow-x-hidden">
+      <div className="absolute inset-0 bg-black/20 -z-10" />
+
       {/* SECTION 1 */}
       <section className="p-4 md:p-8 container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

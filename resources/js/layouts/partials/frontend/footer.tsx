@@ -111,12 +111,7 @@ export function FrontendFooter() {
                                     placeholder="Enter your email"
                                     className="flex-1 rounded border border-gray-400 bg-transparent px-6 py-2 text-sm text-gray-100 placeholder-gray-100 focus:ring-1 focus:outline-none"
                                 />
-
-                                 <input
-                                    type="text"
-                                    placeholder="Enter text"
-                                    className="flex-1 rounded border border-gray-400 bg-transparent px-6 py-6 text-sm text-gray-100 placeholder-gray-100 focus:ring-1 focus:outline-none"
-                                />
+ 
 
                                 <button className="rounded-md bg-[var(--bg-red)] px-6 py-3 font-medium text-white transition-colors">
                                     Subscribe & Get Updates

@@ -6,27 +6,10 @@ export default function OrderConfirmed() {
     return (
         <FrontendLayout>
             <Head title="Order Confirmed" />
-            <div className="bg-[var(--bg-animation)] font-sans text-gray-100 overflow-x-hidden relative" style={{ backgroundImage: 'url("/assets/images/bg.png")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
-                <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
-                <div className="relative z-10">
-                <div className="max-w-6xl mx-auto">
-                <button className="bg-[var(--primary-color)] text-white p-2 rounded-sm hover:bg-red-800 transition-colors">
-                    <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                    />
-                    </svg>
-                </button>
-                </div>
+            <div className="  font-sans text-gray-100 overflow-x-hidden relative" style={{ backgroundImage: 'url("/assets/images/bg.png")', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>
+                <div className="absolute inset-0 bg-sidebar/50 z-10"></div>
+                <div className="relative z-10 mt-12">
+
                 <div className="flex flex-col items-center mb-12">
                 <div className="relative w-25 h-25 mb-4">
                     <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse" />
@@ -89,8 +72,8 @@ export default function OrderConfirmed() {
                         </div>
                         <div className="bg-[var(--bg-nevired)] border border-red-500/50 p-4 text-xs text-red-700 max-w-xs rounded font-['Libre_Franklin'] ">
                         A confirmation email has been sent to your inbox
-                        </div> 
-                    </div>      
+                        </div>
+                    </div>
                     <div className="mt-8">
                         <h2 className="text-xl font-bold mb-4 font-['Alumni_Sans'] text-gray-900">
                         Shipped to Your Address
