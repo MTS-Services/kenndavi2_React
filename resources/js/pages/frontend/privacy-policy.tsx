@@ -6,9 +6,19 @@ export default function PrivacyPolicy() {
     return (
         <FrontendLayout>
             <Head title="Privacy Policy" />
-             <div className="bg-[var(--bg-animation)] text-gray-800">
+            <div
+                className="bg-[var(--bg-animation)] font-sans text-gray-800 overflow-x-hidden relative"
+                style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    backgroundAttachment: 'fixed'
+                }}
+            >
+                <div className="absolute inset-0 bg-sidebar/60 z-10"></div>
 
-             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-16 py-8">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:py-16 py-8 bg-bg-animation rounded m-4 relative z-10">
 
             {/* Title */}
             <div className="text-center mb-12">
@@ -16,7 +26,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-500 text-lg">Effective Date: March 4, 2026</p>
             </div>
 
-            <div className="space-y-10 bg-[var(--bg-animation)] p-0 md:p-6 lg:p-10">
+            <div className="space-y-10 p-0 md:p-6 lg:p-10 ">
 
             {/* Domestic Shipping */}
             <section>
@@ -24,7 +34,7 @@ export default function PrivacyPolicy() {
             <p className="text-gray-600 leading-relaxed mb-4 font-[Libre_Franklin]">
             This European Privacy Notice is designed to provide you with a comprehensive understanding of how we handle your personal data in accordance with the General Data Protection Regulation (GDPR). We take our responsibility to protect your privacy very seriously and have implemented robust technical and organizational measures to ensure that your data remains secure at all times.
 This policy applies to all visitors, users, and others who access or use our Service. By accessing the Service, you acknowledge that you have read and understood the terms of this Privacy Notice and our collection, storage, use, and disclosure of your personal information as described.
-            </p> 
+            </p>
             </section>
 
             {/* International Shipping */}
@@ -34,7 +44,7 @@ This policy applies to all visitors, users, and others who access or use our Ser
             <p className="text-gray-600 leading-relaxed mb-4 font-[Libre_Franklin]">
             By using our website, you hereby consent to our Privacy Policy and agree to its legally binding terms. We collect personal information that you provide to us voluntarily when you express an interest in obtaining information about us or our products, when you participate in activities on the Website, or otherwise when you contact us.
 Your consent is the legal basis upon which we process your data for the purposes of providing a seamless shopping experience. If you do not agree with any part of this Privacy Policy, we kindly ask that you discontinue the use of our platform immediately to ensure your data remains unaffected.
-            </p> 
+            </p>
             </section>
 
             {/* Tracking */}
@@ -51,7 +61,7 @@ the contents of the message and any attachments you may send us, and any other i
             <p className="text-gray-600 leading-relaxed mb-4">
             We collect information from you when you register on our site, place an order, subscribe to a newsletter, respond to a survey, fill out a form, or enter information on our site. This information is used to personalize your experience and to allow us to deliver the type of content and product offerings in which you are most interested.
 We also collect data automatically through your browser, such as IP addresses and device identifiers, to monitor the security of our website and prevent fraudulent activities. This collection happens in real-time as you navigate through our various product categories and checkout pages.
-            </p> 
+            </p>
 
             <h2 className="text-2xl font-semibold mb-4 font-[Alumni_Sans]">Withdrawal Consent and Definition of Sale</h2>
 
@@ -76,13 +86,13 @@ Maintaining an updated registration allows us to provide you with a faster check
             Our website uses cookies and similar tracking technologies to track the activity on our Service and hold certain information. Cookies are files with a small amount of data which may include an anonymous unique identifier. These are sent to your browser from a website and stored on your device.
 We use these to remember your preferences, such as your language settings and shopping cart items, so that you do not have to re-enter them every time you return. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service
             </p>
-            
+
             </section>
             </div>
             </div>
             </div>
 
-        </FrontendLayout>   
+        </FrontendLayout>
     );
 
 
