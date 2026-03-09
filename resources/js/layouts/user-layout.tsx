@@ -15,11 +15,25 @@ interface UserLayoutProps {
 export default function UserLayout({ children, showProfileMenu = true }: UserLayoutProps) {
 
     return (
-        <div className="flex min-h-screen flex-col bg-background">
-            <UserHeader showProfileMenu={showProfileMenu} />
-            <main className="flex-1">{children}</main>
-            <UserFooter />
-            <Toaster position="top-right" richColors />
+        <div className="flex min-h-screen flex-col bg-sidebar">
+
+            <div
+                className="relative flex min-h-screen flex-col"
+                style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    backgroundAttachment: 'fixed',
+                }}
+            >
+                <div className="absolute inset-0 bg-sidebar/70" />
+                <UserHeader showProfileMenu={showProfileMenu} />
+                <main className="flex-1">{children}</main>
+                <UserFooter />
+                <Toaster position="top-right" richColors />
+
+            </div>
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import SmoothCollapse from './smooth-collapse';
 
 const DELAY_INHERITANCE_FAQ = [

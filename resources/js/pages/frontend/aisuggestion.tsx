@@ -1,19 +1,20 @@
-import FrontendLayout from '@/layouts/frontend-layout';
 import { Head, router } from '@inertiajs/react';
 import React from 'react';
 
+import FrontendLayout from '@/layouts/frontend-layout';
+
 // Reusable Hover Component specifically for the AI Assistant layout
-const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: { 
-  src: string; 
-  alt?: string; 
-  title: string; 
-  height?: string; 
-  colSpan?: string 
+const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: {
+  src: string;
+  alt?: string;
+  title: string;
+  height?: string;
+  colSpan?: string
 }) => {
   return (
     <div className={`relative overflow-hidden rounded-md group cursor-pointer bg-white ${height} ${colSpan}`}>
       {/* Background Image with Zoom Effect */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out group-hover:scale-110"
         style={{ backgroundImage: `url('${src}')` }}
       >
@@ -42,10 +43,10 @@ const AISuggestItem = ({ src, alt, title, height = "h-full", colSpan = "" }: {
 
 const AISuggestionSection: React.FC = () => {
   return (
-    <section className="bg-[var(--bg-whitesecandary)] font-sans text-gray-900 overflow-x-hidden pb-16">
-      
+    <section className="font-sans text-gray-900 overflow-x-hidden pb-20 relative">
+
       {/* SUGGESTION 1 */}
-      <div className="max-w-4xl mx-auto font-sans mt-10 px-4">
+      <div className="max-w-4xl mx-auto font-sans mt-10 px-4 relative z-10">
         <button className="bg-[var(--bg-red)] text-white p-4 rounded-md mb-6 hover:brightness-110 transition-all active:scale-90">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -53,8 +54,8 @@ const AISuggestionSection: React.FC = () => {
         </button>
 
         <div className="mb-8">
-          <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight">Suggestion 1</h2>
-          <p className="text-gray-600 mt-1 font-['Libre_Franklin']">1k+ people buy this hoodies with this black pant</p>
+          <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight relative z-10">Suggestion 1</h2>
+          <p className="text-gray-200 mt-1 font-['Libre_Franklin'] relative z-10">1k+ people buy this hoodies with this black pant</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[850px]">
@@ -67,10 +68,10 @@ const AISuggestionSection: React.FC = () => {
       </div>
 
       {/* SUGGESTION 2 */}
-      <div className="max-w-4xl mx-auto font-sans mt-20 px-4">
+      <div className="max-w-4xl mx-auto font-sans mt-20 px-4 relative z-10">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight">Suggestion 2</h2>
-          <p className="text-gray-600 mt-1 font-['Libre_Franklin']">500+ people buy this hoodies with this black pant</p>
+          <h2 className="text-3xl font-bold font-['Alumni_Sans'] text-[var(--bg-red)] tracking-tight relative z-10">Suggestion 2</h2>
+          <p className="text-gray-200 mt-1 font-['Libre_Franklin'] relative z-10">500+ people buy this hoodies with this black pant</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[600px]">
@@ -85,7 +86,7 @@ const AISuggestionSection: React.FC = () => {
 
         <div className="flex justify-center">
             <button className="bg-[var(--bg-red)] text-white px-8 py-4 rounded-md mb-6 hover:bg-red-800 transition-all duration-300 mt-10 flex items-center gap-2 group shadow-xl">
-                <i className="fa-solid fa-rotate group-hover:rotate-180 transition-transform duration-500" /> 
+                <i className="fa-solid fa-rotate group-hover:rotate-180 transition-transform duration-500" />
                 <span>More AI Suggest</span>
             </button>
         </div>

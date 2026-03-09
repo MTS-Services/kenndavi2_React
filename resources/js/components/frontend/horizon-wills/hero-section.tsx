@@ -1,6 +1,6 @@
+import { ArrowRight } from 'lucide-react';
 import React from 'react';
 
-import { ArrowRight } from 'lucide-react';
 
 export function HorizonHeroSection() {
     return (

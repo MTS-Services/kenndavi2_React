@@ -1,12 +1,13 @@
 import { Head } from '@inertiajs/react';
+
 import UserLayout from '@/layouts/user-layout';
 
 export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Dashboard" />
-           <div className="bg-bg-animation font-sans text-gray-900 overflow-x-hidden">
-             <section className="bg-bg-animation flex items-center justify-center p-6 font-sans text-gray-900">
+           <div className="font-sans text-gray-900 overflow-x-hidden">
+             <section className="flex items-center justify-center p-6 font-sans text-gray-900 relative z-10">
                 <div className="bg-[var(--bg-gray0)] w-full max-w-4xl p-10 md:p-16 rounded-sm shadow-sm">
                 <h1 className="text-xl font-bold mb-10 font-['Alumni_Sans']">
                     Edit profile

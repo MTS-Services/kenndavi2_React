@@ -1,12 +1,27 @@
 import { Head, router } from "@inertiajs/react";
+
 import FrontendLayout from "@/layouts/frontend-layout";
 
 export default function ProductDetails2() {
     return (
         <FrontendLayout>
             <Head title="Product Details" />
-            <div className="bg-[var(--bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-              <div className="min-h-screen bg-[var(--bg-animation)] p-4 md:p-12 font-sans">
+              <div className="relative min-h-screen bg-[var(--bg-animation)] font-sans text-gray-100 overflow-x-hidden">
+                {/* Background Image Layer */}
+                <div
+                  className="absolute inset-0 z-0"
+                  style={{
+                    backgroundImage: 'url("/assets/images/bg.png")',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                  }}
+                />
+                {/* Overlay Layer */}
+                <div className="absolute inset-0 bg-gray-900/45 z-10"></div>
+
+                {/* Content Layer */}
+                <div className="relative z-20 min-h-screen p-4 md:p-12 font-sans">
                 <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
                   <div className="flex-grow">
                     <h1 className="text-2xl font-bold mb-8 font-['Alumni_Sans']">
@@ -105,14 +120,14 @@ export default function ProductDetails2() {
                           id="save-address"
                           className="w-5 h-5 accent-red-700 border-gray-300 rounded"
                         />
-                        <label htmlFor="save-address" className="text-sm text-gray-700">
+                        <label htmlFor="save-address" className="text-sm text-gray-100">
                           Save shipping address into default address
                         </label>
                       </div>
                     </form>
                   </div>
                   <div className="w-full lg:w-[380px] bg-[var(--bg-gray0)] p-6 md:p-8 rounded-sm self-start">
-                    <h2 className="text-lg font-bold mb-6 font-['Libre_Franklin']">
+                    <h2 className="text-lg font-bold mb-6 font-['Libre_Franklin'] text-gray-900">
                       Order summary
                     </h2>
                     <div className="space-y-4 mb-8">
@@ -125,9 +140,9 @@ export default function ProductDetails2() {
                           />
                         </div>
                         <div className="text-xs">
-                          <p className="font-bold">Broon hoodie</p>
+                          <p className="font-bold text-gray-900">Broon hoodie</p>
                           <p className="text-gray-600">
-                            1 x <span className="font-bold text-black">$70</span>
+                            1 x <span className="font-bold text-gray-900">$70</span>
                           </p>
                         </div>
                       </div>
@@ -140,9 +155,9 @@ export default function ProductDetails2() {
                           />
                         </div>
                         <div className="text-xs">
-                          <p className="font-bold">Black pant</p>
+                          <p className="font-bold text-gray-900">Black pant</p>
                           <p className="text-gray-600">
-                            1 x <span className="font-bold text-black">$70</span>
+                            1 x <span className="font-bold text-gray-900">$70</span>
                           </p>
                         </div>
                       </div>
@@ -155,25 +170,25 @@ export default function ProductDetails2() {
                           />
                         </div>
                         <div className="text-xs">
-                          <p className="font-bold">Black shoe</p>
+                          <p className="font-bold text-gray-900">Black shoe</p>
                           <p className="text-gray-600">
-                            1 x <span className="font-bold text-black">$70</span>
+                            1 x <span className="font-bold text-gray-900">$70</span>
                           </p>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-3 text-sm border-t border-gray-300 pt-6 mb-8">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Sub-total</span>
-                        <span className="font-bold">$210</span>
+                        <span className="text-gray-900">Sub-total</span>
+                        <span className="font-bold text-gray-900">$210</span>
                       </div>
                       <div className="flex justify-between border-b border-gray-300 pb-3">
-                        <span className="text-gray-600">Shipping</span>
-                        <span className="font-bold">$00</span>
+                        <span className="text-gray-900">Shipping</span>
+                        <span className="font-bold text-gray-900">$00</span>
                       </div>
                       <div className="flex justify-between pt-1">
-                        <span className="font-bold font-['Libre_Franklin']">Total</span>
-                        <span className="font-bold text-base">$210</span>
+                        <span className="font-bold font-['Libre_Franklin'] text-gray-900">Total</span>
+                        <span className="font-bold text-base text-gray-900">$210</span>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -201,8 +216,7 @@ export default function ProductDetails2() {
                   </div>
                 </div>
               </div>
-            </div>
-
+              </div>
         </FrontendLayout>   
     );
 

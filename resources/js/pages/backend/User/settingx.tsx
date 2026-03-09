@@ -1,13 +1,14 @@
 import { Head } from '@inertiajs/react';
+
 import UserLayout from '@/layouts/user-layout';
 
 export default function UserHome() {
     return (
         <UserLayout>
             <Head title="Dashboard" />
-             <div className="bg-bg-whitesecandary font-sans text-gray-900 overflow-x-hidden">
-             <div className="pt-28 pb-28 bg-[var(--bg-fade)] flex items-center justify-center p-6 font-sans text-gray-900">
-                <div className="bg-[var(--bg-gray0)] w-full max-w-5xl p-10 md:p-14 rounded-sm shadow-sm">
+            <div className="font-sans text-gray-900 overflow-x-hidden">
+                <div className="pt-28 pb-28 flex items-center justify-center p-6 font-sans text-gray-900">
+                <div className="bg-[var(--bg-gray0)] w-full max-w-5xl p-10 md:p-14 rounded-sm shadow-sm relative z-10">
                 <h2 className="text-xl font-bold mb-10 font-['Alumni_Sans']">Settings</h2>
                 <div className="space-y-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

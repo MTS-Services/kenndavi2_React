@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+
+import SmoothCollapse from './smooth-collapse';
 import type { Guardian } from './will-types';
 import { UK_COUNTRY_OPTIONS } from './wizard-constants';
-import SmoothCollapse from './smooth-collapse';
 
 const GUARDIAN_FAQ = [
     { question: 'Who can be a guardian?', answer: 'Any responsible adult over 18 who is willing to take on the role. It is best to discuss this with them before naming them.' },

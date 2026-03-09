@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+
 import type { AdditionalClause, Beneficiary, Executor, Guardian, Pet, SpecificGift, WillData } from './steps/will-types';
 
 const MARGIN_X = 56;

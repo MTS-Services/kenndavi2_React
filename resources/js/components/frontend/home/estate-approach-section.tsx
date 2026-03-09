@@ -1,6 +1,6 @@
+import { Link } from "@inertiajs/react";
 import React from "react";
 
-import { Link } from "@inertiajs/react";
 import { useReveal } from "@/hooks/use-reveal";
 
 const lpaSteps = [

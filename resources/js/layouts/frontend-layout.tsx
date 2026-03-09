@@ -9,10 +9,23 @@ interface FrontendLayoutProps {
 
 export default function FrontendLayout({ children }: FrontendLayoutProps) {
     return (
-        <div className="flex min-h-screen flex-col bg-[var(--bg-animation)]">
-            <FrontendHeader />
-            <main className="flex-1 flex flex-col">{children}</main>
-            <FrontendFooter />
+        <div
+            className="relative flex min-h-screen flex-col"
+            style={{
+                backgroundImage: 'url("/assets/images/bg.png")',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundAttachment: 'fixed',
+            }}
+        >
+            <div className="absolute inset-0 bg-sidebar/70" />
+
+            <div className="relative z-10 flex min-h-screen flex-col">
+                <FrontendHeader />
+                <main className="flex-1 flex flex-col">{children}</main>
+                <FrontendFooter />
+            </div>
         </div>
     );
 }

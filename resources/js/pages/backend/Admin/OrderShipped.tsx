@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import UserLayout from '@/layouts/user-layout'; 
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import AdminLayout from '@/layouts/admin-layout';
 import { th } from 'date-fns/locale';
+import { useState } from 'react';
+
+import AdminLayout from '@/layouts/admin-layout';
+import UserLayout from '@/layouts/user-layout'; 
+
 export default function UserDashboard() {
     const { url } = usePage();
 

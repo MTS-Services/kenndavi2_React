@@ -15,9 +15,9 @@ import {
 import { logout } from '@/routes';
 
 const navigationItems = [
-    { name: 'Order', href: '/' },
+    { name: 'Order', href: '/dashboard' },
     { name: 'Profile', href: '/profiles' },
-    { name: 'Settings', href: '/settingx' }, 
+    { name: 'Settings', href: '/settingx' },
 ];
 
 interface UserHeaderProps {
@@ -31,13 +31,13 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
     const logoutRoute = logout();
 
     return (
-        <section className="bg-[var(--color-bg-animation)] font-sans text-gray-900 overflow-x-hidden">
-            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between bg-[var(--bg-white-secondary)] px-6 py-5 md:px-12">
+        <section className="bg-transparent font-sans text-gray-900 overflow-x-hidden">
+            <nav className="container mx-auto mt-10 relative z-50 flex items-center justify-between  px-6 py-5 md:px-12 bg-bg-red">
 
                 {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link href="/">
-                        <img src="/assets/images/Layer_1.png" alt="Logo" className="h-10 w-auto" />
+                        <img src="/assets/images/Layer_1 (3).png" alt="Logo" className="h-10 w-auto" />
                     </Link>
                 </div>
 
@@ -47,8 +47,8 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                         <li key={item.name}>
                             <Link
                                 href={item.href}
-                                className={`transition hover:text-red-600 ${
-                                    url === item.href ? 'text-red-600' : ''
+                                className={`transition hover:text-white ${
+                                    url === item.href ? 'text-white' : 'text-gray-900'
                                 }`}
                             >
                                 {item.name}
@@ -61,7 +61,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                 <div className="flex items-center gap-3 md:gap-6">
 
                     {/* Search */}
-                    <div className="relative hidden sm:flex items-center gap-2 rounded bg-black px-4 py-2.5">
+                    <div className="relative hidden sm:flex items-center gap-2 rounded bg-sidebar px-4 py-2.5">
                         <Search size={14} className="text-gray-400" />
                         <input
                             type="text"
@@ -71,7 +71,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                     </div>
 
                     {/* Cart */}
-                    <button className="text-lg hover:text-red-600 transition">
+                    <button onClick={() => router.visit('/cartpage')} className="text-lg text-red-600 transition">
                         <ShoppingCart size={20} />
                     </button>
 
@@ -131,7 +131,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <button className="text-lg hover:text-red-600 transition">
+                        <button onClick={() => router.visit('/cartpage')} className="text-lg text-red-600 transition">
                             <User size={20} />
                         </button>
                     )}

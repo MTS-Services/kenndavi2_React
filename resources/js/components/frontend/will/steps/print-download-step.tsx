@@ -1,5 +1,7 @@
 import React, { useCallback, useState } from 'react';
+
 import generateWillPdf from '@/components/frontend/will/generate-will-pdf';
+
 import type { WillData } from './will-types';
 
 const ReviewItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
@@ -21,7 +23,7 @@ const PrintDownloadStep: React.FC<PrintDownloadStepProps> = ({ data }) => {
             setIsGenerating(true);
             await Promise.resolve(generateWillPdf(data));
         } catch (error) {
-            // eslint-disable-next-line no-console
+             
             console.error('Failed to generate will PDF', error);
         } finally {
             setIsGenerating(false);

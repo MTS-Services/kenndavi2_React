@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+
+import SmoothCollapse from './smooth-collapse';
 import type { Executor } from './will-types';
 import { UK_COUNTRY_OPTIONS } from './wizard-constants';
-import SmoothCollapse from './smooth-collapse';
 
 const FAQ_ITEMS = [
     {

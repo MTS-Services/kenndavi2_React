@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import type { AdditionalClause } from './will-types';
+
 import SmoothCollapse from './smooth-collapse';
+import type { AdditionalClause } from './will-types';
 
 const ADDITIONAL_DETAILS_FAQ = [
     { question: 'Why should I avoid including funeral instructions?', answer: 'Your will may not be read until after your funeral. It is better to communicate funeral wishes directly to your family or executor.' },

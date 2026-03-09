@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+
+import SmoothCollapse from './smooth-collapse';
 import type { SpecificGift } from './will-types';
 import { UK_COUNTRY_OPTIONS } from './wizard-constants';
-import SmoothCollapse from './smooth-collapse';
 
 const GIFT_FAQ = [
     { question: 'Is there anything I cannot give away?', answer: 'Certain jointly owned assets or property held in trust may have restrictions. If in doubt, list the item but speak to a solicitor.' },

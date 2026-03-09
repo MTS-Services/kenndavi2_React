@@ -1,13 +1,17 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
+import { useState } from "react";
 import FrontendLayout from "@/layouts/frontend-layout";
- 
+import { Link } from "@inertiajs/react";
+
 // --- REUSABLE GRID ITEM COMPONENT ---
 // This handles the high-end hover effect for all product boxes
 function GridItem({ img, title, isLarge = false }: { img: string, title: string, isLarge?: boolean }) {
     return (
-        <div className={`relative overflow-hidden rounded group cursor-pointer w-full ${isLarge ? 'h-[400px] lg:h-[850px]' : 'h-[192px] lg:h-[420px]'}`}>
+
+        <>
+            <div className={`relative overflow-hidden rounded group cursor-pointer w-full ${isLarge ? 'h-100 lg:h-212.5' : 'h-48 lg:h-105'}`}>
             {/* Background Image with Zoom & Rotate Effect */}
-            <div 
+            <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat w-full h-full transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
                 style={{ backgroundImage: `url('${img}')` }}
             >
@@ -18,7 +22,7 @@ function GridItem({ img, title, isLarge = false }: { img: string, title: string,
 
             {/* Content Container (Slides up on hover) */}
             <div className="relative z-10 flex h-full flex-col items-center justify-center text-white px-4 transition-all duration-700 ease-out translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
-                
+
                 {/* Title */}
                 <h3 className="mb-2 md:mb-4 text-xl md:text-3xl font-['Alumni_Sans'] font-semibold tracking-wide text-center uppercase">
                     {title}
@@ -28,40 +32,111 @@ function GridItem({ img, title, isLarge = false }: { img: string, title: string,
                 <div className="mb-4 h-10 lg:h-20 w-px bg-white/50 transition-all duration-700 delay-100 scale-y-0 group-hover:scale-y-100 origin-top"></div>
 
                 {/* The Button */}
-                <button className="bg-[var(--bg-primary)] px-10 py-4 text-base font-medium font-['Libre_Franklin'] transition-all duration-700 delay-200 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 rounded shadow-lg relative overflow-hidden">
-                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
+                <button onClick={() => router.get('/productdetails')} className="bg-primary px-10 py-4 text-base font-medium font-['Libre_Franklin'] transition-all duration-700 delay-200 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 rounded shadow-lg relative overflow-hidden">
+                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
                     <span className="relative z-10">View Details</span>
                 </button>
             </div>
 
             {/* Image border glow */}
             <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/20 rounded-md transition-all duration-500 pointer-events-none"></div>
-        </div>
+            </div>
+        </>
     );
 }
 
 export default function SweatsuitsMen() {
+    const [category, setCategory] = useState('all');
+    const [subcategory, setSubcategory] = useState('all');
+
+    const resetFilters = () => {
+        setCategory('all');
+        setSubcategory('all');
+    };
+
     return (
         <FrontendLayout>
             <Head title="Sweatsuits Men" />
             <div className="bg-[var(--bg-animason)] font-sans text-gray-900 overflow-x-hidden">
-                
-                {/* --- PRODUCT GRID SECTIONS --- */}
+
+                {/* --- FILTER HEADER --- */}
+                <section className="container mx-auto px-4 pt-10 pb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 items-end">
+                        <div>
+                            <label className="block text-xl font-semibold tracking-wide text-white/80 mb-2 font-['Alumni_Sans']">Category</label>
+                            <div className="relative">
+                                <select
+                                    value={category}
+                                    onChange={(event) => setCategory(event.target.value)}
+                                    className="w-full rounded-lg border border-white/10 bg-white/90 py-3 pl-4 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-white focus:ring-2 focus:ring-white/20"
+                                >
+                                    <option value="all">All</option>
+                                    <option value="hoodies">Hoodies</option>
+                                    <option value="tracksuits">Tracksuits</option>
+                                    <option value="accessories">Accessories</option>
+                                </select>
+
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500">
+                                    {/* <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 7L10 11L14 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg> */}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xl font-semibold tracking-wide text-white/80 mb-2] font-['Alumni_Sans']">Subcategory</label>
+                            <div className="relative">
+                                <select
+                                    value={subcategory}
+                                    onChange={(event) => setSubcategory(event.target.value)}
+                                    className="w-full rounded-lg border border-white/10 bg-white/90 py-3 pl-4 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-white focus:ring-2 focus:ring-white/20"
+                                >
+                                    <option value="all">All</option>
+                                    <option value="pullover">Pullover</option>
+                                    <option value="zip-up">Zip Up</option>
+                                    <option value="joggers">Joggers</option>
+                                </select>
+
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500">
+                                    {/* <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 7L10 11L14 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg> */}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between lg:justify-end">
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="inline-flex items-center justify-center rounded bg-red-700 px-5 py-4 text-sm font-semibold text-white shadow-lg transition focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
                 <div className="space-y-8">
-                    
+
                     {/* SECTION 1: Layout 1-2-1 */}
                     <section className="lg:py-12 py-6 container mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="md:col-span-1 flex flex-col gap-4">
-                                <GridItem img="/assets/images/Rectangle 17.png" title="Aces Box" />
-                                <GridItem img="/assets/images/Frame 98 (1).png" title="Hoodie Flat" />
-                            </div>
-                            <div className="md:col-span-2">
-                                <GridItem img="/assets/images/Rectangle 16.png" title="Tracksuit Front" isLarge />
-                            </div>
+
                             <div className="md:col-span-1">
-                                <GridItem img="/assets/images/Rectangle 15.png" title="Tracksuit Back" isLarge />
+                                <GridItem img="/assets/images/Rectangle 15 (5).png" title="Tracksuit Back" isLarge />
                             </div>
+
+                             <div className="md:col-span-2">
+                                <GridItem img="/assets/images/Rectangle 16 (6).png" title="Tracksuit Front" isLarge />
+                            </div>
+
+                            <div className="md:col-span-1 flex flex-col gap-4">
+                                <GridItem img="/assets/images/Rectangle 17 (2).png" title="Aces Box" />
+                                <GridItem img="/assets/images/Frame 98 (6).png" title="Hoodie Flat" />
+                            </div>
+
                         </div>
                     </section>
 
@@ -69,14 +144,14 @@ export default function SweatsuitsMen() {
                     <section className="lg:py-12 py-6 container mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-1 flex flex-col gap-4">
-                                <GridItem img="/assets/images/Rectangle 20 (1).png" title="Aces Box" />
-                                <GridItem img="/assets/images/Frame 101 (1).png" title="Hoodie Flat" />
+                                <GridItem img="/assets/images/Rectangle 20 (5).png" title="Aces Box" />
+                                <GridItem img="/assets/images/Frame 101.png" title="Hoodie Flat" />
                             </div>
                             <div className="md:col-span-2">
-                                <GridItem img="/assets/images/Rectangle 19 (1).png" title="Tracksuit Front" isLarge />
+                                <GridItem img="/assets/images/Rectangle 19 (4).png" title="Tracksuit Front" isLarge />
                             </div>
                             <div className="md:col-span-1">
-                                <GridItem img="/assets/images/Rectangle 18 (1).png" title="Tracksuit Back" isLarge />
+                                <GridItem img="/assets/images/Rectangle 18.png" title="Tracksuit Back" isLarge />
                             </div>
                         </div>
                     </section>
@@ -92,7 +167,7 @@ export default function SweatsuitsMen() {
                             </div>
                             <div className="md:col-span-1 flex flex-col gap-4">
                                 <GridItem img="/assets/images/Rectangle 23.png" title="Aces Box" />
-                                <GridItem img="/assets/images/Frame 100 (2).png" title="Hoodie Flat" />
+                                <GridItem img="/assets/images/Frame 100 (1).png" title="Hoodie Flat" />
                             </div>
                         </div>
                     </section>
