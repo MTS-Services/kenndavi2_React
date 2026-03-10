@@ -15,6 +15,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest:admin')->group(function () {
         Route::get('/login', [AdminAuthController::class, 'create'])->name('login');
         Route::post('/login', [AdminAuthController::class, 'store'])->name('login.store');
+
+        // Admin Password Reset
+        Route::get('/forgot-password', [AdminAuthController::class, 'showForgot'])->name('password.request');
+        Route::post('/forgot-password/send-code', [AdminAuthController::class, 'sendCode'])->name('password.send-code');
+        Route::get('/forgot-password/verify', [AdminAuthController::class, 'showVerify'])->name('password.verify');
+        Route::post('/forgot-password/verify-code', [AdminAuthController::class, 'verifyCode'])->name('password.verify-code');
+        Route::get('/forgot-password/reset', [AdminAuthController::class, 'showReset'])->name('password.reset');
+        Route::post('/forgot-password/reset', [AdminAuthController::class, 'reset'])->name('password.update');
+        Route::get('/forgot-password/resend', [AdminAuthController::class, 'resendCode'])->name('password.resend');
     });
 
     Route::middleware(['admin'])->group(function () {
