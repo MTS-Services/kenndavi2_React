@@ -80,6 +80,10 @@ export default function AdminLogin({ status, error }: Props) {
                                 <p className="text-red-600 text-sm mt-1">{errors.password}</p>
                             )}
                         </div>
+                        
+                        <Link href={route('admin.password.request')} className="text-sm text-gray-600 hover:text-gray-900">
+                            Forgot your password?
+                        </Link>
 
                         <button
                             type="submit"

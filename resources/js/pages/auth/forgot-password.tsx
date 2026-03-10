@@ -11,7 +11,7 @@ import { email } from '@/routes/password';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
-        <AuthLayout title="Forgot password" description="We'll send you a link to reset your password.">
+        <AuthLayout title="Forgot password" description="We'll send you a code to reset your password.">
             <Head title="Forgot password" />
 
             <div className="mx-auto w-full max-w-md rounded-2xl border border-border/50 bg-card/50 p-8 shadow-xl backdrop-blur-sm">
