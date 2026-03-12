@@ -3,10 +3,10 @@ import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useState } from 'react';
 
 const navigationItems = [
-  { name: 'Home', href: '/' },
-  { name: 'Men', href: '/men' },
-  { name: 'Women', href: '/home-women' },
-  { name: 'Accessories', href: '/accessories' },
+    //   { name: 'Home', href: '/' },
+    { name: 'Men', href: '/' },
+    { name: 'Women', href: '/home-women' },
+    { name: 'Accessories', href: '/accessories' },
 ];
 
 export function FrontendHeader() {
@@ -33,9 +33,8 @@ export function FrontendHeader() {
                         <li key={item.name}>
                             <Link
                                 href={item.href}
-                                className={`transition hover:text-white ${
-                                    url === item.href ? 'text-white font-bold' : 'text-gray-900'
-                                }`}
+                                className={`transition hover:text-white ${url === item.href ? 'text-white font-bold' : 'text-gray-900'
+                                    }`}
                             >
                                 {item.name}
                             </Link>
@@ -88,11 +87,10 @@ export function FrontendHeader() {
                                 <li key={item.name}>
                                     <Link
                                         href={item.href}
-                                        className={`block ${
-                                            url === item.href
-                                                ? 'text-white font-bold'
-                                                : 'text-gray-300'
-                                        }`}
+                                        className={`block ${url === item.href
+                                            ? 'text-white font-bold'
+                                            : 'text-gray-300'
+                                            }`}
                                         onClick={() => setMobileOpen(false)}
                                     >
                                         {item.name}

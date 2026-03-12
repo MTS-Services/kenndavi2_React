@@ -6,21 +6,21 @@ import FrontendLayout from '@/layouts/frontend-layout';
 const heroSlidesWomen = [
     {
         id: 0,
-        title: "Aces in Da Hole is not your ordinary clothing brand. It's where friendship, culture, lifestyle, and fashion come together.",
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'Learn More',
         image: '/assets/images/wommen1.png',
     },
     {
         id: 1,
-        title: "Signature women's hoodies tailored for all–day comfort and standout style.",
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'View Collection',
         image: '/assets/images/AdobeExpress(2).png',
     },
     {
         id: 2,
-        title: 'Statement pieces that move with you—from coffee runs to night outs.',
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'Discover More',
         image: '/assets/images/Rectangle 9-Photoroom.png',
@@ -55,9 +55,9 @@ const HomeWomen: React.FC = () => {
             <Head title="Home Page " />
             <section className="font-sans text-white overflow-x-hidden relative bg-transparent">
                 <section className="relative min-h-[90vh] lg:h-[80vh] flex flex-col lg:flex-row items-center px-6 md:px-12 lg:px-24 overflow-hidden container mx-auto lg:pt-20 pt-8">
-                    <div className="relative max-w-xl z-20 text-center lg:text-left">
+                    <div className="relative max-w-3xl z-20 text-center lg:text-left">
                         <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold font-['Alumni_Sans'] leading-[1.1] mb-10">
+                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-['Alumni_Sans'] leading-[1.1] mb-10">
                                 {heroSlidesWomen[currentHeroIndex].title}
                             </h1>
                         </div>

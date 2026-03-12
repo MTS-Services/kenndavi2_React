@@ -6,28 +6,28 @@ import FrontendLayout from '@/layouts/frontend-layout';
 const heroSlides = [
     {
         id: 0,
-        title: "Aces in Da Hole is not your ordinary clothing brand. It's where friendship, culture, lifestyle, and fashion come together.",
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'Learn More',
         image: '/assets/images/heads.png',
     },
     {
         id: 1,
-        title: 'Level up your everyday look with premium hoodies designed to move with you.',
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'View Collection',
         image: '/assets/images/Adobe Express - file.png',
     },
     {
         id: 2,
-        title: 'From chill days to late nights, our fits keep your style on point.',
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         // secondaryCta: 'Discover More',
         image: '/assets/images/Adobe Express - file (1).png',
     },
     {
         id: 3,
-        title: 'Teal sweatsuits',
+        title: "Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we've stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - \"Built on Loyalty Designed to Last\".",
         primaryCta: 'Shop Now',
         secondaryCta: '',
         image: '/assets/images/rechangele.png',
@@ -64,10 +64,10 @@ export default function Home() {
                 <div className="absolute inset-0 bg-sidebar/60 z-0"></div>
                 <section className="relative min-h-[90vh] lg:h-[80vh] flex flex-col lg:flex-row items-center px-6 md:px-12 lg:px-24 overflow-hidden container mx-auto lg:pt-20 pt-8">
 
-                <div className="relative max-w-xl z-20 text-center lg:text-left">
+                <div className="relative max-w-3xl z-20 text-center lg:text-left">
 
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold font-['Alumni_Sans'] leading-[1.1] mb-10">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-['Alumni_Sans'] leading-[1.1] mb-10">
                         {heroSlides[currentHeroIndex].title}
                     </h1>
 
