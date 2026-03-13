@@ -13,19 +13,29 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::insert([
+        $users = [
             [
-                'name' => 'Seeded User One',
+                'first_name' => 'Seeded',
+                'last_name' => 'User One',
                 'email' => 'user1@example.com',
                 'password' => Hash::make('password'),
+                'status' => 'active',
             ],
             [
-                'name' => 'Seeded User Two',
+                'first_name' => 'Seeded',
+                'last_name' => 'User Two',
                 'email' => 'user2@example.com',
                 'password' => Hash::make('password'),
+                'status' => 'active',
             ],
-        ]);
+        ];
 
-        User::factory(50)->create();
+        foreach ($users as $user) {
+            User::updateOrCreate(['email' => $user['email']], $user);
+        }
+
+        if (User::count() < 10) {
+            User::factory(50)->create();
+        }
     }
 }

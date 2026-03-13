@@ -13,6 +13,8 @@ class OrderStatusHistory extends Model
     /** @use HasFactory<OrderStatusHistoryFactory> */
     use HasFactory;
 
+    protected $table = 'order_status_history';
+
     /**
      * @var list<string>
      */

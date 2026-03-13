@@ -32,6 +32,8 @@ class Admin extends Authenticatable
         'dob',
         'role',
         'status',
+        'email_verified_at',
+        'remember_token',
     ];
 
     /**

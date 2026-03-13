@@ -8,6 +8,32 @@ use App\Models\Tag;
 use Illuminate\Support\Facades\Schema;
 
 it('has expected core tables and columns', function () {
+    expect(Schema::hasTable('users'))->toBeTrue();
+    expect(Schema::hasColumns('users', [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'status',
+    ]))->toBeTrue();
+
+    expect(Schema::hasTable('admins'))->toBeTrue();
+    expect(Schema::hasColumns('admins', [
+        'id',
+        'name',
+        'email',
+        'role',
+        'status',
+    ]))->toBeTrue();
+
+    expect(Schema::hasTable('categories'))->toBeTrue();
+    expect(Schema::hasColumns('categories', [
+        'id',
+        'title',
+        'slug',
+        'status',
+    ]))->toBeTrue();
+
     expect(Schema::hasTable('products'))->toBeTrue();
     expect(Schema::hasColumns('products', [
         'id',
@@ -48,4 +74,12 @@ it('creates product with relations and enums via factories', function () {
     expect($product->category)->not->toBeNull();
     expect($product->variants)->toHaveCount(2);
     expect($product->tags)->toHaveCount(1);
+
+    expect($product->status->value)->toBe('active');
+    expect($product->status->label())->toBe(__('Active'));
+    expect($product->status->color())->not->toBe('');
+
+    $options = ProductStatus::options();
+    expect($options)->not->toBeEmpty()
+        ->and($options[0])->toHaveKeys(['value', 'label']);
 });

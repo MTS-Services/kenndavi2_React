@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,7 +44,7 @@ class Order extends Model
             'tax_amount' => 'decimal:2',
             'grand_total' => 'decimal:2',
             'status' => OrderStatus::class,
-            'payment_status' => PaymentStatus::class,
+            'payment_status' => OrderPaymentStatus::class,
         ];
     }
 

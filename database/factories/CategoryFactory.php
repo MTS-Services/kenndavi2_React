@@ -17,12 +17,17 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
+        $title = $this->faker->randomElement([
+            'Electronics', 'Clothing', 'Home & Kitchen', 'Beauty & Personal Care',
+            'Sports & Outdoors', 'Books', 'Toys & Games', 'Automotive',
+        ]);
+
         return [
             'sort_order' => $this->faker->numberBetween(0, 10),
-            'title' => $this->faker->unique()->words(2, true),
-            'slug' => $this->faker->unique()->slug(),
-            'image' => null,
-            'description' => $this->faker->optional()->sentence(),
+            'title' => $title.' '.$this->faker->unique()->word(),
+            'slug' => str($title)->slug().'-'.$this->faker->unique()->slug(),
+            'image' => 'https://placehold.co/400x400?text='.urlencode($title),
+            'description' => $this->faker->sentence(),
             'status' => 'active',
         ];
     }

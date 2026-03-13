@@ -18,7 +18,15 @@ class ProductReviewFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'product_id' => ProductFactory::new(),
+            'user_id' => null,
+            'order_item_id' => null,
+            'rating' => $this->faker->numberBetween(1, 5),
+            'title' => $this->faker->sentence(3),
+            'comment' => $this->faker->optional()->paragraph(),
+            'is_verified' => false,
+            'helpful_count' => 0,
+            'status' => 'pending',
         ];
     }
 }
