@@ -27,42 +27,12 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $webUser = $request->user();
-        $adminUser = auth('admin')->user();
-
-        // For shared layout/UI: use web user when present, otherwise admin (so is_admin works for both)
-        $userForDisplay = $webUser ?? $adminUser;
-        $isAdmin = $adminUser !== null;
-
-        $authUser = null;
-        if ($userForDisplay) {
-            $onlyKeys = array_intersect(
-                ['id', 'email', 'name', 'phone_number', 'employee_code', 'avatar'],
-                array_keys($userForDisplay->getAttributes())
-            );
-            $authUser = array_merge(
-                $userForDisplay->only($onlyKeys),
-                [
-                    'name' => $this->displayName($userForDisplay),
-                    'role' => $webUser?->role?->value ?? null,
-                    'role_label' => $webUser?->role_label ?? ($isAdmin ? 'Admin' : 'User'),
-                    'is_admin' => $isAdmin,
-                    'can_manage_users' => $isAdmin,
-                    'avatar_url' => method_exists($userForDisplay, 'getAvatarUrlAttribute') ? $userForDisplay->avatar_url : null,
-                ]
-            );
-        }
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $authUser,
-                'admin' => $adminUser ? [
-                    'id' => $adminUser->id,
-                    'email' => $adminUser->email,
-                    'name' => $adminUser->name,
-                ] : null,
+                'user' => $request->user(guard: 'web'),
+                'admin' => $request->user(guard: 'admin'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'features' => [
@@ -76,10 +46,5 @@ class HandleInertiaRequests extends Middleware
                 'canUseTwoFactorAuthentication' => false,
             ],
         ];
-    }
-
-    private function displayName($user): string
-    {
-        return ! empty($user->name) ? $user->name : $user->email;
     }
 }
