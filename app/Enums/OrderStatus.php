@@ -12,6 +12,7 @@ enum OrderStatus: string
     case CANCELLED = 'cancelled';
     case REFUNDED = 'refunded';
     case RETURNED = 'returned';
+    case COMPLETED = 'completed';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum OrderStatus: string
             self::CANCELLED => __('Cancelled'),
             self::REFUNDED => __('Refunded'),
             self::RETURNED => __('Returned'),
+            self::COMPLETED => __('Completed'),
         };
     }
 
@@ -38,6 +40,7 @@ enum OrderStatus: string
             self::CANCELLED => 'badge-danger',
             self::REFUNDED => 'badge-purple',
             self::RETURNED => 'badge-secondary',
+            self::COMPLETED => 'badge-success',
         };
     }
 

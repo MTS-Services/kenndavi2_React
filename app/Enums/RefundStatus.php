@@ -8,6 +8,7 @@ enum RefundStatus: string
     case APPROVED = 'approved';
     case PROCESSED = 'processed';
     case REJECTED = 'rejected';
+    case COMPLETED = 'completed';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum RefundStatus: string
             self::APPROVED => __('Approved'),
             self::PROCESSED => __('Processed'),
             self::REJECTED => __('Rejected'),
+            self::COMPLETED => __('Completed'),
         };
     }
 
@@ -26,6 +28,7 @@ enum RefundStatus: string
             self::APPROVED => 'badge-success',
             self::PROCESSED => 'badge-info',
             self::REJECTED => 'badge-danger',
+            self::COMPLETED => 'badge-success',
         };
     }
 

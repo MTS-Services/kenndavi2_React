@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained('categories');
+            $table->unsignedBigInteger('category_id');
+            $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
+
             $table->string('title', 255);
             $table->string('slug', 300)->unique();
             $table->text('description')->nullable();
@@ -26,12 +28,15 @@ return new class extends Migration
             $table->string('meta_description', 320)->nullable();
             $table->json('meta_keywords')->nullable();
 
-            $table->foreignId('created_by')->nullable()->constrained('admins');
-            $table->foreignId('updated_by')->nullable()->constrained('admins');
-            $table->foreignId('deleted_by')->nullable()->constrained('admins');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+
+            $table->foreign('created_by')->references('id')->on('admins')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('updated_by')->references('id')->on('admins')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('deleted_by')->references('id')->on('admins')->onUpdate('cascade')->onDelete('cascade');
 
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

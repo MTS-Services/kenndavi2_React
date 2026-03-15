@@ -7,6 +7,7 @@ enum ReviewStatus: string
     case PENDING = 'pending';
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
+    case PUBLISHED = 'published';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum ReviewStatus: string
             self::PENDING => __('Pending'),
             self::APPROVED => __('Approved'),
             self::REJECTED => __('Rejected'),
+            self::PUBLISHED => __('Published'),
         };
     }
 
@@ -23,6 +25,7 @@ enum ReviewStatus: string
             self::PENDING => 'badge-warning',
             self::APPROVED => 'badge-success',
             self::REJECTED => 'badge-danger',
+            self::PUBLISHED => 'badge-success',
         };
     }
 

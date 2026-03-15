@@ -10,12 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * @var list<string>
@@ -34,7 +33,6 @@ class Product extends Model
         'meta_keywords',
         'created_by',
         'updated_by',
-        'deleted_by',
     ];
 
     /**
@@ -88,10 +86,5 @@ class Product extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by');
-    }
-
-    public function deletedBy(): BelongsTo
-    {
-        return $this->belongsTo(Admin::class, 'deleted_by');
     }
 }

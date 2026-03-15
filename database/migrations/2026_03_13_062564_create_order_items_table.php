@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders');
-            $table->foreignId('variant_id')->nullable()->constrained('product_variants');
+            $table->unsignedBigInteger('order_id');
+            $table->foreign('order_id')->references('id')->on('orders')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('variant_id')->nullable();
+            $table->foreign('variant_id')->references('id')->on('product_variants')->onUpdate('cascade')->onDelete('cascade');
             $table->string('product_title', 255);
             $table->string('sku', 100);
             $table->string('color_name', 80);

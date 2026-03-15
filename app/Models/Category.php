@@ -9,12 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * @var list<string>
@@ -31,7 +30,6 @@ class Category extends Model
         'meta_keywords',
         'created_by',
         'updated_by',
-        'deleted_by',
     ];
 
     /**
@@ -57,7 +55,7 @@ class Category extends Model
             'category_relations',
             'sub_category_id',
             'category_id',
-        );
+        )->withPivot('sort_order');
     }
 
     public function children(): BelongsToMany
@@ -67,7 +65,7 @@ class Category extends Model
             'category_relations',
             'category_id',
             'sub_category_id',
-        );
+        )->withPivot('sort_order');
     }
 
     public function createdBy(): BelongsTo
@@ -78,10 +76,5 @@ class Category extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by');
-    }
-
-    public function deletedBy(): BelongsTo
-    {
-        return $this->belongsTo(Admin::class, 'deleted_by');
     }
 }

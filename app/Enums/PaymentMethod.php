@@ -7,6 +7,7 @@ enum PaymentMethod: string
     case STRIPE = 'stripe';
     case BKASH = 'bkash';
     case COD = 'cod';
+    case CARD = 'card';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum PaymentMethod: string
             self::STRIPE => __('Stripe'),
             self::BKASH => __('bKash'),
             self::COD => __('Cash on delivery'),
+            self::CARD => __('Card'),
         };
     }
 
@@ -23,6 +25,7 @@ enum PaymentMethod: string
             self::STRIPE => 'badge-primary',
             self::BKASH => 'badge-pink',
             self::COD => 'badge-secondary',
+            self::CARD => 'badge-primary',
         };
     }
 

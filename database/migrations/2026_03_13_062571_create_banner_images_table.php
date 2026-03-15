@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('banner_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('banner_id')->constrained('banners');
+            $table->unsignedBigInteger('banner_id');
+            $table->foreign('banner_id')->references('id')->on('banners')->onUpdate('cascade')->onDelete('cascade');
             $table->string('url', 500);
             $table->string('alt_text', 255)->nullable();
             $table->timestamps();

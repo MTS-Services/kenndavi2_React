@@ -12,10 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_tags', function (Blueprint $table) {
-            $table->foreignId('product_id')->constrained('products');
-            $table->foreignId('tag_id')->constrained('tags');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('tag_id');
+            $table->foreign('tag_id')->references('id')->on('tags')->onUpdate('cascade')->onDelete('cascade');
 
-            $table->primary(['product_id', 'tag_id']);
+            $table->unique(['product_id', 'tag_id']);
         });
     }
 
