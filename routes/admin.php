@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Backend\Admin\AdminAuthController;
 use App\Http\Controllers\Backend\Admin\AdminDashboardController;
@@ -57,6 +58,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/categories/{id}/edit', 'edit')->name('categories.edit');
             Route::put('/categories/{id}', 'update')->name('categories.update');
             Route::delete('/categories/{id}', 'destroy')->name('categories.destroy');
+        });
+
+        Route::controller(AnnouncementController::class)->name('announcement.')->prefix('announcement')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/publish/{id}', 'publish')->name('publish');
         });
     });
 });

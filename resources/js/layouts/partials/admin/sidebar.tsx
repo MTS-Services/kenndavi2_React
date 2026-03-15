@@ -5,12 +5,15 @@ import React, { useMemo } from 'react';
 import { index as ordersIndex } from '@/routes/admin/orders';
 import { index as productsIndex } from '@/routes/admin/products';
 import { useActiveUrl } from '@/hooks/use-active-url';
+import { Box, LayoutGrid, LucideIcon, Megaphone, Package2, ShoppingCart } from 'lucide-react';
+import { index as announcementIndex } from '@/routes/admin/announcement';
+import { Icon } from '@/components/icon';
 
 
 interface NavItem {
   label: string;
   href: string | any;
-  icon: string;
+  icon: string | LucideIcon;
 }
 
 const logo = "/assets/images/Layer_1 (2).png";
@@ -23,23 +26,28 @@ export const AdminSidebar: React.FC = React.memo(() => {
     {
       label: 'Overview',
       href: dashboard(),
-      icon: 'fas fa-th-large',
+      icon: LayoutGrid,
     },
     {
       label: 'Orders',
       href: ordersIndex(),
-      icon: 'fas fa-shopping-cart',
+      icon: ShoppingCart,
     },
     {
       label: 'Products',
       href: productsIndex(),
-      icon: 'fas fa-box',
+      icon: Package2,
     },
     {
       label: 'Categories',
       href: categoriesIndex(),
-      icon: 'fas fa-list',
+      icon: Box,
     },
+    {
+      label: 'Announcement',
+      href: announcementIndex(),
+      icon: Megaphone,
+    }
   ], []);
 
   // 2. Optimized Class Merger
@@ -84,7 +92,14 @@ export const AdminSidebar: React.FC = React.memo(() => {
                 href={item.href}
                 className={getNavLinkClasses(isActive)}
               >
-                <i className={`${item.icon} w-6 ${isActive ? 'text-red-600' : 'text-gray-400'}`} />
+                {item.icon && typeof item.icon !== 'string' ? (
+                  <Icon
+                    iconNode={item.icon}
+                    className="size-5"
+                  />
+                ) : (
+                  <i className={`${item.icon} w-5 ${isActive ? 'text-red-600' : 'text-gray-400'}`} />
+                )}
                 <span className="ml-3">{item.label}</span>
               </Link>
             );
