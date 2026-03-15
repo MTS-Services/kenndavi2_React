@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Backend\Admin\AdminAuthController;
 use App\Http\Controllers\Backend\Admin\AdminDashboardController;
 use App\Http\Controllers\UserSelectionController;
@@ -42,8 +43,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/orders/cancelled', [AdminDashboardController::class, 'DashboarCancelled'])->name('orders.cancelled');
 
         // Products
-        Route::get('/products', [AdminDashboardController::class, 'DashboarProduct'])->name('products.index');
-        Route::get('/products/add', [AdminDashboardController::class, 'DashboarOrdersAdd'])->name('products.create');
+
+        Route::controller(ProductController::class)->name('products.')->prefix('products')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
 
         // Customers
         Route::get('/customers', [AdminDashboardController::class, 'DashboarCustomer'])->name('customers.index');
