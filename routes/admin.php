@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Backend\Admin\AdminAuthController;
 use App\Http\Controllers\Backend\Admin\AdminDashboardController;
 use App\Http\Controllers\UserSelectionController;
@@ -48,5 +49,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Other admin utilities
         Route::get('/users/list', [UserSelectionController::class, 'getUsers'])->name('users.list');
+
+
+        Route::controller(CategoryController::class)->group(function () {
+            Route::get('/categories', 'index')->name('categories.index');
+            Route::post('/categories', 'store')->name('categories.store');
+            Route::get('/categories/{id}/edit', 'edit')->name('categories.edit');
+            Route::patch('/categories/{id}', 'update')->name('categories.update');
+            Route::delete('/categories/{id}', 'destroy')->name('categories.destroy');
+        });
     });
 });
