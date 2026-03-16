@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('colors', function (Blueprint $table) {
             $table->id();
             $table->integer('sort_order')->default(0);
-            $table->string('name', 80)->unique();
+            $table->string('name', 80)->nullable();
             $table->char('hex_code', 7);
             $table->timestamps();
         });

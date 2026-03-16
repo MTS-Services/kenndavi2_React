@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon, X, Plus } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import FileUpload from "@/components/file-upload";
+import VariantMatrix, { VariantMatrixRef } from "@/components/variant-matrix";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,8 +26,7 @@ import { cn } from "@/lib/utils";
 /* Constants                                                       */
 /* ─────────────────────────────────────────────────────────────── */
 
-const TOTAL_IMAGE_SLOTS = 5;   // slot 0 = primary, 1-4 = additional
-const PRODUCT_TYPE = "men"; // hardcoded as instructed
+const TOTAL_IMAGE_SLOTS = 5;
 
 /* ─────────────────────────────────────────────────────────────── */
 /* ExistingFile — matches FileUpload component's prop interface    */
@@ -42,7 +42,7 @@ interface ExistingFile {
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* ProductImage — mirrors the Laravel ProductImage model           */
+/* ProductImage — mirrors Laravel ProductImage model               */
 /* ─────────────────────────────────────────────────────────────── */
 
 interface ProductImage {
@@ -54,34 +54,27 @@ interface ProductImage {
     color_id?: number | null;
 }
 
-/**
- * Adapter: converts a ProductImage (from the API) into the ExistingFile
- * shape that FileUpload expects.
- *
- * `path` is satisfied by `url` (same value — FileUpload uses it for display).
- * `mime_type` defaults to "image/jpeg" because all ProductImages are images;
- *  the server can include the real type if needed in the future.
- */
 function toExistingFile(img: ProductImage): ExistingFile {
     return {
         id: img.id,
         url: img.url,
-        path: img.url,               // FileUpload only uses url for <img src>
-        mime_type: "image/jpeg",          // all ProductImage rows are images
+        path: img.url,
+        mime_type: "image/jpeg",
         name: img.alt_text ?? undefined,
     };
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* Other types                                                     */
+/* Domain types                                                    */
 /* ─────────────────────────────────────────────────────────────── */
 
-interface ProductVariant {
+export interface ProductVariant {
     id: number;
     color_id?: number | null;
     size_id?: number | null;
     color?: { id: number; name: string; hex: string } | null;
     size?: { id: number; name: string } | null;
+    quantity?: number;
     status?: string;
 }
 
@@ -100,7 +93,6 @@ export interface Product {
     status: string;
     images: ProductImage[];
     variants: ProductVariant[];
-    // resolved by controller
     resolved_category_id: number | null;
     resolved_subcategory_id: number | null;
 }
@@ -117,19 +109,10 @@ export interface EnumOption { value: string; label: string; }
 
 interface PageProps {
     product?: Product;
+    initialType?: string;
     categories?: CategoryForSelect[];
     discountTypes?: EnumOption[];
-}
-
-/* ─────────────────────────────────────────────────────────────── */
-/* Variant row (local UI state)                                    */
-/* ─────────────────────────────────────────────────────────────── */
-
-interface VariantRow {
-    existingId?: number;
-    size: string;
-    color: string;
-    quantity: string;
+    productTypes?: EnumOption[];
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -151,7 +134,8 @@ interface ProductFormData {
     primary_image: File | null;
     new_images: (File | null)[];
     removed_image_ids: number[];
-    new_variants: { size: string; color: string; quantity: string }[];
+    /** Flattened from the matrix on submit */
+    variants: { size: string; color: string; quantity: number; existingId?: number }[];
     removed_variant_ids: number[];
 }
 
@@ -168,10 +152,6 @@ function FieldGroup({ children, className }: { children: React.ReactNode; classN
 function FieldSet({ children, className }: { children: React.ReactNode; className?: string }) {
     return <fieldset className={cn("border-0 p-0 m-0 min-w-0", className)}>{children}</fieldset>;
 }
-
-/* ─────────────────────────────────────────────────────────────── */
-/* Shared field class                                              */
-/* ─────────────────────────────────────────────────────────────── */
 
 const field =
     "bg-[#1103040A] border-0 rounded-md focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-0 shadow-none h-11 text-stone-800 placeholder:text-stone-400";
@@ -191,15 +171,12 @@ interface DatePickerFieldProps {
 
 function DatePickerField({ label, value, onChange, disabled, placeholder, minDate }: DatePickerFieldProps) {
     const selected = value ? parseISO(value) : undefined;
-
     return (
         <Field>
-            <Label
-                className={cn(
-                    "text-base font-bold font-alumni transition-colors duration-200",
-                    disabled ? "text-stone-400" : "text-stone-900"
-                )}
-            >
+            <Label className={cn(
+                "text-base font-bold font-alumni transition-colors duration-200",
+                disabled ? "text-stone-400" : "text-stone-900"
+            )}>
                 {label}
             </Label>
             <Popover>
@@ -224,18 +201,15 @@ function DatePickerField({ label, value, onChange, disabled, placeholder, minDat
                     <Calendar
                         mode="single"
                         selected={selected}
-                        onSelect={(date) => onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                        onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
                         disabled={minDate ? (d) => d < minDate : undefined}
                         captionLayout="dropdown"
                         initialFocus
                     />
                     {selected && (
                         <div className="border-t px-3 py-2">
-                            <button
-                                type="button"
-                                onClick={() => onChange("")}
-                                className="text-xs text-stone-500 hover:text-red-600 transition-colors"
-                            >
+                            <button type="button" onClick={() => onChange("")}
+                                className="text-xs text-stone-500 hover:text-red-600 transition-colors">
                                 Clear date
                             </button>
                         </div>
@@ -252,24 +226,33 @@ function DatePickerField({ label, value, onChange, disabled, placeholder, minDat
 
 const toDateInput = (iso: string | null | undefined): string => {
     if (!iso) return "";
-    try { return format(parseISO(iso), "yyyy-MM-dd"); }
-    catch { return ""; }
+    try { return format(parseISO(iso), "yyyy-MM-dd"); } catch { return ""; }
 };
 
 /* ─────────────────────────────────────────────────────────────── */
 /* Page Component                                                  */
 /* ─────────────────────────────────────────────────────────────── */
 
-export default function ProductForm({ product, categories = [], discountTypes = [] }: PageProps) {
+export default function ProductForm({
+    product,
+    initialType = "men",
+    categories = [],
+    discountTypes = [],
+    productTypes = [],
+}: PageProps) {
     const isEdit = Boolean(product?.id);
+    const resolvedType = isEdit ? (product?.type ?? initialType) : initialType;
 
-    /* ── Resolve images → ExistingFile shape ── */
-    const resolvedPrimaryFile: ExistingFile | null = useMemo(() => {
+    /* ── ref to read variant matrix on submit ── */
+    const variantMatrixRef = useRef<VariantMatrixRef>(null);
+
+    /* ── Resolve images ── */
+    const resolvedPrimaryFile = useMemo<ExistingFile | null>(() => {
         const img = product?.images.find((i) => i.is_primary) ?? null;
         return img ? toExistingFile(img) : null;
     }, [product]);
 
-    const resolvedAdditional: (ExistingFile | null)[] = useMemo(() => {
+    const resolvedAdditional = useMemo<(ExistingFile | null)[]>(() => {
         const additional = (product?.images ?? []).filter((i) => !i.is_primary);
         return Array.from(
             { length: TOTAL_IMAGE_SLOTS - 1 },
@@ -280,42 +263,12 @@ export default function ProductForm({ product, categories = [], discountTypes = 
     const [existingAdditional, setExistingAdditional] =
         useState<(ExistingFile | null)[]>(resolvedAdditional);
 
-    /* ── Variant rows ── */
-    const [variantRows, setVariantRows] = useState<VariantRow[]>(() => {
-        if (isEdit && product?.variants?.length) {
-            return product.variants.map((v) => ({
-                existingId: v.id,
-                size: v.size?.name ?? "",
-                color: v.color?.hex ? `#${v.color.hex.replace("#", "")}` : "#000000",
-                quantity: "",
-            }));
-        }
-        return [{ size: "", color: "#000000", quantity: "" }];
-    });
-
-    const addVariantRow = () =>
-        setVariantRows((p) => [...p, { size: "", color: "#000000", quantity: "" }]);
-
-    const removeVariantRow = (idx: number) => {
-        const row = variantRows[idx];
-        if (row.existingId) {
-            setData("removed_variant_ids", [...data.removed_variant_ids, row.existingId]);
-        }
-        setVariantRows((p) => p.filter((_, i) => i !== idx));
-    };
-
-    const updateVariantRow = (
-        idx: number,
-        key: keyof Omit<VariantRow, "existingId">,
-        value: string
-    ) => setVariantRows((p) => p.map((r, i) => (i === idx ? { ...r, [key]: value } : r)));
-
     /* ── Inertia form ── */
     const { data, setData, post, processing, errors } = useForm<ProductFormData>({
         _method: isEdit ? "PUT" : "",
         title: product?.title ?? "",
         description: product?.description ?? "",
-        type: PRODUCT_TYPE,
+        type: resolvedType,
         price: product?.price ?? "",
         discount: product?.discount ?? "",
         discount_type: product?.discount_type ?? "",
@@ -328,11 +281,11 @@ export default function ProductForm({ product, categories = [], discountTypes = 
         primary_image: null,
         new_images: Array(TOTAL_IMAGE_SLOTS - 1).fill(null),
         removed_image_ids: [],
-        new_variants: [],
+        variants: [],
         removed_variant_ids: [],
     });
 
-    /* ── Derived: filtered subcategories ── */
+    /* ── Derived ── */
     const filteredSubcategories = useMemo<SubcategoryOption[]>(() => {
         if (!data.category_id) return [];
         return categories.find((c) => String(c.id) === data.category_id)?.children ?? [];
@@ -340,6 +293,8 @@ export default function ProductForm({ product, categories = [], discountTypes = 
 
     const subcategoryDisabled = !data.category_id || filteredSubcategories.length === 0;
     const discountFieldsDisabled = !data.discount_type;
+
+    const typeLabel = productTypes.find((t) => t.value === resolvedType)?.label ?? resolvedType;
 
     /* ── Handlers ── */
     const handleCategoryChange = (v: string) => {
@@ -367,16 +322,17 @@ export default function ProductForm({ product, categories = [], discountTypes = 
         setData("removed_image_ids", [...data.removed_image_ids, Number(id)]);
     };
 
-    /* ── Submit ── */
+    /* ── Submit: read matrix right before posting ── */
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Flush new variant rows into form data right before submitting
-        const newVariants = variantRows
-            .filter((r) => !r.existingId)
-            .map(({ size, color, quantity }) => ({ size, color, quantity }));
+        const matrix = variantMatrixRef.current;
+        const variants = matrix?.getVariants() ?? [];
+        const removedVariants = matrix?.getRemovedIds() ?? [];
 
-        setData("new_variants", newVariants);
+        // Write into form data synchronously then post
+        data.variants = variants;
+        data.removed_variant_ids = removedVariants;
 
         post(
             isEdit
@@ -385,7 +341,8 @@ export default function ProductForm({ product, categories = [], discountTypes = 
             {
                 forceFormData: true,
                 preserveScroll: true,
-                onSuccess: () => router.visit(route("admin.products.index")),
+                onSuccess: () =>
+                    router.visit(route("admin.products.index", { type: data.type })),
                 onError: (errs: Record<string, string>) => {
                     const first = Object.values(errs)[0];
                     if (first) toast.error(first);
@@ -399,21 +356,29 @@ export default function ProductForm({ product, categories = [], discountTypes = 
             : data.discount_type === "fixed" ? "e.g. 5.00"
                 : "Set type first";
 
-    /* ── Render ── */
     return (
         <AdminLayout
-            title={isEdit ? "Edit Product" : "Add New Product"}
-            description={isEdit ? "Update the product details below." : "Fill in the details to add a new product."}
+            title={isEdit ? `Edit ${typeLabel} Product` : `Add New ${typeLabel} Product`}
+            description={
+                isEdit
+                    ? "Update the product details below."
+                    : `Fill in the details to add a new ${typeLabel.toLowerCase()} product.`
+            }
         >
             <div className="bg-[#FDF7F7] w-full p-8 rounded-lg shadow-lg">
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-bold text-stone-900 font-alumni">
-                        {isEdit ? "Edit Product" : "Add new Product"}
-                    </h2>
+                    <div>
+                        <h2 className="text-2xl font-bold text-stone-900 font-alumni">
+                            {isEdit ? "Edit Product" : "Add new Product"}
+                        </h2>
+                        <span className="text-xs font-medium text-stone-500 mt-0.5 block capitalize">
+                            Type: <span className="text-red-700 font-semibold">{typeLabel}</span>
+                        </span>
+                    </div>
                     <Link
-                        href={route("admin.products.index")}
+                        href={route("admin.products.index", { type: resolvedType })}
                         className="bg-red-700 hover:bg-red-800 text-white p-1.5 rounded transition-colors cursor-pointer"
                     >
                         <X className="size-4" />
@@ -423,54 +388,30 @@ export default function ProductForm({ product, categories = [], discountTypes = 
                 <form onSubmit={submit}>
                     <FieldGroup>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 1 — Images
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 1 — Images ══════════════════════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-
-                                {/* Primary image slot */}
                                 <Field>
                                     <FileUpload
                                         value={data.primary_image}
-                                        onChange={(file) =>
-                                            setData("primary_image", file as File | null)
-                                        }
-                                        existingFiles={
-                                            isEdit && resolvedPrimaryFile
-                                                ? [resolvedPrimaryFile]
-                                                : []
-                                        }
-                                        accept="image/*"
-                                        maxSize={10}
-                                        maxFiles={1}
+                                        onChange={(file) => setData("primary_image", file as File | null)}
+                                        existingFiles={isEdit && resolvedPrimaryFile ? [resolvedPrimaryFile] : []}
+                                        accept="image/*" maxSize={10} maxFiles={1}
                                         error={errors.primary_image}
                                         innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
                                     />
                                 </Field>
-
-                                {/* Additional image slots 1-4 */}
                                 {Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, i) => {
-                                    const existing = existingAdditional[i]; // already ExistingFile | null
+                                    const existing = existingAdditional[i];
                                     return (
                                         <Field key={i}>
                                             <FileUpload
                                                 value={data.new_images[i]}
-                                                onChange={(file) =>
-                                                    setImageSlot(i, file as File | null)
-                                                }
+                                                onChange={(file) => setImageSlot(i, file as File | null)}
                                                 existingFiles={existing ? [existing] : []}
-                                                onRemoveExisting={(id) =>
-                                                    handleRemoveExistingImage(i, id)
-                                                }
-                                                accept="image/*"
-                                                maxSize={10}
-                                                maxFiles={1}
-                                                error={
-                                                    (errors as Record<string, string>)[
-                                                    `new_images.${i}`
-                                                    ]
-                                                }
+                                                onRemoveExisting={(id) => handleRemoveExistingImage(i, id)}
+                                                accept="image/*" maxSize={10} maxFiles={1}
+                                                error={(errors as Record<string, string>)[`new_images.${i}`]}
                                                 innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
                                             />
                                         </Field>
@@ -479,47 +420,32 @@ export default function ProductForm({ product, categories = [], discountTypes = 
                             </div>
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 2 — Title
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 2 — Title ═══════════════════════════ */}
                         <FieldSet>
                             <Field>
-                                <Label className="text-base font-bold text-stone-900 font-alumni">
-                                    Title
-                                </Label>
+                                <Label className="text-base font-bold text-stone-900 font-alumni">Title</Label>
                                 <Input
                                     value={data.title}
                                     onChange={(e) => setData("title", e.target.value)}
                                     placeholder="Enter product title"
-                                    className={field}
-                                    required
+                                    className={field} required
                                 />
                                 <InputError message={errors.title} />
                             </Field>
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 3 — Category + Subcategory
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 3 — Category + Subcategory ══════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                                 <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">
-                                        Category
-                                    </Label>
-                                    <Select
-                                        value={data.category_id}
-                                        onValueChange={handleCategoryChange}
-                                    >
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">Category</Label>
+                                    <Select value={data.category_id} onValueChange={handleCategoryChange}>
                                         <SelectTrigger className={cn(field, "w-full")}>
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories.map((c) => (
-                                                <SelectItem key={c.id} value={String(c.id)}>
-                                                    {c.title}
-                                                </SelectItem>
+                                                <SelectItem key={c.id} value={String(c.id)}>{c.title}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -527,12 +453,10 @@ export default function ProductForm({ product, categories = [], discountTypes = 
                                 </Field>
 
                                 <Field>
-                                    <Label
-                                        className={cn(
-                                            "text-base font-bold font-alumni transition-colors duration-200",
-                                            subcategoryDisabled ? "text-stone-400" : "text-stone-900"
-                                        )}
-                                    >
+                                    <Label className={cn(
+                                        "text-base font-bold font-alumni transition-colors duration-200",
+                                        subcategoryDisabled ? "text-stone-400" : "text-stone-900"
+                                    )}>
                                         Subcategory
                                     </Label>
                                     <Select
@@ -540,118 +464,79 @@ export default function ProductForm({ product, categories = [], discountTypes = 
                                         onValueChange={(v) => setData("subcategory_id", v)}
                                         disabled={subcategoryDisabled}
                                     >
-                                        <SelectTrigger
-                                            className={cn(
-                                                field, "w-full transition-opacity duration-200",
-                                                subcategoryDisabled && "opacity-50 cursor-not-allowed"
-                                            )}
-                                        >
-                                            <SelectValue
-                                                placeholder={
-                                                    !data.category_id
-                                                        ? "Select a category first"
-                                                        : filteredSubcategories.length === 0
-                                                            ? "No subcategories available"
-                                                            : "Select subcategory"
-                                                }
-                                            />
+                                        <SelectTrigger className={cn(
+                                            field, "w-full transition-opacity duration-200",
+                                            subcategoryDisabled && "opacity-50 cursor-not-allowed"
+                                        )}>
+                                            <SelectValue placeholder={
+                                                !data.category_id ? "Select a category first"
+                                                    : filteredSubcategories.length === 0 ? "No subcategories available"
+                                                        : "Select subcategory"
+                                            } />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {filteredSubcategories.map((s) => (
-                                                <SelectItem key={s.id} value={String(s.id)}>
-                                                    {s.title}
-                                                </SelectItem>
+                                                <SelectItem key={s.id} value={String(s.id)}>{s.title}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </Field>
-
                             </div>
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 4 — Price · Discount Type · Discount Value
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 4 — Price · Discount Type · Discount Value ═══ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
                                 <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">
-                                        Price
-                                    </Label>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">Price</Label>
                                     <Input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
+                                        type="number" min="0" step="0.01"
                                         value={data.price}
                                         onChange={(e) => setData("price", e.target.value)}
-                                        placeholder="0.00"
-                                        className={field}
-                                        required
+                                        placeholder="0.00" className={field} required
                                     />
                                     <InputError message={errors.price} />
                                 </Field>
 
                                 <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">
-                                        Discount Type
-                                    </Label>
-                                    <Select
-                                        value={data.discount_type}
-                                        onValueChange={handleDiscountTypeChange}
-                                    >
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">Discount Type</Label>
+                                    <Select value={data.discount_type} onValueChange={handleDiscountTypeChange}>
                                         <SelectTrigger className={cn(field, "w-full")}>
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {discountTypes.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value}>
-                                                    {opt.label}
-                                                </SelectItem>
+                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </Field>
 
                                 <Field>
-                                    <Label
-                                        className={cn(
-                                            "text-base font-bold font-alumni transition-colors duration-200",
-                                            discountFieldsDisabled ? "text-stone-400" : "text-stone-900"
-                                        )}
-                                    >
+                                    <Label className={cn(
+                                        "text-base font-bold font-alumni transition-colors duration-200",
+                                        discountFieldsDisabled ? "text-stone-400" : "text-stone-900"
+                                    )}>
                                         Discount Value
-                                        {data.discount_type === "percentage" && (
-                                            <span className="ml-1 text-sm font-normal text-stone-500">(%)</span>
-                                        )}
-                                        {data.discount_type === "fixed" && (
-                                            <span className="ml-1 text-sm font-normal text-stone-500">(amount)</span>
-                                        )}
+                                        {data.discount_type === "percentage" && <span className="ml-1 text-sm font-normal text-stone-500">(%)</span>}
+                                        {data.discount_type === "fixed" && <span className="ml-1 text-sm font-normal text-stone-500">(amount)</span>}
                                     </Label>
                                     <Input
-                                        type="number"
-                                        min="0"
+                                        type="number" min="0"
                                         step={data.discount_type === "percentage" ? "1" : "0.01"}
                                         max={data.discount_type === "percentage" ? "100" : undefined}
                                         value={data.discount}
                                         onChange={(e) => setData("discount", e.target.value)}
                                         placeholder={discountPlaceholder}
                                         disabled={discountFieldsDisabled}
-                                        className={cn(
-                                            field, "transition-opacity duration-200",
-                                            discountFieldsDisabled && "opacity-50 cursor-not-allowed"
-                                        )}
+                                        className={cn(field, "transition-opacity duration-200", discountFieldsDisabled && "opacity-50 cursor-not-allowed")}
                                     />
                                     <InputError message={errors.discount} />
                                 </Field>
-
                             </div>
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 4b — Offer Start / End Date
-                            (disabled until a discount type is selected)
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 4b — Offer Start / End Date ═════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <DatePickerField
@@ -667,111 +552,35 @@ export default function ProductForm({ product, categories = [], discountTypes = 
                                     onChange={(v) => setData("discount_ends_at", v)}
                                     disabled={discountFieldsDisabled}
                                     placeholder="Select end date"
-                                    minDate={
-                                        data.discount_starts_at
-                                            ? parseISO(data.discount_starts_at)
-                                            : undefined
-                                    }
+                                    minDate={data.discount_starts_at ? parseISO(data.discount_starts_at) : undefined}
                                 />
                             </div>
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 5 — Variants (Size · Color · Stock)
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 5 — Variant Matrix ═══════════════════
+                            Uses forwardRef + useImperativeHandle so we
+                            can read sizes/colors/quantities on submit
+                            without lifting state up into the form.
+                        ════════════════════════════════════════════════ */}
                         <FieldSet>
-                            <div className="flex flex-col gap-3">
-                                {variantRows.map((row, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end"
-                                    >
-                                        <Field>
-                                            {idx === 0 && (
-                                                <Label className="text-base font-bold text-stone-900 font-alumni">
-                                                    Size
-                                                </Label>
-                                            )}
-                                            <Input
-                                                value={row.size}
-                                                onChange={(e) =>
-                                                    updateVariantRow(idx, "size", e.target.value)
-                                                }
-                                                placeholder="e.g. XL, L, 40"
-                                                className={field}
-                                            />
-                                        </Field>
-
-                                        <Field>
-                                            {idx === 0 && (
-                                                <Label className="text-base font-bold text-stone-900 font-alumni">
-                                                    Color
-                                                </Label>
-                                            )}
-                                            <Input
-                                                type="color"
-                                                value={row.color}
-                                                onChange={(e) =>
-                                                    updateVariantRow(idx, "color", e.target.value)
-                                                }
-                                                className={cn(field, "px-2 py-1 cursor-pointer")}
-                                            />
-                                        </Field>
-
-                                        <Field>
-                                            {idx === 0 && (
-                                                <Label className="text-base font-bold text-stone-900 font-alumni">
-                                                    Stock Level
-                                                </Label>
-                                            )}
-                                            <Input
-                                                type="number"
-                                                min="0"
-                                                value={row.quantity}
-                                                onChange={(e) =>
-                                                    updateVariantRow(idx, "quantity", e.target.value)
-                                                }
-                                                placeholder="10"
-                                                className={field}
-                                            />
-                                        </Field>
-
-                                        <div>
-                                            {idx === variantRows.length - 1 ? (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={addVariantRow}
-                                                    className="h-11 px-5 border border-stone-300 bg-transparent hover:bg-stone-100 text-stone-700 font-medium rounded-md gap-1.5 cursor-pointer"
-                                                >
-                                                    <Plus className="size-4" />
-                                                    Add More
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => removeVariantRow(idx)}
-                                                    className="h-11 w-11 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
-                                                >
-                                                    <X className="size-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <Label className="text-base font-bold text-stone-900 font-alumni mb-1 block">
+                                Variants
+                            </Label>
+                            <p className="text-xs text-stone-400 mb-3">
+                                Add all available sizes and colors — the grid auto-generates.
+                                Enter stock quantities per cell. Use "Fill all" shortcuts to
+                                set the same quantity across an entire row or column at once.
+                            </p>
+                            <VariantMatrix
+                                ref={variantMatrixRef}
+                                existingVariants={product?.variants}
+                            />
                         </FieldSet>
 
-                        {/* ══════════════════════════════════════════════
-                            ROW 6 — Description
-                        ══════════════════════════════════════════════ */}
+                        {/* ══ ROW 6 — Description ══════════════════════ */}
                         <FieldSet>
                             <Field>
-                                <Label className="text-base font-bold text-stone-900 font-alumni">
-                                    Description
-                                </Label>
+                                <Label className="text-base font-bold text-stone-900 font-alumni">Description</Label>
                                 <Textarea
                                     rows={6}
                                     value={data.description}
