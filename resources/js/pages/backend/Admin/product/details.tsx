@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, router } from "@inertiajs/react";
+import { toast } from "sonner";
 import AdminLayout from "@/layouts/admin-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,15 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-    ArrowLeft,
-    PencilLine,
-    Trash,
-    Star,
-    Tag,
-    Package,
-    ImageOff,
-} from "lucide-react";
+import { ArrowLeft, PencilLine, Trash, Star, Tag, Package, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -34,18 +27,18 @@ interface ProductImage {
     sort_order: number;
 }
 
+interface SizeOption  { id: number; name: string; }
+interface ColorOption { id: number; name: string; hex: string; }
+
 interface ProductVariant {
     id: number;
     quantity: number;
     status: string;
-    color: { id: number; name: string; hex: string } | null;
-    size: { id: number; name: string } | null;
+    color: ColorOption | null;
+    size: SizeOption | null;
 }
 
-interface TagItem {
-    id: number;
-    name: string;
-}
+interface TagItem { id: number; name: string; }
 
 interface ProductDetail {
     id: number;
@@ -87,19 +80,46 @@ function formatPrice(price: string): string {
     return `$${Number(price).toFixed(2)}`;
 }
 
-function discountedPrice(price: string, discount: string | null, type: string | null): string | null {
+function discountedPrice(
+    price: string,
+    discount: string | null,
+    type: string | null
+): string | null {
     if (!discount || !type) return null;
     const p = Number(price);
     const d = Number(discount);
-    if (type === "percentage") return `$${(p - p * d / 100).toFixed(2)}`;
-    if (type === "fixed") return `$${(p - d).toFixed(2)}`;
+    if (type === "percentage") return `$${(p - (p * d) / 100).toFixed(2)}`;
+    if (type === "fixed")      return `$${(p - d).toFixed(2)}`;
     return null;
 }
 
+/*
+ * Deduplicate variant sizes/colors by id.
+ *
+ * The previous one-liner used [...new Map(arr.filter(...))] which produces
+ * a type that TypeScript cannot assign to Iterable<readonly [unknown, unknown]>,
+ * causing TS2769. Using a plain reduce into a Map avoids the issue entirely.
+ */
+function uniqueSizes(variants: ProductVariant[]): SizeOption[] {
+    const seen = new Map<number, SizeOption>();
+    for (const v of variants) {
+        if (v.size && !seen.has(v.size.id)) seen.set(v.size.id, v.size);
+    }
+    return Array.from(seen.values());
+}
+
+function uniqueColors(variants: ProductVariant[]): ColorOption[] {
+    const seen = new Map<number, ColorOption>();
+    for (const v of variants) {
+        if (v.color && !seen.has(v.color.id)) seen.set(v.color.id, v.color);
+    }
+    return Array.from(seen.values());
+}
+
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-    active: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
-    inactive: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
-    draft: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-400" },
+    active:   { bg: "bg-green-50",  text: "text-green-700", dot: "bg-green-500"  },
+    inactive: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400"  },
+    draft:    { bg: "bg-amber-50",  text: "text-amber-700", dot: "bg-amber-400"  },
 };
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -108,17 +128,21 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
 
 export default function ProductDetails({ product, activeType = "men" }: PageProps) {
     const primaryImage = product.images.find((img) => img.is_primary) ?? product.images[0] ?? null;
-    const galleryImages = product.images.filter((img) => img.id !== primaryImage?.id);
     const [activeImage, setActiveImage] = useState<ProductImage | null>(primaryImage);
 
-    const finalPrice = discountedPrice(product.price, product.discount, product.discount_type);
+    const finalPrice  = discountedPrice(product.price, product.discount, product.discount_type);
     const statusStyle = STATUS_STYLES[product.status] ?? STATUS_STYLES.inactive;
 
-    // Group variants into a matrix: rows = sizes, cols = colors
-    const allSizes = [...new Map(product.variants.map((v) => [v.size?.id, v.size]).filter(([, s]) => s)).values()] as { id: number; name: string }[];
-    const allColors = [...new Map(product.variants.map((v) => [v.color?.id, v.color]).filter(([, c]) => c)).values()] as { id: number; name: string; hex: string }[];
-    const variantMap = new Map(
-        product.variants.map((v) => [`${v.size?.id ?? ""}:${v.color?.id ?? ""}`, v])
+    // Build the variant matrix — properly typed, no TS2769
+    const allSizes  = uniqueSizes(product.variants);
+    const allColors = uniqueColors(product.variants);
+
+    // Lookup map keyed by "sizeId:colorId"
+    const variantMap = new Map<string, ProductVariant>(
+        product.variants.map((v) => [
+            `${v.size?.id ?? ""}:${v.color?.id ?? ""}`,
+            v,
+        ])
     );
 
     return (
@@ -132,14 +156,16 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                 <div className="flex items-center justify-between gap-4">
                     <button
                         type="button"
-                        onClick={() => router.visit(`${route("admin.products.index")}?type=${activeType}`)}
+                        onClick={() =>
+                            router.visit(`${route("admin.products.index")}?type=${activeType}`)
+                        }
                         className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-800 transition-colors cursor-pointer group"
                     >
                         <ArrowLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" />
                         Back to products
                     </button>
 
-                    <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-3">
                         <Link
                             href={route("admin.products.edit", product.id)}
                             className="flex items-center gap-2 px-4 py-2 rounded-md border border-green-600 text-green-600 hover:bg-green-50 text-sm font-medium transition-colors"
@@ -150,12 +176,12 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                     </div>
                 </div>
 
-                {/* ── Main content ── */}
+                {/* ── Main content grid ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     {/* ── Left — Image gallery ── */}
                     <div className="bg-[#FDF7F7] rounded-lg border border-border-primary p-5 space-y-4">
-                        {/* Primary / active image */}
+                        {/* Active image */}
                         <div className="aspect-square rounded-md bg-[#1103040A] overflow-hidden flex items-center justify-center">
                             {activeImage ? (
                                 <img
@@ -216,9 +242,12 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                 )}
                             </div>
 
-                            {/* Status + Type */}
+                            {/* Status + Type + Category */}
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full capitalize", statusStyle.bg, statusStyle.text)}>
+                                <span className={cn(
+                                    "inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full capitalize",
+                                    statusStyle.bg, statusStyle.text
+                                )}>
                                     <span className={cn("size-1.5 rounded-full", statusStyle.dot)} />
                                     {product.status}
                                 </span>
@@ -245,7 +274,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                         </span>
                                     </>
                                 ) : (
-                                    <span className="text-3xl font-bold font-alumni text-stone-900">{formatPrice(product.price)}</span>
+                                    <span className="text-3xl font-bold font-alumni text-stone-900">
+                                        {formatPrice(product.price)}
+                                    </span>
                                 )}
                             </div>
 
@@ -265,7 +296,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                         {/* Description */}
                         {product.description && (
                             <div className="bg-[#FDF7F7] rounded-lg border border-border-primary p-5">
-                                <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-2">Description</h2>
+                                <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-2">
+                                    Description
+                                </h2>
                                 <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-line">
                                     {product.description}
                                 </p>
@@ -308,13 +341,15 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                             <Package className="size-3.5" /> Variants & Stock
                         </h2>
 
-                        {/* Matrix layout when both sizes and colors exist */}
                         {allSizes.length > 0 && allColors.length > 0 ? (
+                            /* Matrix: rows = sizes, cols = colors */
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-sm">
                                     <thead>
                                         <tr>
-                                            <th className="text-left text-xs font-semibold text-stone-400 pb-2 pr-4">Size \ Color</th>
+                                            <th className="text-left text-xs font-semibold text-stone-400 pb-2 pr-4">
+                                                Size \ Color
+                                            </th>
                                             {allColors.map((color) => (
                                                 <th key={color.id} className="text-center text-xs font-semibold text-stone-700 pb-2 px-3 min-w-[80px]">
                                                     <span className="flex items-center justify-center gap-1.5">
@@ -331,7 +366,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                     <tbody className="divide-y divide-stone-100">
                                         {allSizes.map((size) => (
                                             <tr key={size.id}>
-                                                <td className="py-2 pr-4 font-medium text-stone-700">{size.name}</td>
+                                                <td className="py-2 pr-4 font-medium text-stone-700">
+                                                    {size.name}
+                                                </td>
                                                 {allColors.map((color) => {
                                                     const variant = variantMap.get(`${size.id}:${color.id}`);
                                                     const qty = variant?.quantity ?? null;
@@ -340,9 +377,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                                             {qty !== null ? (
                                                                 <span className={cn(
                                                                     "inline-block px-2.5 py-0.5 rounded-full text-xs font-medium",
-                                                                    qty === 0 ? "bg-red-50 text-red-600" :
-                                                                        qty <= 5 ? "bg-amber-50 text-amber-700" :
-                                                                            "bg-green-50 text-green-700"
+                                                                    qty === 0 ? "bg-red-50 text-red-600"     :
+                                                                    qty <= 5  ? "bg-amber-50 text-amber-700" :
+                                                                                "bg-green-50 text-green-700"
                                                                 )}>
                                                                     {qty}
                                                                 </span>
@@ -358,7 +395,7 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                 </table>
                             </div>
                         ) : (
-                            /* Flat list fallback (no size/color axis) */
+                            /* Flat list fallback */
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {product.variants.map((v) => (
                                     <div key={v.id} className="flex items-center justify-between gap-2 bg-[#1103040A] rounded-md px-3 py-2">
@@ -367,9 +404,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                         </span>
                                         <span className={cn(
                                             "text-xs font-semibold px-2 py-0.5 rounded-full",
-                                            v.quantity === 0 ? "bg-red-50 text-red-600" :
-                                                v.quantity <= 5 ? "bg-amber-50 text-amber-700" :
-                                                    "bg-green-50 text-green-700"
+                                            v.quantity === 0 ? "bg-red-50 text-red-600"     :
+                                            v.quantity <= 5  ? "bg-amber-50 text-amber-700" :
+                                                               "bg-green-50 text-green-700"
                                         )}>
                                             {v.quantity}
                                         </span>
@@ -378,11 +415,17 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                             </div>
                         )}
 
-                        {/* Stock legend */}
+                        {/* Legend */}
                         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-stone-100 text-xs text-stone-400">
-                            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-green-400" /> In stock (6+)</span>
-                            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-amber-400" /> Low (1–5)</span>
-                            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-red-400" /> Out of stock</span>
+                            <span className="flex items-center gap-1.5">
+                                <span className="size-2 rounded-full bg-green-400" /> In stock (6+)
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <span className="size-2 rounded-full bg-amber-400" /> Low (1–5)
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <span className="size-2 rounded-full bg-red-400" /> Out of stock
+                            </span>
                         </div>
                     </div>
                 )}
@@ -411,10 +454,7 @@ function DeleteDialog({
         router.delete(route("admin.products.destroy", id), {
             data: { type: activeType },
             onSuccess: () => setOpen(false),
-            onError: () => {
-                const { toast: t } = require("sonner");
-                t.error("Failed to delete. Please try again.");
-            },
+            onError: () => toast.error("Failed to delete. Please try again."),
         });
     };
 
@@ -441,9 +481,15 @@ function DeleteDialog({
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline" className="font-normal cursor-pointer">Cancel</Button>
+                            <Button variant="outline" className="font-normal cursor-pointer">
+                                Cancel
+                            </Button>
                         </DialogClose>
-                        <Button variant="destructive" className="font-normal cursor-pointer" onClick={handleDelete}>
+                        <Button
+                            variant="destructive"
+                            className="font-normal cursor-pointer"
+                            onClick={handleDelete}
+                        >
                             Delete
                         </Button>
                     </DialogFooter>
