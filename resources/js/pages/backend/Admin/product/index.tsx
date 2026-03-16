@@ -351,7 +351,7 @@ function ProductCard({
                     <img
                         src={product.primary_image_url}
                         alt={product.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-300">
@@ -446,12 +446,16 @@ function DeleteDialog({
                 <DialogContent className="max-w-md bg-[#FDF7F7]">
                     <DialogHeader>
                         <DialogTitle className="font-alumni">
-                            Delete product "{title}"?
+                            <span className="text-2xl font-bold">Delete product "{title}"?</span>
+                            <br />
+                            <span className="text-stone-400">
+                                This action cannot be undone.
+                            </span>
                         </DialogTitle>
                     </DialogHeader>
-                    <DialogFooter className="sm:justify-end gap-2">
+                    <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="secondary" className="font-normal cursor-pointer">
+                            <Button variant="outline" className="font-normal cursor-pointer">
                                 Cancel
                             </Button>
                         </DialogClose>

@@ -256,8 +256,8 @@ class ProductController extends Controller
 
         return redirect()
             ->route('admin.products.index', [
-                'type' => $request->query('type', 'men'),
-                'page' => $request->query('page', 1),
+                'type' => $request->input('type', 'men'),
+                'page' => $request->input('page', 1),
             ])
             ->with('success', 'Product deleted successfully.');
     }
