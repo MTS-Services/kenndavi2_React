@@ -37,13 +37,13 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         $paginator = Product::with([
-            'images' => fn($q) => $q->where('is_primary', true),
+            'images' => fn ($q) => $q->where('is_primary', true),
         ])
             ->where('type', $type->value)
             ->latest()
             ->paginate(self::PER_PAGE, ['*'], 'page', $request->query('page', 1));
 
-        $products = $paginator->through(fn(Product $p) => [
+        $products = $paginator->through(fn (Product $p) => [
             'id'                => $p->id,
             'title'             => $p->title,
             'slug'              => $p->slug,
@@ -80,7 +80,7 @@ class ProductController extends Controller
         }
 
         $exists = Product::where('slug', $slug)
-            ->when($excludeId, fn($q) => $q->where('id', '!=', (int) $excludeId))
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', (int) $excludeId))
             ->exists();
 
         return response()->json(['available' => ! $exists]);
@@ -96,12 +96,12 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'initialType'    => $type->value,
-            'categories'     => $this->categoriesForSelect(),
-            'discountTypes'  => DiscountType::options(),
-            'productTypes'   => ProductType::options(),
+            'initialType'     => $type->value,
+            'categories'      => $this->categoriesForSelect(),
+            'discountTypes'   => DiscountType::options(),
+            'productTypes'    => ProductType::options(),
             'productStatuses' => ProductStatus::options(),
-            'availableTags'  => $this->tagsForSelect(),
+            'availableTags'   => $this->tagsForSelect(),
         ]);
     }
 
@@ -131,9 +131,7 @@ class ProductController extends Controller
                 'updated_by'         => auth('admin')->id(),
             ]);
 
-            // Sync tags — empty array clears all
             $product->tags()->sync($request->input('tag_ids', []));
-
             $this->syncImages($product, $request, isPrimarySlot: true);
             $this->syncVariants($product, $request->input('variants', []), removedIds: []);
         });
@@ -141,6 +139,64 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products.index', ['type' => $request->type])
             ->with('success', 'Product created successfully.');
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     | SHOW
+     | ─────────────────────────────────────────────────────────────*/
+
+    public function show(Product $product, Request $request): Response
+    {
+        $product->load([
+            'images'          => fn ($q) => $q->orderBy('sort_order'),
+            'tags:id,name',
+            'category:id,title',
+            'variants.color:id,name,hex',
+            'variants.size:id,name',
+        ]);
+
+        $productData = [
+            'id'                 => $product->id,
+            'title'              => $product->title,
+            'slug'               => $product->slug,
+            'description'        => $product->description,
+            'price'              => (string) $product->price,
+            'discount'           => $product->discount ? (string) $product->discount : null,
+            'discount_type'      => $product->discount_type?->value,
+            'discount_starts_at' => $product->discount_starts_at?->toDateTimeString(),
+            'discount_ends_at'   => $product->discount_ends_at?->toDateTimeString(),
+            'type'               => $product->type->value,
+            'status'             => $product->status->value,
+            'is_featured'        => (bool) $product->is_featured,
+            'category'           => $product->category
+                ? ['id' => $product->category->id, 'title' => $product->category->title]
+                : null,
+            'images'             => $product->images->map(fn ($img) => [
+                'id'         => $img->id,
+                'url'        => $img->url,
+                'alt_text'   => $img->alt_text,
+                'is_primary' => (bool) $img->is_primary,
+                'sort_order' => $img->sort_order,
+            ])->values()->toArray(),
+            'variants'           => $product->variants->map(fn ($v) => [
+                'id'       => $v->id,
+                'quantity' => (int) $v->quantity,
+                'status'   => $v->status?->value,
+                'color'    => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
+                'size'     => $v->size  ? ['id' => $v->size->id,  'name' => $v->size->name]  : null,
+            ])->values()->toArray(),
+            'tags'               => $product->tags->map(fn ($t) => [
+                'id'   => $t->id,
+                'name' => $t->name,
+            ])->values()->toArray(),
+            'created_at'         => $product->created_at->toDateTimeString(),
+            'updated_at'         => $product->updated_at->toDateTimeString(),
+        ];
+
+        return Inertia::render('backend/Admin/product/details', [
+            'product'    => $productData,
+            'activeType' => $request->query('type', $product->type->value),
+        ]);
     }
 
     /* ─────────────────────────────────────────────────────────────
@@ -174,9 +230,8 @@ class ProductController extends Controller
             'category_id'             => $product->category_id,
             'resolved_category_id'    => $categoryId,
             'resolved_subcategory_id' => $subcategoryId,
-            // Only send tag IDs to the frontend — names come from availableTags
             'tag_ids'                 => $product->tags->pluck('id')->values()->all(),
-            'images'                  => $product->images->map(fn($img) => [
+            'images'                  => $product->images->map(fn ($img) => [
                 'id'         => $img->id,
                 'url'        => $img->url,
                 'alt_text'   => $img->alt_text,
@@ -184,7 +239,7 @@ class ProductController extends Controller
                 'sort_order' => $img->sort_order,
                 'color_id'   => $img->color_id,
             ])->values()->toArray(),
-            'variants'                => $product->variants->map(fn($v) => [
+            'variants'                => $product->variants->map(fn ($v) => [
                 'id'       => $v->id,
                 'color_id' => $v->color_id,
                 'size_id'  => $v->size_id,
@@ -231,7 +286,6 @@ class ProductController extends Controller
             ]);
 
             $product->tags()->sync($request->input('tag_ids', []));
-
             $this->removeImages($request->input('removed_image_ids', []));
             $this->syncImages($product, $request, isPrimarySlot: false);
             $this->syncVariants(
@@ -313,10 +367,7 @@ class ProductController extends Controller
             $url = $request->file('primary_image')->store('products', 'public');
             if (! $isPrimarySlot) {
                 $old = $product->images()->where('is_primary', true)->first();
-                if ($old) {
-                    $this->deleteImageFile($old);
-                    $old->delete();
-                }
+                if ($old) { $this->deleteImageFile($old); $old->delete(); }
             }
             $product->images()->create([
                 'url'        => Storage::url($url),

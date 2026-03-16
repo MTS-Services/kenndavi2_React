@@ -103,17 +103,6 @@ export default function ProductIndex({
         per_page: 12, total: 0, from: null, to: null, links: [],
     };
 
-    /*
-     * Flash toast strategy:
-     *
-     * The controller now always passes `success` as a prop via
-     * session('success'). This means it's available in usePage().props
-     * on every visit — initial mount (from redirect) AND same-page
-     * operations (delete partial reload).
-     *
-     * A ref prevents the same message from toasting twice if React
-     * re-renders without a new Inertia visit.
-     */
     const { success } = usePage().props as unknown as PageProps;
     const shownRef = useRef<string | undefined>(undefined);
 
@@ -306,6 +295,10 @@ function EmptyState({ activeType, productTypes }: { activeType: string; productT
 
 /* ─────────────────────────────────────────────────────────────── */
 /* ProductCard                                                     */
+/*                                                                 */
+/* The entire card is a clickable area navigating to the details  */
+/* page. Edit and Delete buttons stop event propagation so they   */
+/* don't also trigger the card navigation.                        */
 /* ─────────────────────────────────────────────────────────────── */
 
 function ProductCard({
@@ -323,13 +316,25 @@ function ProductCard({
                 product.status === "draft" ? "bg-amber-400" : "bg-stone-400";
 
     return (
-        <div className="bg-[#1103040A] rounded-lg border border-border-primary flex flex-col overflow-hidden">
-            <div className="relative group overflow-hidden bg-gray-100 aspect-square">
+        <div
+            role="button"
+            tabIndex={0}
+            onClick={() => router.visit(route("admin.products.show", product.id))}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.visit(route("admin.products.show", product.id));
+                }
+            }}
+            className="bg-[#1103040A] rounded-lg border border-border-primary flex flex-col overflow-hidden cursor-pointer group/card hover:shadow-md hover:border-red-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+        >
+            {/* Image */}
+            <div className="relative overflow-hidden bg-gray-100 aspect-square">
                 {product.primary_image_url ? (
                     <img
                         src={product.primary_image_url}
                         alt={product.title}
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover/card:scale-105"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-300">
@@ -341,6 +346,7 @@ function ProductCard({
                 </span>
             </div>
 
+            {/* Body */}
             <div className="p-4 flex flex-col flex-1 gap-3">
                 <div className="flex-1">
                     <h3 className="font-alumni text-xl font-semibold leading-tight">{product.title}</h3>
@@ -352,7 +358,12 @@ function ProductCard({
                     ${Number(product.price).toFixed(2)}
                 </p>
 
-                <div className="flex items-center gap-2 pt-1">
+                {/* Actions — stopPropagation prevents card navigation */}
+                <div
+                    className="flex items-center gap-2 pt-1"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                >
                     <Link
                         href={route("admin.products.edit", product.id)}
                         className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
