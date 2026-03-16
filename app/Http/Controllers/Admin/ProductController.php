@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\DiscountType;
+use App\Enums\ProductStatus;
 use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
@@ -13,6 +14,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\Size;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,10 +58,6 @@ class ProductController extends Controller
             'products'     => $products,
             'activeType'   => $type->value,
             'productTypes' => ProductType::options(),
-
-            // ── FIX: read the session flash and pass it as a prop.
-            // Without this line, `success` is always `undefined` in the
-            // frontend, so no toast ever fires regardless of frontend logic.
             'success'      => session('success'),
         ]);
     }
@@ -98,10 +96,12 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'initialType'   => $type->value,
-            'categories'    => $this->categoriesForSelect(),
-            'discountTypes' => DiscountType::options(),
-            'productTypes'  => ProductType::options(),
+            'initialType'    => $type->value,
+            'categories'     => $this->categoriesForSelect(),
+            'discountTypes'  => DiscountType::options(),
+            'productTypes'   => ProductType::options(),
+            'productStatuses' => ProductStatus::options(),
+            'availableTags'  => $this->tagsForSelect(),
         ]);
     }
 
@@ -125,9 +125,14 @@ class ProductController extends Controller
                 'discount_starts_at' => $request->discount_starts_at ?: null,
                 'discount_ends_at'   => $request->discount_ends_at   ?: null,
                 'category_id'        => $categoryId,
+                'status'             => $request->input('status', ProductStatus::ACTIVE->value),
+                'is_featured'        => $request->boolean('is_featured', false),
                 'created_by'         => auth('admin')->id(),
                 'updated_by'         => auth('admin')->id(),
             ]);
+
+            // Sync tags — empty array clears all
+            $product->tags()->sync($request->input('tag_ids', []));
 
             $this->syncImages($product, $request, isPrimarySlot: true);
             $this->syncVariants($product, $request->input('variants', []), removedIds: []);
@@ -138,18 +143,6 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully.');
     }
 
-
-    /* ─────────────────────────────────────────────────────────────
-     | SHOW
-     | ─────────────────────────────────────────────────────────────*/
-
-    public function show(Product $product): Response
-    {
-        return Inertia::render('backend/Admin/product/details', [
-            'product' => $product,
-        ]);
-    }   
-
     /* ─────────────────────────────────────────────────────────────
      | EDIT
      | ─────────────────────────────────────────────────────────────*/
@@ -158,6 +151,7 @@ class ProductController extends Controller
     {
         $product->load([
             'images',
+            'tags:id,name',
             'variants.color:id,name,hex',
             'variants.size:id,name',
         ]);
@@ -180,6 +174,8 @@ class ProductController extends Controller
             'category_id'             => $product->category_id,
             'resolved_category_id'    => $categoryId,
             'resolved_subcategory_id' => $subcategoryId,
+            // Only send tag IDs to the frontend — names come from availableTags
+            'tag_ids'                 => $product->tags->pluck('id')->values()->all(),
             'images'                  => $product->images->map(fn($img) => [
                 'id'         => $img->id,
                 'url'        => $img->url,
@@ -200,10 +196,12 @@ class ProductController extends Controller
         ];
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'product'       => $productData,
-            'categories'    => $this->categoriesForSelect(),
-            'discountTypes' => DiscountType::options(),
-            'productTypes'  => ProductType::options(),
+            'product'         => $productData,
+            'categories'      => $this->categoriesForSelect(),
+            'discountTypes'   => DiscountType::options(),
+            'productTypes'    => ProductType::options(),
+            'productStatuses' => ProductStatus::options(),
+            'availableTags'   => $this->tagsForSelect(),
         ]);
     }
 
@@ -227,8 +225,12 @@ class ProductController extends Controller
                 'discount_starts_at' => $request->discount_starts_at ?: null,
                 'discount_ends_at'   => $request->discount_ends_at   ?: null,
                 'category_id'        => $categoryId,
+                'status'             => $request->input('status', $product->status->value),
+                'is_featured'        => $request->boolean('is_featured', false),
                 'updated_by'         => auth('admin')->id(),
             ]);
+
+            $product->tags()->sync($request->input('tag_ids', []));
 
             $this->removeImages($request->input('removed_image_ids', []));
             $this->syncImages($product, $request, isPrimarySlot: false);
@@ -254,6 +256,7 @@ class ProductController extends Controller
             foreach ($product->images as $image) {
                 $this->deleteImageFile($image);
             }
+            $product->tags()->detach();
             $product->delete();
         });
 
@@ -360,10 +363,15 @@ class ProductController extends Controller
         return [$product->category_id, null];
     }
 
-    private function categoriesForSelect()
+    private function categoriesForSelect(): \Illuminate\Database\Eloquent\Collection
     {
         return Category::whereDoesntHave('parents')
             ->with('children:id,title')
             ->get(['id', 'title']);
+    }
+
+    private function tagsForSelect(): \Illuminate\Support\Collection
+    {
+        return Tag::orderBy('name')->get(['id', 'name']);
     }
 }
