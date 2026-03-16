@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, router } from "@inertiajs/react";
+import { useState, useEffect, useRef } from "react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { toast } from "sonner";
 import AdminLayout from "@/layouts/admin-layout";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,6 @@ export interface EnumOption {
     label: string;
 }
 
-/** Shape Laravel's LengthAwarePaginator sends to Inertia */
 export interface PaginatedProducts {
     data: Product[];
     current_page: number;
@@ -62,31 +61,19 @@ interface PageProps {
     success?: string;
 }
 
-interface FlashProps {
-    success?: string;
-}
-
 /* ─────────────────────────────────────────────────────────────── */
-/* Pagination helper — build the visible page numbers             */
+/* Pagination helper                                               */
 /* ─────────────────────────────────────────────────────────────── */
 
-/**
- * Returns a condensed page list with ellipsis gaps:
- * [1, '…', 4, 5, 6, '…', 12]
- */
 function buildPageRange(current: number, last: number): (number | "…")[] {
-    if (last <= 7) {
-        return Array.from({ length: last }, (_, i) => i + 1);
-    }
+    if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1);
 
     const range: (number | "…")[] = [];
-
     const addRange = (from: number, to: number) => {
         for (let i = from; i <= to; i++) range.push(i);
     };
 
     range.push(1);
-
     if (current <= 4) {
         addRange(2, 5);
         range.push("…");
@@ -98,7 +85,6 @@ function buildPageRange(current: number, last: number): (number | "…")[] {
         addRange(current - 1, current + 1);
         range.push("…");
     }
-
     range.push(last);
     return range;
 }
@@ -117,15 +103,27 @@ export default function ProductIndex({
         per_page: 12, total: 0, from: null, to: null, links: [],
     };
 
-    /* Flash toast */
-    useEffect(() => {
-        return router.on("success", (event) => {
-            const { success } = event.detail.page.props as unknown as FlashProps;
-            if (success) toast.success(success);
-        });
-    }, []);
+    /*
+     * Flash toast strategy:
+     *
+     * The controller now always passes `success` as a prop via
+     * session('success'). This means it's available in usePage().props
+     * on every visit — initial mount (from redirect) AND same-page
+     * operations (delete partial reload).
+     *
+     * A ref prevents the same message from toasting twice if React
+     * re-renders without a new Inertia visit.
+     */
+    const { success } = usePage().props as unknown as PageProps;
+    const shownRef = useRef<string | undefined>(undefined);
 
-    /* Navigate to a page, keeping type + doing a partial reload */
+    useEffect(() => {
+        if (success && success !== shownRef.current) {
+            shownRef.current = success;
+            toast.success(success);
+        }
+    }, [success]);
+
     const goToPage = (page: number) => {
         router.get(
             route("admin.products.index"),
@@ -134,7 +132,6 @@ export default function ProductIndex({
         );
     };
 
-    /* Switch type tab — reset to page 1 */
     const handleTypeChange = (type: string) => {
         router.get(
             route("admin.products.index"),
@@ -152,9 +149,8 @@ export default function ProductIndex({
         >
             <section className="p-4 md:p-10 font-sans rounded-lg shadow-sm border border-destructive">
 
-                {/* ── Header row ── */}
+                {/* ── Header ── */}
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
-                    {/* Type tabs */}
                     <Tabs value={activeType} onValueChange={handleTypeChange}>
                         <TabsList className="bg-[#1103040A] h-auto p-2 gap-0.5">
                             {productTypes.map((t) => (
@@ -177,7 +173,6 @@ export default function ProductIndex({
                         </TabsList>
                     </Tabs>
 
-                    {/* Right side: summary + Add button */}
                     <div className="flex items-center gap-4">
                         {paginator.total > 0 && (
                             <p className="text-sm text-stone-400 hidden sm:block">
@@ -199,7 +194,7 @@ export default function ProductIndex({
                     </div>
                 </div>
 
-                {/* ── Product grid ── */}
+                {/* ── Grid ── */}
                 {paginator.data.length === 0 ? (
                     <EmptyState activeType={activeType} productTypes={productTypes} />
                 ) : (
@@ -215,7 +210,6 @@ export default function ProductIndex({
                             ))}
                         </div>
 
-                        {/* ── Pagination ── */}
                         {paginator.last_page > 1 && (
                             <ProductPagination
                                 currentPage={paginator.current_page}
@@ -256,21 +250,14 @@ function ProductPagination({
     return (
         <Pagination>
             <PaginationContent className="flex-wrap gap-1">
-
-                {/* Previous */}
                 <PaginationItem>
                     <PaginationPrevious
                         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                        className={`
-                            cursor-pointer border border-stone-200 bg-white text-stone-700
-                            hover:bg-stone-50 transition-colors
-                            ${currentPage === 1 ? "pointer-events-none opacity-40" : ""}
-                        `}
+                        className={`cursor-pointer border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 transition-colors ${currentPage === 1 ? "pointer-events-none opacity-40" : ""}`}
                         aria-disabled={currentPage === 1}
                     />
                 </PaginationItem>
 
-                {/* Page numbers */}
                 {pageRange.map((page, idx) =>
                     page === "…" ? (
                         <PaginationItem key={`ellipsis-${idx}`}>
@@ -289,19 +276,13 @@ function ProductPagination({
                     )
                 )}
 
-                {/* Next */}
                 <PaginationItem>
                     <PaginationNext
                         onClick={() => currentPage < lastPage && onPageChange(currentPage + 1)}
-                        className={`
-                            cursor-pointer border border-stone-200 bg-white text-stone-700
-                            hover:bg-stone-50 transition-colors
-                            ${currentPage === lastPage ? "pointer-events-none opacity-40" : ""}
-                        `}
+                        className={`cursor-pointer border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 transition-colors ${currentPage === lastPage ? "pointer-events-none opacity-40" : ""}`}
                         aria-disabled={currentPage === lastPage}
                     />
                 </PaginationItem>
-
             </PaginationContent>
         </Pagination>
     );
@@ -311,20 +292,13 @@ function ProductPagination({
 /* EmptyState                                                      */
 /* ─────────────────────────────────────────────────────────────── */
 
-function EmptyState({
-    activeType,
-    productTypes,
-}: {
-    activeType: string;
-    productTypes: EnumOption[];
-}) {
+function EmptyState({ activeType, productTypes }: { activeType: string; productTypes: EnumOption[] }) {
     const label = productTypes.find((t) => t.value === activeType)?.label ?? activeType;
     return (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
             <PackageOpen className="size-12 opacity-30" />
             <p className="text-sm">
-                No <span className="font-medium capitalize">{label}</span> products yet.
-                Add your first one.
+                No <span className="font-medium capitalize">{label}</span> products yet. Add your first one.
             </p>
         </div>
     );
@@ -343,9 +317,13 @@ function ProductCard({
     activeType: string;
     currentPage: number;
 }) {
+    const statusColour =
+        product.status === "active" ? "bg-green-500" :
+            product.status === "inactive" ? "bg-stone-400" :
+                product.status === "draft" ? "bg-amber-400" : "bg-stone-400";
+
     return (
         <div className="bg-[#1103040A] rounded-lg border border-border-primary flex flex-col overflow-hidden">
-            {/* Image */}
             <div className="relative group overflow-hidden bg-gray-100 aspect-square">
                 {product.primary_image_url ? (
                     <img
@@ -358,35 +336,22 @@ function ProductCard({
                         <PackageOpen className="size-10 opacity-40" />
                     </div>
                 )}
-                <span className={`
-                    absolute bottom-2 left-0 text-white text-xs px-2 py-1 capitalize
-                    ${product.status === "active" ? "bg-green-500" : ""}
-                    ${product.status === "inactive" ? "bg-stone-400" : ""}
-                    ${product.status === "draft" ? "bg-amber-400" : ""}
-                `}>
+                <span className={`absolute bottom-2 left-0 text-white text-xs px-2 py-1 capitalize ${statusColour}`}>
                     {product.status}
                 </span>
             </div>
 
-            {/* Body */}
             <div className="p-4 flex flex-col flex-1 gap-3">
                 <div className="flex-1">
-                    <h3 className="font-alumni text-xl font-semibold leading-tight">
-                        {product.title}
-                    </h3>
-                    <p className="text-xs font-mono text-stone-400 mt-0.5 truncate">
-                        /{product.slug}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {product.description}
-                    </p>
+                    <h3 className="font-alumni text-xl font-semibold leading-tight">{product.title}</h3>
+                    <p className="text-xs font-mono text-stone-400 mt-0.5 truncate">/{product.slug}</p>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
                 </div>
 
                 <p className="text-base font-semibold font-alumni">
                     ${Number(product.price).toFixed(2)}
                 </p>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 pt-1">
                     <Link
                         href={route("admin.products.edit", product.id)}
@@ -448,7 +413,7 @@ function DeleteDialog({
                         <DialogTitle className="font-alumni">
                             <span className="text-2xl font-bold">Delete product "{title}"?</span>
                             <br />
-                            <span className="text-stone-400">
+                            <span className="text-stone-400 text-base font-normal">
                                 This action cannot be undone.
                             </span>
                         </DialogTitle>

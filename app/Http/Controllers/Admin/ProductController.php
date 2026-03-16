@@ -35,13 +35,13 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         $paginator = Product::with([
-            'images' => fn ($q) => $q->where('is_primary', true),
+            'images' => fn($q) => $q->where('is_primary', true),
         ])
             ->where('type', $type->value)
             ->latest()
             ->paginate(self::PER_PAGE, ['*'], 'page', $request->query('page', 1));
 
-        $products = $paginator->through(fn (Product $p) => [
+        $products = $paginator->through(fn(Product $p) => [
             'id'                => $p->id,
             'title'             => $p->title,
             'slug'              => $p->slug,
@@ -56,30 +56,33 @@ class ProductController extends Controller
             'products'     => $products,
             'activeType'   => $type->value,
             'productTypes' => ProductType::options(),
+
+            // ── FIX: read the session flash and pass it as a prop.
+            // Without this line, `success` is always `undefined` in the
+            // frontend, so no toast ever fires regardless of frontend logic.
+            'success'      => session('success'),
         ]);
     }
 
     /* ─────────────────────────────────────────────────────────────
      | CHECK SLUG (AJAX)
-     | Returns { available: bool } — used for real-time uniqueness
      | ─────────────────────────────────────────────────────────────*/
 
     public function checkSlug(Request $request): JsonResponse
     {
-        $slug = strtolower(trim($request->query('slug', '')));
-        $excludeId = $request->query('exclude_id');   // passed on edit
+        $slug      = strtolower(trim($request->query('slug', '')));
+        $excludeId = $request->query('exclude_id');
 
         if (! $slug) {
             return response()->json(['available' => false, 'reason' => 'empty']);
         }
 
-        // Validate format server-side too
         if (! preg_match('/^[a-z0-9_-]+$/', $slug)) {
             return response()->json(['available' => false, 'reason' => 'invalid']);
         }
 
         $exists = Product::where('slug', $slug)
-            ->when($excludeId, fn ($q) => $q->where('id', '!=', (int) $excludeId))
+            ->when($excludeId, fn($q) => $q->where('id', '!=', (int) $excludeId))
             ->exists();
 
         return response()->json(['available' => ! $exists]);
@@ -135,6 +138,18 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully.');
     }
 
+
+    /* ─────────────────────────────────────────────────────────────
+     | SHOW
+     | ─────────────────────────────────────────────────────────────*/
+
+    public function show(Product $product): Response
+    {
+        return Inertia::render('backend/Admin/product/details', [
+            'product' => $product,
+        ]);
+    }   
+
     /* ─────────────────────────────────────────────────────────────
      | EDIT
      | ─────────────────────────────────────────────────────────────*/
@@ -149,28 +164,23 @@ class ProductController extends Controller
 
         [$categoryId, $subcategoryId] = $this->resolveCategory($product);
 
-        /*
-         * Explicitly serialize the product instead of using toArray().
-         * toArray() can mis-serialize backed enums in some Laravel versions —
-         * manually mapping ensures the frontend always receives plain strings.
-         */
         $productData = [
-            'id'                     => $product->id,
-            'title'                  => $product->title,
-            'slug'                   => $product->slug,
-            'description'            => $product->description,
-            'price'                  => (string) $product->price,
-            'discount'               => $product->discount ? (string) $product->discount : '',
-            'discount_type'          => $product->discount_type?->value ?? '',   // enum → string
-            'discount_starts_at'     => $product->discount_starts_at?->toDateTimeString(),
-            'discount_ends_at'       => $product->discount_ends_at?->toDateTimeString(),
-            'type'                   => $product->type->value,                   // enum → string
-            'status'                 => $product->status->value,                 // enum → string
-            'is_featured'            => (bool) $product->is_featured,
-            'category_id'            => $product->category_id,
-            'resolved_category_id'   => $categoryId,
-            'resolved_subcategory_id'=> $subcategoryId,
-            'images'                 => $product->images->map(fn ($img) => [
+            'id'                      => $product->id,
+            'title'                   => $product->title,
+            'slug'                    => $product->slug,
+            'description'             => $product->description,
+            'price'                   => (string) $product->price,
+            'discount'                => $product->discount ? (string) $product->discount : '',
+            'discount_type'           => $product->discount_type?->value ?? '',
+            'discount_starts_at'      => $product->discount_starts_at?->toDateTimeString(),
+            'discount_ends_at'        => $product->discount_ends_at?->toDateTimeString(),
+            'type'                    => $product->type->value,
+            'status'                  => $product->status->value,
+            'is_featured'             => (bool) $product->is_featured,
+            'category_id'             => $product->category_id,
+            'resolved_category_id'    => $categoryId,
+            'resolved_subcategory_id' => $subcategoryId,
+            'images'                  => $product->images->map(fn($img) => [
                 'id'         => $img->id,
                 'url'        => $img->url,
                 'alt_text'   => $img->alt_text,
@@ -178,21 +188,14 @@ class ProductController extends Controller
                 'sort_order' => $img->sort_order,
                 'color_id'   => $img->color_id,
             ])->values()->toArray(),
-            'variants'               => $product->variants->map(fn ($v) => [
+            'variants'                => $product->variants->map(fn($v) => [
                 'id'       => $v->id,
                 'color_id' => $v->color_id,
                 'size_id'  => $v->size_id,
                 'quantity' => (int) $v->quantity,
                 'status'   => $v->status?->value,
-                'color'    => $v->color ? [
-                    'id'   => $v->color->id,
-                    'name' => $v->color->name,
-                    'hex'  => $v->color->hex,
-                ] : null,
-                'size'     => $v->size ? [
-                    'id'   => $v->size->id,
-                    'name' => $v->size->name,
-                ] : null,
+                'color'    => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
+                'size'     => $v->size  ? ['id' => $v->size->id,  'name' => $v->size->name]  : null,
             ])->values()->toArray(),
         ];
 
@@ -307,15 +310,26 @@ class ProductController extends Controller
             $url = $request->file('primary_image')->store('products', 'public');
             if (! $isPrimarySlot) {
                 $old = $product->images()->where('is_primary', true)->first();
-                if ($old) { $this->deleteImageFile($old); $old->delete(); }
+                if ($old) {
+                    $this->deleteImageFile($old);
+                    $old->delete();
+                }
             }
-            $product->images()->create(['url' => Storage::url($url), 'is_primary' => true, 'sort_order' => 0]);
+            $product->images()->create([
+                'url'        => Storage::url($url),
+                'is_primary' => true,
+                'sort_order' => 0,
+            ]);
         }
 
         foreach ((array) $request->file('new_images', []) as $i => $file) {
             if (! $file) continue;
             $url = $file->store('products', 'public');
-            $product->images()->create(['url' => Storage::url($url), 'is_primary' => false, 'sort_order' => $sortOffset + $i + 1]);
+            $product->images()->create([
+                'url'        => Storage::url($url),
+                'is_primary' => false,
+                'sort_order' => $sortOffset + $i + 1,
+            ]);
         }
     }
 

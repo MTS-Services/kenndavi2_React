@@ -43,7 +43,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/orders/cancelled', [AdminDashboardController::class, 'DashboarCancelled'])->name('orders.cancelled');
 
         // Products
-
+        Route::get('products/check-slug', [ProductController::class, 'checkSlug'])
+            ->name('products.checkSlug');
         Route::resource('products', ProductController::class)->names([
             'index'   => 'products.index',
             'create'  => 'products.create',
@@ -52,8 +53,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             'update'  => 'products.update',
             'destroy' => 'products.destroy',
         ]);
-        Route::get('products/check-slug', [ProductController::class, 'checkSlug'])
-            ->name('products.checkSlug');
 
         // Customers
         Route::get('/customers', [AdminDashboardController::class, 'DashboarCustomer'])->name('customers.index');
