@@ -158,10 +158,10 @@ export default function ProductForm({ product, categories = [] }: PageProps) {
                                         : []
                                 }
                                 accept="image/*"
-                                maxSize={5}
+                                maxSize={10}
                                 maxFiles={1}
                                 error={errors.primary_image}
-                                innerClassName="aspect-3/2 flex items-center justify-center bg-[#1103040A]"
+                                innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A]"
                             />
                         </div>
 
@@ -180,14 +180,14 @@ export default function ProductForm({ product, categories = [] }: PageProps) {
                                             handleRemoveExisting(i, id)
                                         }
                                         accept="image/*"
-                                        maxSize={5}
+                                        maxSize={10}
                                         maxFiles={1}
                                         error={
                                             (errors as Record<string, string>)[
                                             `images.${i}`
                                             ]
                                         }
-                                        innerClassName="aspect-3/2 flex items-center justify-center bg-[#1103040A]"
+                                        innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A]"
                                     />
                                 </div>
                             );

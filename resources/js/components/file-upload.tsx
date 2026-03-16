@@ -1,9 +1,12 @@
-import { X, Upload, FileText, FileImage, FileVideo, File as FileIcon, Download, ImagePlus } from 'lucide-react';
+import { X, ImagePlus, FileText, FileImage, FileVideo, File as FileIcon } from 'lucide-react';
 import React, { useState, useRef, DragEvent, ChangeEvent, useEffect } from 'react';
+import Lightbox from 'yet-another-react-lightbox';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import Video from 'yet-another-react-lightbox/plugins/video';
+import 'yet-another-react-lightbox/styles.css';
 
 import { cn } from '@/lib/utils';
 
-// File type icons mapping
 const FILE_TYPE_ICONS = {
     'application/pdf': FileText,
     'text/csv': FileText,
@@ -39,7 +42,7 @@ interface FileUploadProps {
     onRemoveExisting?: (fileId: number | string) => void;
     multiple?: boolean;
     accept?: string;
-    maxSize?: number; // in MB
+    maxSize?: number;
     maxFiles?: number;
     disabled?: boolean;
     className?: string;
@@ -65,103 +68,103 @@ export default function FileUpload({
 }: FileUploadProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [filePreviews, setFilePreviews] = useState<FilePreview[]>([]);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Convert File to preview
+    // Build flat slides array for all images and videos (existing first, then new)
+    const lightboxSlides = [
+        ...existingFiles
+            .filter(f => f.mime_type.startsWith('image/') || f.mime_type.startsWith('video/'))
+            .map(f =>
+                f.mime_type.startsWith('video/')
+                    ? { type: 'video' as const, sources: [{ src: f.url, type: f.mime_type }] }
+                    : { src: f.url, alt: f.name ?? f.path.split('/').pop() ?? '' }
+            ),
+        ...filePreviews
+            .filter(p => p.type === 'image' || p.type === 'video')
+            .map(p =>
+                p.type === 'video'
+                    ? { type: 'video' as const, sources: [{ src: p.preview, type: p.file.type }] }
+                    : { src: p.preview, alt: p.file.name }
+            ),
+    ];
+
+    const openLightbox = (source: 'existing' | 'new', localIndex: number) => {
+        const existingMediaCount = existingFiles.filter(f =>
+            f.mime_type.startsWith('image/') || f.mime_type.startsWith('video/')
+        ).length;
+
+        const slideIndex =
+            source === 'existing'
+                ? localIndex
+                : existingMediaCount + localIndex;
+
+        setLightboxIndex(slideIndex);
+        setLightboxOpen(true);
+    };
+
     const createFilePreview = (file: File): Promise<FilePreview> => {
         return new Promise((resolve) => {
             const reader = new FileReader();
-
             reader.onload = (e) => {
                 const result = e.target?.result as string;
                 let type: 'image' | 'video' | 'other' = 'other';
-
-                if (file.type.startsWith('image/')) {
-                    type = 'image';
-                } else if (file.type.startsWith('video/')) {
-                    type = 'video';
-                }
-
-                resolve({
-                    file,
-                    preview: result,
-                    type,
-                });
+                if (file.type.startsWith('image/')) type = 'image';
+                else if (file.type.startsWith('video/')) type = 'video';
+                resolve({ file, preview: result, type });
             };
-
             if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
                 reader.readAsDataURL(file);
             } else {
-                resolve({
-                    file,
-                    preview: '',
-                    type: 'other',
-                });
+                resolve({ file, preview: '', type: 'other' });
             }
         });
     };
 
-    // Process files
     const processFiles = async (files: FileList | File[]) => {
         const fileArray = Array.from(files);
-
-        // Validate file size
-        const validFiles = fileArray.filter(file => {
-            const sizeMB = file.size / (1024 * 1024);
-            return sizeMB <= maxSize;
-        });
+        const validFiles = fileArray.filter(file => file.size / (1024 * 1024) <= maxSize);
 
         if (validFiles.length !== fileArray.length) {
             alert(`Some files exceed the ${maxSize}MB size limit and were not added.`);
         }
 
-        // Respect maxFiles limit
         let filesToProcess = validFiles;
         if (maxFiles && !multiple) {
             filesToProcess = validFiles.slice(0, 1);
         } else if (maxFiles) {
-            const currentCount = (Array.isArray(value) ? value.length : value ? 1 : 0) + existingFiles.length;
+            const currentCount =
+                (Array.isArray(value) ? value.length : value ? 1 : 0) + existingFiles.length;
             const remaining = maxFiles - currentCount;
             filesToProcess = validFiles.slice(0, remaining);
-
             if (validFiles.length > remaining) {
                 alert(`Maximum ${maxFiles} files allowed. Only first ${remaining} files were added.`);
             }
         }
 
-        // Create previews
         const previews = await Promise.all(filesToProcess.map(createFilePreview));
 
         if (multiple) {
             const currentFiles = Array.isArray(value) ? value : value ? [value] : [];
-            const newFiles = [...currentFiles, ...filesToProcess];
-            setFilePreviews([...filePreviews, ...previews]);
-            onChange(newFiles);
+            setFilePreviews(prev => [...prev, ...previews]);
+            onChange([...currentFiles, ...filesToProcess]);
         } else {
             setFilePreviews(previews);
             onChange(filesToProcess[0] || null);
         }
     };
 
-    // Handle file input change
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            processFiles(files);
-        }
-        // Reset input
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (e.target.files?.length) processFiles(e.target.files);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // Handle drag and drop
     const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!disabled) {
-            setIsDragging(true);
-        }
+        if (!disabled) setIsDragging(true);
     };
 
     const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
@@ -174,19 +177,14 @@ export default function FileUpload({
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
-
-        if (!disabled && e.dataTransfer.files) {
-            processFiles(e.dataTransfer.files);
-        }
+        if (!disabled && e.dataTransfer.files) processFiles(e.dataTransfer.files);
     };
 
-    // Remove new file
     const handleRemoveFile = (index: number) => {
         if (multiple) {
             const currentFiles = Array.isArray(value) ? value : [];
             const newFiles = currentFiles.filter((_, i) => i !== index);
-            const newPreviews = filePreviews.filter((_, i) => i !== index);
-            setFilePreviews(newPreviews);
+            setFilePreviews(prev => prev.filter((_, i) => i !== index));
             onChange(newFiles.length > 0 ? newFiles : null);
         } else {
             setFilePreviews([]);
@@ -194,45 +192,48 @@ export default function FileUpload({
         }
     };
 
-    // Get icon for file type
     const getFileIcon = (mimeType: string) => {
-        if (mimeType.startsWith('image/')) {
-            return FILE_TYPE_ICONS['image'];
-        } else if (mimeType.startsWith('video/')) {
-            return FILE_TYPE_ICONS['video'];
-        } else if (FILE_TYPE_ICONS[mimeType as keyof typeof FILE_TYPE_ICONS]) {
-            return FILE_TYPE_ICONS[mimeType as keyof typeof FILE_TYPE_ICONS];
-        }
-        return FILE_TYPE_ICONS['default'];
+        if (mimeType.startsWith('image/')) return FILE_TYPE_ICONS['image'];
+        if (mimeType.startsWith('video/')) return FILE_TYPE_ICONS['video'];
+        return FILE_TYPE_ICONS[mimeType as keyof typeof FILE_TYPE_ICONS] ?? FILE_TYPE_ICONS['default'];
     };
 
-    // Format file size
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     };
 
-    const showUploadArea = (!multiple && filePreviews.length === 0 && existingFiles.length === 0) ||
-        (multiple && (!maxFiles || (filePreviews.length + existingFiles.length) < maxFiles));
-
+    const showUploadArea =
+        (!multiple && filePreviews.length === 0 && existingFiles.length === 0) ||
+        (multiple && (!maxFiles || filePreviews.length + existingFiles.length < maxFiles));
 
     useEffect(() => {
         if (!value) {
             setFilePreviews([]);
-        } else if (!multiple && value instanceof File) {
-            // If a single file exists but previews are empty (e.g. manual state set)
-            // This part is optional but helps keep things in sync
-            if (filePreviews.length === 0) {
-                createFilePreview(value).then(preview => setFilePreviews([preview]));
-            }
+        } else if (!multiple && value instanceof File && filePreviews.length === 0) {
+            createFilePreview(value).then(preview => setFilePreviews([preview]));
         }
     }, [value]);
 
+    // Running counter for existing media (images + videos) to get correct slide index
+    let existingMediaCounter = -1;
+
     return (
         <div className={cn('w-full', className)}>
+
+            {/* Lightbox */}
+            <Lightbox
+                open={lightboxOpen}
+                close={() => setLightboxOpen(false)}
+                slides={lightboxSlides}
+                index={lightboxIndex}
+                plugins={[Zoom, Video]}
+                zoom={{ maxZoomPixelRatio: 4 }}
+            />
+
             {/* Upload Area */}
             {showUploadArea && (
                 <div
@@ -261,17 +262,16 @@ export default function FileUpload({
                         className="hidden"
                         required={required}
                     />
-
                     <div className="flex flex-col items-center justify-center text-center">
-                        <ImagePlus className="h-5 w-5 text-input" />
+                        {/* <ImagePlus className="h-5 w-5 text-input" /> */}
+                        <span className="text-xl text-[#110304B8] font-medium">
+                            Add Photo
+                        </span>
                     </div>
                 </div>
             )}
 
-            {/* Error Message */}
-            {error && (
-                <p className="text-sm text-red-500 mt-2">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
 
             {/* Preview Section */}
             {(existingFiles.length > 0 || filePreviews.length > 0) && (
@@ -280,6 +280,7 @@ export default function FileUpload({
                     'dark:border-gray-700',
                     error && 'border-red-500'
                 )}>
+
                     {/* Existing Files */}
                     {existingFiles.length > 0 && (
                         <div className="mb-4">
@@ -295,31 +296,33 @@ export default function FileUpload({
                                     const isVideo = file.mime_type.startsWith('video/');
                                     const Icon = getFileIcon(file.mime_type);
 
+                                    if (isImage || isVideo) existingMediaCounter++;
+                                    const mediaIndex = existingMediaCounter;
+
                                     return (
                                         <div
                                             key={file.id}
                                             className="relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 dark:border-gray-700"
                                         >
-                                            {/* Preview */}
                                             <div className="aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
                                                 {isImage ? (
                                                     <img
                                                         src={file.url}
                                                         alt={file.name || 'File'}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover cursor-zoom-in"
+                                                        onClick={() => openLightbox('existing', mediaIndex)}
                                                     />
                                                 ) : isVideo ? (
                                                     <video
                                                         src={file.url}
-                                                        className="w-full h-full object-cover"
-                                                        controls
+                                                        className="w-full h-full object-cover cursor-pointer"
+                                                        onClick={() => openLightbox('existing', mediaIndex)}
                                                     />
                                                 ) : (
                                                     <Icon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                                                 )}
                                             </div>
 
-                                            {/* File Info */}
                                             <div className="p-2">
                                                 <p className="text-xs font-medium truncate dark:text-gray-200">
                                                     {file.name || file.path.split('/').pop()}
@@ -331,7 +334,6 @@ export default function FileUpload({
                                                 )}
                                             </div>
 
-                                            {/* Remove Button */}
                                             {onRemoveExisting && (
                                                 <button
                                                     type="button"
@@ -367,31 +369,35 @@ export default function FileUpload({
                                 {filePreviews.map((preview, index) => {
                                     const Icon = getFileIcon(preview.file.type);
 
+                                    // Image-only index offset for new media
+                                    const newMediaIndex = filePreviews
+                                        .slice(0, index)
+                                        .filter(p => p.type === 'image' || p.type === 'video').length;
+
                                     return (
                                         <div
                                             key={index}
                                             className="relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 dark:border-gray-700"
                                         >
-                                            {/* Preview */}
                                             <div className="aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
                                                 {preview.type === 'image' ? (
                                                     <img
                                                         src={preview.preview}
                                                         alt={preview.file.name}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover cursor-zoom-in"
+                                                        onClick={() => openLightbox('new', newMediaIndex)}
                                                     />
                                                 ) : preview.type === 'video' ? (
                                                     <video
                                                         src={preview.preview}
-                                                        className="w-full h-full object-cover"
-                                                        controls
+                                                        className="w-full h-full object-cover cursor-pointer"
+                                                        onClick={() => openLightbox('new', newMediaIndex)}
                                                     />
                                                 ) : (
                                                     <Icon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                                                 )}
                                             </div>
 
-                                            {/* File Info */}
                                             <div className="p-2">
                                                 <p className="text-xs font-medium truncate dark:text-gray-200">
                                                     {preview.file.name}
@@ -401,7 +407,6 @@ export default function FileUpload({
                                                 </p>
                                             </div>
 
-                                            {/* Remove Button */}
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveFile(index)}
