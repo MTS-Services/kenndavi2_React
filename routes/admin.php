@@ -44,14 +44,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Products
 
-        Route::controller(ProductController::class)->name('products.')->prefix('products')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-            Route::get('/{id}/edit', 'edit')->name('edit');
-            Route::put('/{id}', 'update')->name('update');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-        });
+        Route::resource('products', ProductController::class)->names([
+            'index'   => 'products.index',
+            'create'  => 'products.create',
+            'store'   => 'products.store',
+            'edit'    => 'products.edit',
+            'update'  => 'products.update',
+            'destroy' => 'products.destroy',
+        ]);
+        Route::get('products/check-slug', [ProductController::class, 'checkSlug'])
+            ->name('products.checkSlug');
 
         // Customers
         Route::get('/customers', [AdminDashboardController::class, 'DashboarCustomer'])->name('customers.index');

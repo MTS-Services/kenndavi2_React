@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarIcon, X, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import FileUpload from "@/components/file-upload";
@@ -27,49 +27,30 @@ import { cn } from "@/lib/utils";
 /* ─────────────────────────────────────────────────────────────── */
 
 const TOTAL_IMAGE_SLOTS = 5;
-
-/** Characters allowed in a slug */
+const SLUG_DEBOUNCE_MS = 500;
 const SLUG_REGEX = /^[a-z0-9_-]*$/;
 
 /* ─────────────────────────────────────────────────────────────── */
 /* Slug helpers                                                    */
 /* ─────────────────────────────────────────────────────────────── */
 
-/**
- * Convert any string to a valid slug:
- *   "Hello World! Café" → "hello-world-cafe"
- * Rules:
- *  - lowercase
- *  - spaces → hyphens
- *  - accents stripped
- *  - any char that is not a-z 0-9 _ - is removed
- *  - multiple consecutive hyphens collapsed to one
- *  - leading/trailing hyphens stripped
- */
 function toSlug(str: string): string {
     return str
         .toLowerCase()
-        .normalize("NFD")                       // decompose accented chars
-        .replace(/[\u0300-\u036f]/g, "")        // strip combining marks
-        .replace(/\s+/g, "-")                   // spaces → hyphens
-        .replace(/[^a-z0-9_-]/g, "")            // remove invalid chars
-        .replace(/-{2,}/g, "-")                 // collapse multiple hyphens
-        .replace(/^-+|-+$/g, "");               // trim leading/trailing hyphens
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9_-]/g, "")
+        .replace(/-{2,}/g, "-")
+        .replace(/^-+|-+$/g, "");
 }
 
-/**
- * Sanitise a manually-typed slug without auto-converting spaces.
- * Allows the user to type freely but strips anything that isn't a-z0-9_-
- * (we keep it lowercase so it's clear what will be stored).
- */
 function sanitiseSlug(str: string): string {
-    return str
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]/g, "");
+    return str.toLowerCase().replace(/[^a-z0-9_-]/g, "");
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* ExistingFile adapter                                            */
+/* ExistingFile + adapter                                          */
 /* ─────────────────────────────────────────────────────────────── */
 
 interface ExistingFile {
@@ -91,13 +72,7 @@ interface ProductImage {
 }
 
 function toExistingFile(img: ProductImage): ExistingFile {
-    return {
-        id: img.id,
-        url: img.url,
-        path: img.url,
-        mime_type: "image/jpeg",
-        name: img.alt_text ?? undefined,
-    };
+    return { id: img.id, url: img.url, path: img.url, mime_type: "image/jpeg", name: img.alt_text ?? undefined };
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -106,8 +81,6 @@ function toExistingFile(img: ProductImage): ExistingFile {
 
 export interface ProductVariant {
     id: number;
-    color_id?: number | null;
-    size_id?: number | null;
     color?: { id: number; name: string; hex: string } | null;
     size?: { id: number; name: string } | null;
     quantity?: number;
@@ -120,13 +93,12 @@ export interface Product {
     slug: string;
     description: string | null;
     price: string;
-    discount: string | null;
-    discount_type: "percentage" | "fixed" | null;
+    discount: string;
+    discount_type: string;
     discount_starts_at: string | null;
     discount_ends_at: string | null;
     type: string;
     category_id: number | null;
-    is_featured: boolean;
     status: string;
     images: ProductImage[];
     variants: ProductVariant[];
@@ -151,10 +123,6 @@ interface PageProps {
     discountTypes?: EnumOption[];
     productTypes?: EnumOption[];
 }
-
-/* ─────────────────────────────────────────────────────────────── */
-/* Form data shape                                                 */
-/* ─────────────────────────────────────────────────────────────── */
 
 interface ProductFormData {
     _method: "PUT" | "";
@@ -194,44 +162,79 @@ const field =
     "bg-[#1103040A] border-0 rounded-md focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-0 shadow-none h-11 text-stone-800 placeholder:text-stone-400";
 
 /* ─────────────────────────────────────────────────────────────── */
-/* SlugField                                                       */
+/* SlugField — with touched state + debounced uniqueness check    */
 /* ─────────────────────────────────────────────────────────────── */
+
+type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "empty";
 
 interface SlugFieldProps {
     value: string;
     onChange: (v: string) => void;
     serverError?: string;
-    /** If true the slug was auto-generated (not manually edited) */
     autoGenerated: boolean;
+    productId?: number;   // passed on edit to exclude self from uniqueness check
 }
 
-function SlugField({ value, onChange, serverError, autoGenerated }: SlugFieldProps) {
-    // Frontend validation state
+function SlugField({ value, onChange, serverError, autoGenerated, productId }: SlugFieldProps) {
+    const [touched, setTouched] = useState(false);
+    const [status, setStatus] = useState<SlugStatus>("idle");
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Run uniqueness check after debounce
+    const checkUniqueness = useCallback(
+        (slug: string) => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (!slug || !SLUG_REGEX.test(slug)) return;
+
+            setStatus("checking");
+            timerRef.current = setTimeout(async () => {
+                try {
+                    const params = new URLSearchParams({ slug });
+                    if (productId) params.append("exclude_id", String(productId));
+                    const res = await fetch(`${route("admin.products.checkSlug")}?${params}`);
+                    const data = await res.json() as { available: boolean };
+                    setStatus(data.available ? "available" : "taken");
+                } catch {
+                    setStatus("idle");
+                }
+            }, SLUG_DEBOUNCE_MS);
+        },
+        [productId]
+    );
+
+    // Re-check whenever value changes (including auto-generated)
+    useEffect(() => {
+        if (!value) { setStatus("idle"); return; }
+        if (!SLUG_REGEX.test(value)) { setStatus("invalid"); return; }
+        checkUniqueness(value);
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTouched(true);
+        onChange(sanitiseSlug(e.target.value));
+    };
+
+    // Only show validation UI after user has touched the field OR auto-generation has run
+    const showValidation = touched || (autoGenerated && value.length > 0);
+
     const isEmpty = value.trim() === "";
     const isInvalid = value.length > 0 && !SLUG_REGEX.test(value);
     const isTooLong = value.length > 255;
 
     const frontendError =
-        isEmpty ? "Slug is required."
-            : isInvalid ? "Only lowercase letters, numbers, hyphens (-) and underscores (_) are allowed."
-                : isTooLong ? "Slug must be 255 characters or fewer."
+        showValidation && isEmpty ? "Slug is required."
+            : isInvalid ? "Only lowercase letters, numbers, hyphens (-) and underscores (_) allowed."
+                : isTooLong ? "Must be 255 characters or fewer."
                     : null;
 
-    const hasError = Boolean(frontendError || serverError);
-    const isValid = !isEmpty && !isInvalid && !isTooLong && !serverError;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Strip any invalid character immediately as the user types
-        onChange(sanitiseSlug(e.target.value));
-    };
+    const hasError = Boolean(frontendError || (showValidation && serverError) || status === "taken");
+    const isOk = !isEmpty && !isInvalid && !isTooLong && status === "available";
 
     return (
         <Field>
             <div className="flex items-center justify-between">
-                <Label className="text-base font-bold text-stone-900 font-alumni">
-                    Slug
-                </Label>
-                {autoGenerated && !isEmpty && (
+                <Label className="text-base font-bold text-stone-900 font-alumni">Slug</Label>
+                {autoGenerated && value && (
                     <span className="text-xs text-stone-400 italic">auto-generated</span>
                 )}
             </div>
@@ -240,35 +243,37 @@ function SlugField({ value, onChange, serverError, autoGenerated }: SlugFieldPro
                 <Input
                     value={value}
                     onChange={handleChange}
-                    placeholder="my-product-name"
-                    className={cn(
-                        field,
-                        "pr-9 font-mono text-sm",
-                        hasError && "ring-2 ring-red-500 focus-visible:ring-red-500",
-                        isValid && "ring-2 ring-green-500 focus-visible:ring-green-500"
-                    )}
-                    aria-invalid={hasError}
+                    onBlur={() => setTouched(true)}
+                    placeholder="my-product-slug"
                     spellCheck={false}
+                    className={cn(
+                        field, "pr-9 font-mono text-sm",
+                        showValidation && hasError && "ring-2 ring-red-500 focus-visible:ring-red-500",
+                        isOk && "ring-2 ring-green-500 focus-visible:ring-green-500"
+                    )}
                 />
-                {/* Inline status icon */}
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    {isValid && <CheckCircle2 className="size-4 text-green-500" />}
-                    {hasError && <AlertCircle className="size-4 text-red-500" />}
+                    {status === "checking" && <Loader2 className="size-4 text-stone-400 animate-spin" />}
+                    {isOk && <CheckCircle2 className="size-4 text-green-500" />}
+                    {showValidation && hasError && status !== "checking" && (
+                        <AlertCircle className="size-4 text-red-500" />
+                    )}
                 </span>
             </div>
 
-            {/* Preview of the final URL slug */}
-            {!hasError && value && (
+            {/* URL preview */}
+            {isOk && (
                 <p className="text-xs text-stone-400 font-mono truncate">
                     /products/<span className="text-stone-600">{value}</span>
                 </p>
             )}
 
-            {/* Error messages: frontend takes priority, server shown otherwise */}
-            {frontendError && (
-                <p className="text-xs text-red-500">{frontendError}</p>
+            {/* Error messages */}
+            {frontendError && <p className="text-xs text-red-500">{frontendError}</p>}
+            {!frontendError && status === "taken" && (
+                <p className="text-xs text-red-500">This slug is already taken.</p>
             )}
-            {!frontendError && serverError && (
+            {!frontendError && status !== "taken" && showValidation && serverError && (
                 <p className="text-xs text-red-500">{serverError}</p>
             )}
         </Field>
@@ -276,37 +281,31 @@ function SlugField({ value, onChange, serverError, autoGenerated }: SlugFieldPro
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* DatePickerField                                                 */
+/* DatePickerField — fixed popover + no dropdown caption          */
 /* ─────────────────────────────────────────────────────────────── */
 
 interface DatePickerFieldProps {
     label: string;
     value: string;
     onChange: (v: string) => void;
-    disabled?: boolean;
     placeholder?: string;
     minDate?: Date;
 }
 
-function DatePickerField({ label, value, onChange, disabled, placeholder, minDate }: DatePickerFieldProps) {
+function DatePickerField({ label, value, onChange, placeholder, minDate }: DatePickerFieldProps) {
+    const [open, setOpen] = useState(false);
     const selected = value ? parseISO(value) : undefined;
+
     return (
         <Field>
-            <Label className={cn(
-                "text-base font-bold font-alumni transition-colors duration-200",
-                disabled ? "text-stone-400" : "text-stone-900"
-            )}>
-                {label}
-            </Label>
-            <Popover>
-                <PopoverTrigger asChild disabled={disabled}>
+            <Label className="text-base font-bold text-stone-900 font-alumni">{label}</Label>
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
                     <button
                         type="button"
-                        disabled={disabled}
                         className={cn(
                             field,
-                            "flex items-center justify-between px-3 w-full rounded-md text-left transition-opacity duration-200",
-                            disabled && "opacity-50 cursor-not-allowed",
+                            "flex items-center justify-between px-3 w-full rounded-md text-left",
                             !selected && "text-stone-400"
                         )}
                     >
@@ -316,19 +315,28 @@ function DatePickerField({ label, value, onChange, disabled, placeholder, minDat
                         <CalendarIcon className="size-4 text-stone-500 shrink-0" />
                     </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent
+                    className="w-auto p-0 z-50 shadow-lg"
+                    align="start"
+                    sideOffset={4}
+                >
                     <Calendar
                         mode="single"
                         selected={selected}
-                        onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
+                        onSelect={(d) => {
+                            onChange(d ? format(d, "yyyy-MM-dd") : "");
+                            setOpen(false);
+                        }}
                         disabled={minDate ? (d) => d < minDate : undefined}
-                        captionLayout="dropdown"
                         initialFocus
                     />
                     {selected && (
                         <div className="border-t px-3 py-2">
-                            <button type="button" onClick={() => onChange("")}
-                                className="text-xs text-stone-500 hover:text-red-600 transition-colors">
+                            <button
+                                type="button"
+                                onClick={() => { onChange(""); setOpen(false); }}
+                                className="text-xs text-stone-500 hover:text-red-600 transition-colors"
+                            >
                                 Clear date
                             </button>
                         </div>
@@ -348,6 +356,29 @@ const toDateInput = (iso: string | null | undefined): string => {
     try { return format(parseISO(iso), "yyyy-MM-dd"); } catch { return ""; }
 };
 
+const buildFormDefaults = (
+    product: Product | undefined,
+    resolvedType: string
+): ProductFormData => ({
+    _method: product?.id ? "PUT" : "",
+    title: product?.title ?? "",
+    slug: product?.slug ?? "",
+    description: product?.description ?? "",
+    type: resolvedType,
+    price: product?.price ?? "",
+    discount: product?.discount ?? "",
+    discount_type: product?.discount_type ?? "",
+    discount_starts_at: toDateInput(product?.discount_starts_at),
+    discount_ends_at: toDateInput(product?.discount_ends_at),
+    category_id: product?.resolved_category_id != null ? String(product.resolved_category_id) : "",
+    subcategory_id: product?.resolved_subcategory_id != null ? String(product.resolved_subcategory_id) : "",
+    primary_image: null,
+    new_images: Array(TOTAL_IMAGE_SLOTS - 1).fill(null),
+    removed_image_ids: [],
+    variants: [],
+    removed_variant_ids: [],
+});
+
 /* ─────────────────────────────────────────────────────────────── */
 /* Page Component                                                  */
 /* ─────────────────────────────────────────────────────────────── */
@@ -364,65 +395,62 @@ export default function ProductForm({
 
     const variantMatrixRef = useRef<VariantMatrixRef>(null);
 
-    /* ── Auto-slug tracking ──
-     * `slugAutoMode` = true  → slug mirrors the title automatically
-     * `slugAutoMode` = false → user has manually edited the slug, stop overriding
-     */
-    const [slugAutoMode, setSlugAutoMode] = useState<boolean>(!isEdit);
+    /* ── Auto-slug tracking ── */
+    const [slugAutoMode, setSlugAutoMode] = useState(!isEdit);
 
     /* ── Resolve images ── */
     const resolvedPrimaryFile = useMemo<ExistingFile | null>(() => {
         const img = product?.images.find((i) => i.is_primary) ?? null;
         return img ? toExistingFile(img) : null;
-    }, [product]);
+    }, [product?.id]);
 
     const resolvedAdditional = useMemo<(ExistingFile | null)[]>(() => {
         const additional = (product?.images ?? []).filter((i) => !i.is_primary);
-        return Array.from(
-            { length: TOTAL_IMAGE_SLOTS - 1 },
-            (_, idx) => (additional[idx] ? toExistingFile(additional[idx]) : null)
+        return Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, idx) =>
+            additional[idx] ? toExistingFile(additional[idx]) : null
         );
-    }, [product]);
+    }, [product?.id]);
 
     const [existingAdditional, setExistingAdditional] =
         useState<(ExistingFile | null)[]>(resolvedAdditional);
 
     /* ── Inertia form ── */
-    const { data, setData, post, processing, errors } = useForm<ProductFormData>({
-        _method: isEdit ? "PUT" : "",
-        title: product?.title ?? "",
-        slug: product?.slug ?? "",
-        description: product?.description ?? "",
-        type: resolvedType,
-        price: product?.price ?? "",
-        discount: product?.discount ?? "",
-        discount_type: product?.discount_type ?? "",
-        discount_starts_at: toDateInput(product?.discount_starts_at),
-        discount_ends_at: toDateInput(product?.discount_ends_at),
-        category_id: product?.resolved_category_id != null
-            ? String(product.resolved_category_id) : "",
-        subcategory_id: product?.resolved_subcategory_id != null
-            ? String(product.resolved_subcategory_id) : "",
-        primary_image: null,
-        new_images: Array(TOTAL_IMAGE_SLOTS - 1).fill(null),
-        removed_image_ids: [],
-        variants: [],
-        removed_variant_ids: [],
-    });
+    const { data, setData, post, processing, errors, reset } =
+        useForm<ProductFormData>(buildFormDefaults(product, resolvedType));
 
-    /* ── Auto-generate slug when title changes (only in auto mode) ── */
+    /*
+     * KEY FIX for edit page showing empty data:
+     * When Inertia navigates between create and edit (same component),
+     * useForm keeps its initial state. useEffect detects the product id
+     * change and re-syncs all form fields to match the new product.
+     */
+    useEffect(() => {
+        const defaults = buildFormDefaults(product, resolvedType);
+        // Reset each field individually (Inertia's reset() only restores initial values)
+        Object.entries(defaults).forEach(([key, val]) => {
+            setData(key as keyof ProductFormData, val as never);
+        });
+        setSlugAutoMode(!product?.id);
+        setExistingAdditional(
+            Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, idx) => {
+                const additional = (product?.images ?? []).filter((i) => !i.is_primary);
+                return additional[idx] ? toExistingFile(additional[idx]) : null;
+            })
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [product?.id]);
+
+    /* ── Auto-generate slug from title ── */
     useEffect(() => {
         if (slugAutoMode && data.title) {
             setData("slug", toSlug(data.title));
         }
-        // If title is cleared, reset auto mode so next title input regenerates
-        if (!data.title) {
-            setSlugAutoMode(true);
+        if (!data.title && slugAutoMode) {
             setData("slug", "");
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.title]);
 
-    /* When the user types in the slug field directly: disable auto mode */
     const handleSlugChange = (v: string) => {
         setSlugAutoMode(false);
         setData("slug", v);
@@ -435,10 +463,10 @@ export default function ProductForm({
     }, [data.category_id, categories]);
 
     const subcategoryDisabled = !data.category_id || filteredSubcategories.length === 0;
-    const discountFieldsDisabled = !data.discount_type;
+    const hasDiscount = Boolean(data.discount_type);
     const typeLabel = productTypes.find((t) => t.value === resolvedType)?.label ?? resolvedType;
 
-    /* ── Slug frontend validity (used to block submit) ── */
+    /* ── Slug validity (blocks submit) ── */
     const slugIsValid =
         data.slug.trim() !== "" &&
         SLUG_REGEX.test(data.slug) &&
@@ -452,9 +480,12 @@ export default function ProductForm({
 
     const handleDiscountTypeChange = (v: string) => {
         setData("discount_type", v);
-        setData("discount", "");
-        setData("discount_starts_at", "");
-        setData("discount_ends_at", "");
+        if (!v) {
+            // Cleared — reset dependent fields
+            setData("discount", "");
+            setData("discount_starts_at", "");
+            setData("discount_ends_at", "");
+        }
     };
 
     const setImageSlot = (i: number, file: File | null) => {
@@ -470,19 +501,12 @@ export default function ProductForm({
         setData("removed_image_ids", [...data.removed_image_ids, Number(id)]);
     };
 
-    /* ── Submit ── */
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!slugIsValid) { toast.error("Please fix the slug before submitting."); return; }
 
-        // Block submit if slug is invalid (prevent unnecessary server round-trip)
-        if (!slugIsValid) {
-            toast.error("Please fix the slug before submitting.");
-            return;
-        }
-
-        const matrix = variantMatrixRef.current;
-        data.variants = matrix?.getVariants() ?? [];
-        data.removed_variant_ids = matrix?.getRemovedIds() ?? [];
+        data.variants = variantMatrixRef.current?.getVariants() ?? [];
+        data.removed_variant_ids = variantMatrixRef.current?.getRemovedIds() ?? [];
 
         post(
             isEdit
@@ -491,8 +515,7 @@ export default function ProductForm({
             {
                 forceFormData: true,
                 preserveScroll: true,
-                onSuccess: () =>
-                    router.visit(`${route("admin.products.index")}?type=${data.type}`),
+                onSuccess: () => router.visit(`${route("admin.products.index")}?type=${data.type}`),
                 onError: (errs: Record<string, string>) => {
                     const first = Object.values(errs)[0];
                     if (first) toast.error(first);
@@ -504,14 +527,14 @@ export default function ProductForm({
     const discountPlaceholder =
         data.discount_type === "percentage" ? "e.g. 10"
             : data.discount_type === "fixed" ? "e.g. 5.00"
-                : "Set type first";
+                : "";
 
+    /* ── Render ── */
     return (
         <AdminLayout
             title={isEdit ? `Edit ${typeLabel} Product` : `Add New ${typeLabel} Product`}
             description={
-                isEdit
-                    ? "Update the product details below."
+                isEdit ? "Update the product details below."
                     : `Fill in the details to add a new ${typeLabel.toLowerCase()} product.`
             }
         >
@@ -527,10 +550,8 @@ export default function ProductForm({
                             Type: <span className="text-red-700 font-semibold">{typeLabel}</span>
                         </span>
                     </div>
-                    <Link
-                        href={`${route("admin.products.index")}?type=${resolvedType}`}
-                        className="bg-red-700 hover:bg-red-800 text-white p-1.5 rounded transition-colors cursor-pointer"
-                    >
+                    <Link href={`${route("admin.products.index")}?type=${resolvedType}`}
+                        className="bg-red-700 hover:bg-red-800 text-white p-1.5 rounded transition-colors cursor-pointer">
                         <X className="size-4" />
                     </Link>
                 </div>
@@ -538,7 +559,7 @@ export default function ProductForm({
                 <form onSubmit={submit}>
                     <FieldGroup>
 
-                        {/* ══ ROW 1 — Images ══════════════════════════ */}
+                        {/* ══ ROW 1 — Images ══ */}
                         <FieldSet>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <Field>
@@ -551,60 +572,47 @@ export default function ProductForm({
                                         innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
                                     />
                                 </Field>
-                                {Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, i) => {
-                                    const existing = existingAdditional[i];
-                                    return (
-                                        <Field key={i}>
-                                            <FileUpload
-                                                value={data.new_images[i]}
-                                                onChange={(file) => setImageSlot(i, file as File | null)}
-                                                existingFiles={existing ? [existing] : []}
-                                                onRemoveExisting={(id) => handleRemoveExistingImage(i, id)}
-                                                accept="image/*" maxSize={10} maxFiles={1}
-                                                error={(errors as Record<string, string>)[`new_images.${i}`]}
-                                                innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
-                                            />
-                                        </Field>
-                                    );
-                                })}
+                                {Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, i) => (
+                                    <Field key={i}>
+                                        <FileUpload
+                                            value={data.new_images[i]}
+                                            onChange={(file) => setImageSlot(i, file as File | null)}
+                                            existingFiles={existingAdditional[i] ? [existingAdditional[i]!] : []}
+                                            onRemoveExisting={(id) => handleRemoveExistingImage(i, id)}
+                                            accept="image/*" maxSize={10} maxFiles={1}
+                                            error={(errors as Record<string, string>)[`new_images.${i}`]}
+                                            innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
+                                        />
+                                    </Field>
+                                ))}
                             </div>
                         </FieldSet>
 
-                        {/* ══ ROW 2 — Title + Slug (side by side) ═════ */}
+                        {/* ══ ROW 2 — Title + Slug ══ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                                {/* Title */}
                                 <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">
-                                        Title
-                                    </Label>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">Title</Label>
                                     <Input
                                         value={data.title}
                                         onChange={(e) => setData("title", e.target.value)}
                                         placeholder="Enter product title"
-                                        className={cn(
-                                            field,
-                                            errors.title && "ring-2 ring-red-500 focus-visible:ring-red-500"
-                                        )}
+                                        className={cn(field, errors.title && "ring-2 ring-red-500")}
                                         required
                                     />
-                                    {errors.title && (
-                                        <p className="text-xs text-red-500">{errors.title}</p>
-                                    )}
+                                    {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}
                                 </Field>
-
-                                {/* Slug */}
                                 <SlugField
                                     value={data.slug}
                                     onChange={handleSlugChange}
                                     serverError={errors.slug}
                                     autoGenerated={slugAutoMode}
+                                    productId={product?.id}
                                 />
                             </div>
                         </FieldSet>
 
-                        {/* ══ ROW 3 — Category + Subcategory ══════════ */}
+                        {/* ══ ROW 3 — Category + Subcategory ══ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Field>
@@ -630,8 +638,8 @@ export default function ProductForm({
                                         Subcategory
                                     </Label>
                                     <Select
-                                        value={data.subcategory_id}
-                                        onValueChange={(v) => setData("subcategory_id", v)}
+                                        value={data.subcategory_id || "__none__"}
+                                        onValueChange={(v) => setData("subcategory_id", v === "__none__" ? "" : v)}
                                         disabled={subcategoryDisabled}
                                     >
                                         <SelectTrigger className={cn(
@@ -640,11 +648,15 @@ export default function ProductForm({
                                         )}>
                                             <SelectValue placeholder={
                                                 !data.category_id ? "Select a category first"
-                                                    : filteredSubcategories.length === 0 ? "No subcategories available"
+                                                    : filteredSubcategories.length === 0 ? "No subcategories"
                                                         : "Select subcategory"
                                             } />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            {/* Deselect option */}
+                                            <SelectItem value="__none__">
+                                                <span className="text-stone-400 italic">None</span>
+                                            </SelectItem>
                                             {filteredSubcategories.map((s) => (
                                                 <SelectItem key={s.id} value={String(s.id)}>{s.title}</SelectItem>
                                             ))}
@@ -654,7 +666,7 @@ export default function ProductForm({
                             </div>
                         </FieldSet>
 
-                        {/* ══ ROW 4 — Price · Discount Type · Discount Value ═══ */}
+                        {/* ══ ROW 4 — Price + Discount Type + Discount Value ══ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <Field>
@@ -669,12 +681,21 @@ export default function ProductForm({
                                 </Field>
 
                                 <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">Discount Type</Label>
-                                    <Select value={data.discount_type} onValueChange={handleDiscountTypeChange}>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">
+                                        Discount Type
+                                    </Label>
+                                    <Select
+                                        value={data.discount_type || "__none__"}
+                                        onValueChange={(v) => handleDiscountTypeChange(v === "__none__" ? "" : v)}
+                                    >
                                         <SelectTrigger className={cn(field, "w-full")}>
-                                            <SelectValue placeholder="Select type" />
+                                            <SelectValue placeholder="No discount" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            {/* Deselect / clear option */}
+                                            <SelectItem value="__none__">
+                                                <span className="text-stone-400 italic">No discount</span>
+                                            </SelectItem>
                                             {discountTypes.map((opt) => (
                                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
@@ -685,7 +706,7 @@ export default function ProductForm({
                                 <Field>
                                     <Label className={cn(
                                         "text-base font-bold font-alumni transition-colors duration-200",
-                                        discountFieldsDisabled ? "text-stone-400" : "text-stone-900"
+                                        !hasDiscount ? "text-stone-400" : "text-stone-900"
                                     )}>
                                         Discount Value
                                         {data.discount_type === "percentage" && <span className="ml-1 text-sm font-normal text-stone-500">(%)</span>}
@@ -697,53 +718,47 @@ export default function ProductForm({
                                         max={data.discount_type === "percentage" ? "100" : undefined}
                                         value={data.discount}
                                         onChange={(e) => setData("discount", e.target.value)}
-                                        placeholder={discountPlaceholder}
-                                        disabled={discountFieldsDisabled}
-                                        className={cn(field, "transition-opacity duration-200", discountFieldsDisabled && "opacity-50 cursor-not-allowed")}
+                                        placeholder={!hasDiscount ? "Select type first" : discountPlaceholder}
+                                        disabled={!hasDiscount}
+                                        className={cn(field, "transition-opacity duration-200", !hasDiscount && "opacity-50 cursor-not-allowed")}
                                     />
                                     <InputError message={errors.discount} />
                                 </Field>
                             </div>
                         </FieldSet>
 
-                        {/* ══ ROW 4b — Offer Start / End Date ═════════ */}
-                        <FieldSet>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <DatePickerField
-                                    label="Offer Start Date"
-                                    value={data.discount_starts_at}
-                                    onChange={(v) => setData("discount_starts_at", v)}
-                                    disabled={discountFieldsDisabled}
-                                    placeholder="Select start date"
-                                />
-                                <DatePickerField
-                                    label="Offer End Date"
-                                    value={data.discount_ends_at}
-                                    onChange={(v) => setData("discount_ends_at", v)}
-                                    disabled={discountFieldsDisabled}
-                                    placeholder="Select end date"
-                                    minDate={data.discount_starts_at ? parseISO(data.discount_starts_at) : undefined}
-                                />
-                            </div>
-                        </FieldSet>
+                        {/* ══ ROW 4b — Offer Dates — HIDDEN until discount type set ══ */}
+                        {hasDiscount && (
+                            <FieldSet>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <DatePickerField
+                                        label="Offer Start Date"
+                                        value={data.discount_starts_at}
+                                        onChange={(v) => setData("discount_starts_at", v)}
+                                        placeholder="Select start date"
+                                    />
+                                    <DatePickerField
+                                        label="Offer End Date"
+                                        value={data.discount_ends_at}
+                                        onChange={(v) => setData("discount_ends_at", v)}
+                                        placeholder="Select end date"
+                                        minDate={data.discount_starts_at ? parseISO(data.discount_starts_at) : undefined}
+                                    />
+                                </div>
+                            </FieldSet>
+                        )}
 
-                        {/* ══ ROW 5 — Variant Matrix ═══════════════════ */}
+                        {/* ══ ROW 5 — Variants ══ */}
                         <FieldSet>
-                            <Label className="text-base font-bold text-stone-900 font-alumni mb-1 block">
-                                Variants
-                            </Label>
+                            <Label className="text-base font-bold text-stone-900 font-alumni mb-1 block">Variants</Label>
                             <p className="text-xs text-stone-400 mb-3">
-                                Add all available sizes and colors — the grid auto-generates.
-                                Enter stock quantities per cell. Use "Fill all" shortcuts to
-                                set the same quantity across a row or column at once.
+                                Add sizes and colors — the stock grid builds automatically. Use "Fill all" to set the
+                                same quantity across a whole row or column.
                             </p>
-                            <VariantMatrix
-                                ref={variantMatrixRef}
-                                existingVariants={product?.variants}
-                            />
+                            <VariantMatrix ref={variantMatrixRef} existingVariants={product?.variants} />
                         </FieldSet>
 
-                        {/* ══ ROW 6 — Description ══════════════════════ */}
+                        {/* ══ ROW 6 — Description ══ */}
                         <FieldSet>
                             <Field>
                                 <Label className="text-base font-bold text-stone-900 font-alumni">Description</Label>

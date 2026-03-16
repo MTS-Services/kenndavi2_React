@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { router } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { toast } from "sonner";
 import AdminLayout from "@/layouts/admin-layout";
 import { Button } from "@/components/ui/button";
@@ -191,11 +191,11 @@ export default function ProductIndex({
                                 </span>
                             </p>
                         )}
-                        <a href={`${route("admin.products.create")}?type=${activeType}`}>
+                        <Link href={`${route("admin.products.create")}?type=${activeType}`}>
                             <Button className="font-normal cursor-pointer bg-red-700 hover:bg-red-800 text-white">
                                 Add New Product
                             </Button>
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
@@ -360,9 +360,9 @@ function ProductCard({
                 )}
                 <span className={`
                     absolute bottom-2 left-0 text-white text-xs px-2 py-1 capitalize
-                    ${product.status === "active"   ? "bg-green-500"  : ""}
-                    ${product.status === "inactive" ? "bg-stone-400"  : ""}
-                    ${product.status === "draft"    ? "bg-amber-400"  : ""}
+                    ${product.status === "active" ? "bg-green-500" : ""}
+                    ${product.status === "inactive" ? "bg-stone-400" : ""}
+                    ${product.status === "draft" ? "bg-amber-400" : ""}
                 `}>
                     {product.status}
                 </span>
@@ -388,12 +388,12 @@ function ProductCard({
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-1">
-                    <a
+                    <Link
                         href={route("admin.products.edit", product.id)}
                         className="flex-1 flex items-center justify-center gap-2 border border-green-600 text-green-600 py-2 rounded hover:bg-green-50 transition-colors text-sm font-medium"
                     >
                         <PencilLine className="size-3.5" /> Edit
-                    </a>
+                    </Link>
                     <DeleteDialog
                         id={product.id}
                         title={product.title}
