@@ -25,6 +25,14 @@ class UserProfileController extends Controller
 
         $user = Auth::user();
 
+        if (isset($validated['name'])) {
+            $fullName = trim($validated['name']);
+            $parts = preg_split('/\s+/', $fullName, 2);
+            $validated['first_name'] = $parts[0] ?? '';
+            $validated['last_name'] = $parts[1] ?? '';
+            unset($validated['name']);
+        }
+
         if ($request->hasFile('avatar')) {
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $validated['avatar'] = $avatarPath;

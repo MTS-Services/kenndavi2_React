@@ -14,15 +14,15 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children, title, description }: AdminLayoutProps) {
     return (
         <>
-        <div className="min-h-screen bg-[var(--bg-grayslight)] flex">
-            <AdminSidebar />
-            <div className="flex-1 p-4 md:p-8 h-screen overflow-y-auto">
-                <AdminHeader title={title || ''} description={description || ''} />
-                {children}
+            <div className="min-h-screen bg-[var(--bg-grayslight)] flex">
+                <AdminSidebar />
+                <div className="flex-1 p-4 md:p-8 h-screen overflow-y-auto">
+                    <AdminHeader title={title || ''} description={description || ''} />
+                    {children}
+                </div>
+
             </div>
-            
-        </div>
-        {/* <AdminFooter /> */}
+            {/* <AdminFooter /> */}
         </>
 
     );
