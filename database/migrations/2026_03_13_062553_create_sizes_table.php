@@ -13,10 +13,8 @@ return new class extends Migration
     {
         Schema::create('sizes', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 20);
-            $table->string('code', 20)->unique();
-            $table->string('type', 20)->default('numeric');
-            $table->integer('sort_order')->default(0);
+            $table->string('name', 20)->unique();
+            $table->unsignedTinyInteger('sort_order')->default(0);
             $table->timestamps();
         });
     }

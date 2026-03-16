@@ -16,7 +16,7 @@ class CartSeeder extends Seeder
     public function run(): void
     {
         $users = User::all();
-        $variants = ProductVariant::all();
+        $variants = ProductVariant::with('product')->get();
 
         if ($users->isEmpty()) {
             $this->call(UserSeeder::class);
@@ -25,7 +25,7 @@ class CartSeeder extends Seeder
 
         if ($variants->isEmpty()) {
             $this->call(ProductSeeder::class);
-            $variants = ProductVariant::all();
+            $variants = ProductVariant::with('product')->get();
         }
 
         $users->random(min(10, $users->count()))->each(function ($user) use ($variants) {
@@ -37,7 +37,7 @@ class CartSeeder extends Seeder
                     ['cart_id' => $cart->id, 'variant_id' => $variant->id],
                     [
                         'quantity' => rand(1, 2),
-                        'unit_price' => $variant->price,
+                        'unit_price' => $variant->product->price ?? 0,
                     ]
                 );
             }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\VariantStatus;
-use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,39 +10,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductVariant extends Model
 {
-    /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
 
-    /**
-     * @var list<string>
-     */
     protected $fillable = [
         'product_id',
         'color_id',
         'size_id',
-        'price',
-        'offer_price',
-        'offer_percent',
-        'offer_starts_at',
-        'offer_ends_at',
-        'stock_quantity',
+        'quantity',   // ← added
         'status',
     ];
 
-    /**
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2',
-            'offer_price' => 'decimal:2',
-            'offer_percent' => 'integer',
-            'offer_starts_at' => 'datetime',
-            'offer_ends_at' => 'datetime',
             'status' => VariantStatus::class,
+            'quantity' => 'integer',
         ];
     }
+
+    /* ── Relations ─────────────────────────────────────────────── */
 
     public function product(): BelongsTo
     {
@@ -68,5 +53,30 @@ class ProductVariant extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'variant_id');
+    }
+
+    /* ── Helpers ────────────────────────────────────────────────── */
+
+    /**
+     * Safely decrement stock after a purchase.
+     * Returns false if there is insufficient stock.
+     */
+    public function decrementStock(int $qty): bool
+    {
+        if ($this->quantity < $qty) {
+            return false;
+        }
+
+        $this->decrement('quantity', $qty);
+
+        return true;
+    }
+
+    /**
+     * Increment stock (e.g. after a return or restock).
+     */
+    public function incrementStock(int $qty): void
+    {
+        $this->increment('quantity', $qty);
     }
 }

@@ -64,7 +64,7 @@ class OrderSeeder extends Seeder
 
                 foreach ($orderVariants as $variant) {
                     $quantity = rand(1, 3);
-                    $price = $variant->price;
+                    $price = $variant->product->price ?? 0;
                     $total = $price * $quantity;
                     $subtotal += $total;
 

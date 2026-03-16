@@ -2,7 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProductStatus;
+use App\Models\Admin;
+use App\Models\Color;
+use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Size;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,16 +23,23 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => ProductFactory::new(),
-            'color_id' => ColorFactory::new(),
-            'size_id' => SizeFactory::new(),
-            'price' => $this->faker->randomFloat(2, 10, 200),
-            'offer_price' => null,
-            'offer_percent' => null,
-            'offer_starts_at' => null,
-            'offer_ends_at' => null,
-            'stock_quantity' => $this->faker->numberBetween(0, 100),
-            'status' => 'active',
+            'product_id' => Product::factory(),
+            'color_id' => Color::factory(),
+            'size_id' => Size::factory(),
+            'quantity' => $this->faker->numberBetween(0, 1000),
+            'status' => ProductStatus::ACTIVE->value,
+            'created_by' => Admin::factory(),
+            'updated_by' => Admin::factory(),
         ];
+    }
+
+    /**
+     * Indicate that the variant is out of stock.
+     */
+    public function outOfStock(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'quantity' => 0,
+        ]);
     }
 }
