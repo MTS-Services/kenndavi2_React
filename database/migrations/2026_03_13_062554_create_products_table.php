@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('price', 15, 2)->default(0)->index();
             $table->string('discount')->nullable();
             $table->string('discount_type')->nullable()->index();
+            $table->dateTime('discount_starts_at')->nullable();
+            $table->dateTime('discount_ends_at')->nullable();
             $table->string('type', 20)->index();
             $table->boolean('is_featured')->default(false)->index();
             $table->string('status', 20)->default('draft')->index();
