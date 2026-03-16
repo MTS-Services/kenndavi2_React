@@ -1,16 +1,28 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import FileUpload from "@/components/file-upload";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────────────────────── */
 /* Types                                                           */
 /* ─────────────────────────────────────────────────────────────── */
 
-const TOTAL_SLOTS = 5; // slot 0 = primary, slots 1-4 = additional
+const TOTAL_SLOTS = 5;
 
 interface ExistingImage {
     id: number | string;
@@ -21,6 +33,22 @@ interface ExistingImage {
     size?: number;
 }
 
+/** A slim subcategory entry (just id + title) */
+interface SubcategoryForSelect {
+    id: number;
+    title: string;
+}
+
+/**
+ * A top-level category that already carries its children (subcategories).
+ * The controller eager-loads them via ->with('children:id,title').
+ */
+export interface CategoryForSelect {
+    id: number;
+    title: string;
+    children: SubcategoryForSelect[]; // always present (may be [])
+}
+
 export interface Product {
     id: number;
     name: string;
@@ -28,70 +56,155 @@ export interface Product {
     price: number;
     stock: number;
     category_id: number | null;
+    subcategory_id: number | null;
     primary_image?: ExistingImage | null;
-    images?: ExistingImage[]; // up to 4 additional
+    images?: ExistingImage[];
 }
 
-export interface CategoryForSelect {
-    id: number;
-    title: string;
+interface VariantRow {
+    id: string;
+    size: string;
+    color: string;
+    quantity: string;
 }
+
+export type DiscountType = "fixed" | "percent" | "";
 
 interface PageProps {
     product?: Product;
     categories?: CategoryForSelect[];
+    discountTypes?: DiscountType[];
 }
 
-// _method in form data = correct Laravel PUT spoof for multipart uploads.
-// Never put it in submit options — that causes TS2353.
 interface ProductFormData {
     _method: "PUT" | "";
     name: string;
     description: string;
     price: string;
+    discount_type: DiscountType;
+    discount_value: string;
     stock: string;
     category_id: string;
+    subcategory_id: string;
     primary_image: File | null;
-    images: (File | null)[]; // index 0-3 = additional slots 1-4
+    images: (File | null)[];
     removed_image_ids: number[];
 }
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Field primitives                                                */
+/* ─────────────────────────────────────────────────────────────── */
+
+function Field({ children, className }: { children: React.ReactNode; className?: string }) {
+    return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
+}
+
+function FieldGroup({ children, className }: { children: React.ReactNode; className?: string }) {
+    return <div className={cn("flex flex-col gap-6", className)}>{children}</div>;
+}
+
+function FieldSet({ children, className }: { children: React.ReactNode; className?: string }) {
+    return (
+        <fieldset className={cn("border-0 p-0 m-0 min-w-0", className)}>
+            {children}
+        </fieldset>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Shared style                                                    */
+/* ─────────────────────────────────────────────────────────────── */
+
+const fieldStyle =
+    "bg-[#1103040A] border-0 rounded-md focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-0 shadow-none h-11 text-stone-800 placeholder:text-stone-400";
 
 /* ─────────────────────────────────────────────────────────────── */
 /* Page                                                            */
 /* ─────────────────────────────────────────────────────────────── */
 
-export default function ProductForm({ product, categories = [] }: PageProps) {
+export default function ProductForm({
+    product,
+    categories = [],
+    discountTypes = [],
+}: PageProps) {
     const isEdit = Boolean(product?.id);
 
-    // Additional existing images keyed by slot index (0-3 → display slots 1-4)
+    /* ── Existing additional images ── */
     const [existingImages, setExistingImages] = useState<(ExistingImage | null)[]>(
         () => {
             const filled = product?.images ?? [];
-            // Pad to 4 slots so indices are stable
             return Array.from({ length: TOTAL_SLOTS - 1 }, (_, i) => filled[i] ?? null);
         }
     );
 
+    /* ── Variants ── */
+    const [variants, setVariants] = useState<VariantRow[]>([
+        { id: crypto.randomUUID(), size: "", color: "", quantity: "" },
+    ]);
+
+    const addVariant = () =>
+        setVariants((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), size: "", color: "", quantity: "" },
+        ]);
+
+    const removeVariant = (id: string) =>
+        setVariants((prev) => prev.filter((v) => v.id !== id));
+
+    const updateVariant = (
+        id: string,
+        field: keyof Omit<VariantRow, "id">,
+        value: string
+    ) =>
+        setVariants((prev) =>
+            prev.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+        );
+
+    /* ── Inertia form ── */
     const { data, setData, post, processing, errors } = useForm<ProductFormData>({
         _method: isEdit ? "PUT" : "",
         name: product?.name ?? "",
         description: product?.description ?? "",
         price: product?.price != null ? String(product.price) : "",
+        discount_type: "",
+        discount_value: "",
         stock: product?.stock != null ? String(product.stock) : "",
         category_id: product?.category_id != null ? String(product.category_id) : "",
+        subcategory_id:
+            product?.subcategory_id != null ? String(product.subcategory_id) : "",
         primary_image: null,
         images: Array(TOTAL_SLOTS - 1).fill(null),
         removed_image_ids: [],
     });
 
-    // Update a single slot in the images array immutably
+    /* ────────────────────────────────────────────────────────────
+     * Derived: subcategories that belong to the selected category.
+     * We look up the selected category object in the prop list and
+     * return its `children` array — already eager-loaded by Laravel.
+     * ──────────────────────────────────────────────────────────── */
+    const filteredSubcategories = useMemo<SubcategoryForSelect[]>(() => {
+        if (!data.category_id) return [];
+        const selected = categories.find((c) => String(c.id) === data.category_id);
+        return selected?.children ?? [];
+    }, [data.category_id, categories]);
+
+    /* Subcategory select is only enabled when a category is chosen
+       AND that category actually has children. */
+    const subcategoryDisabled = !data.category_id || filteredSubcategories.length === 0;
+
+    /* ── Category change: reset subcategory whenever parent changes ── */
+    const handleCategoryChange = (value: string) => {
+        setData("category_id", value);
+        setData("subcategory_id", ""); // reset stale subcategory
+    };
+
+    /* ── Image helpers ── */
     const setImageSlot = (slotIndex: number, file: File | null) => {
         const updated = [...data.images];
         updated[slotIndex] = file;
         setData("images", updated);
     };
 
-    // Remove an existing image from an additional slot
     const handleRemoveExisting = (slotIndex: number, id: number | string) => {
         const updatedExisting = [...existingImages];
         updatedExisting[slotIndex] = null;
@@ -99,9 +212,15 @@ export default function ProductForm({ product, categories = [] }: PageProps) {
         setData("removed_image_ids", [...data.removed_image_ids, Number(id)]);
     };
 
+    /* ── Discount type change: reset value ── */
+    const handleDiscountTypeChange = (value: string) => {
+        setData("discount_type", value as DiscountType);
+        setData("discount_value", "");
+    };
+
+    /* ── Submit ── */
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-
         post(
             isEdit
                 ? route("admin.products.update", product!.id)
@@ -118,6 +237,13 @@ export default function ProductForm({ product, categories = [] }: PageProps) {
         );
     };
 
+    const discountPlaceholder =
+        data.discount_type === "percent"
+            ? "e.g. 10"
+            : data.discount_type === "fixed"
+                ? "e.g. 5.00"
+                : "Set type first";
+
     return (
         <AdminLayout
             title={isEdit ? "Edit Product" : "Add New Product"}
@@ -127,192 +253,393 @@ export default function ProductForm({ product, categories = [] }: PageProps) {
                     : "Fill in the details to add a new product."
             }
         >
-            <div className="bg-[var(--bg-animation)] w-full p-8 rounded-lg shadow-lg">
+            <div className="bg-[#FDF7F7] w-full p-8 rounded-lg shadow-lg">
+
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-bold text-stone-900 font-alumni">
-                        {isEdit ? "Edit Product" : "Add New Product"}
+                        {isEdit ? "Edit Product" : "Add new Product"}
                     </h2>
                     <Link
                         href={route("admin.products.index")}
-                        className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors cursor-pointer"
+                        className="bg-red-700 hover:bg-red-800 text-white p-1.5 rounded transition-colors cursor-pointer"
                     >
                         <X className="size-4" />
                     </Link>
                 </div>
 
-                <form onSubmit={submit} className="space-y-6">
+                <form onSubmit={submit}>
+                    <FieldGroup>
 
-                    {/* ── 5 image slots ────────────────────────────────── */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        {/* Slot 0 — Primary */}
-                        <div className="flex flex-col gap-1">
-                            <FileUpload
-                                value={data.primary_image}
-                                onChange={(file) =>
-                                    setData("primary_image", file as File | null)
-                                }
-                                existingFiles={
-                                    isEdit && product?.primary_image
-                                        ? [product.primary_image]
-                                        : []
-                                }
-                                accept="image/*"
-                                maxSize={10}
-                                maxFiles={1}
-                                error={errors.primary_image}
-                                innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A]"
-                            />
-                        </div>
-
-                        {/* Slots 1-4 — Additional */}
-                        {Array.from({ length: TOTAL_SLOTS - 1 }, (_, i) => {
-                            const existing = existingImages[i];
-                            return (
-                                <div key={i} className="flex flex-col gap-1">
+                        {/* ════════════════════════════════════════════════
+                            ROW 1 — Image Slots (max 5)
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <Field>
                                     <FileUpload
-                                        value={data.images[i]}
+                                        value={data.primary_image}
                                         onChange={(file) =>
-                                            setImageSlot(i, file as File | null)
+                                            setData("primary_image", file as File | null)
                                         }
-                                        existingFiles={existing ? [existing] : []}
-                                        onRemoveExisting={(id) =>
-                                            handleRemoveExisting(i, id)
+                                        existingFiles={
+                                            isEdit && product?.primary_image
+                                                ? [product.primary_image]
+                                                : []
                                         }
                                         accept="image/*"
                                         maxSize={10}
                                         maxFiles={1}
-                                        error={
-                                            (errors as Record<string, string>)[
-                                            `images.${i}`
-                                            ]
-                                        }
-                                        innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A]"
+                                        error={errors.primary_image}
+                                        innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
                                     />
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {/* ── Title ────────────────────────────────────────── */}
-                    <div>
-                        <label className="block text-lg font-bold text-stone-900 mb-2 font-alumni">
-                            Title
-                        </label>
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData("name", e.target.value)}
-                            placeholder="Enter title"
-                            className="w-full bg-[var(--bg-grayslight)] border-none rounded p-3 focus:ring-2 focus:ring-red-600 outline-none"
-                            required
-                        />
-                        <InputError message={errors.name} />
-                    </div>
+                                </Field>
 
-                    {/* ── Description ──────────────────────────────────── */}
-                    <div>
-                        <label className="block text-lg font-bold text-stone-900 mb-2 font-alumni">
-                            Description
-                        </label>
-                        <textarea
-                            rows={6}
-                            value={data.description}
-                            onChange={(e) => setData("description", e.target.value)}
-                            placeholder="Enter description"
-                            className="w-full bg-[var(--bg-grayslight)] border-none rounded p-3 focus:ring-2 focus:ring-red-600 outline-none resize-none"
-                        />
-                        <InputError message={errors.description} />
-                    </div>
-
-                    {/* ── Category / Stock / Price ─────────────────────── */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Category */}
-                        <div>
-                            <label className="block text-base font-bold text-stone-900 mb-2 font-alumni">
-                                Category
-                            </label>
-                            <div className="relative">
-                                <select
-                                    value={data.category_id}
-                                    onChange={(e) => setData("category_id", e.target.value)}
-                                    className="w-full bg-[var(--bg-grayslight)] border-none rounded p-3 appearance-none focus:ring-2 focus:ring-red-600 outline-none"
-                                >
-                                    <option value="">No category</option>
-                                    {categories.map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.title}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                                    <svg
-                                        className="h-4 w-4 text-stone-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
+                                {Array.from({ length: TOTAL_SLOTS - 1 }, (_, i) => {
+                                    const existing = existingImages[i];
+                                    return (
+                                        <Field key={i}>
+                                            <FileUpload
+                                                value={data.images[i]}
+                                                onChange={(file) =>
+                                                    setImageSlot(i, file as File | null)
+                                                }
+                                                existingFiles={existing ? [existing] : []}
+                                                onRemoveExisting={(id) =>
+                                                    handleRemoveExisting(i, id)
+                                                }
+                                                accept="image/*"
+                                                maxSize={10}
+                                                maxFiles={1}
+                                                error={
+                                                    (errors as Record<string, string>)[
+                                                    `images.${i}`
+                                                    ]
+                                                }
+                                                innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
+                                            />
+                                        </Field>
+                                    );
+                                })}
                             </div>
-                            <InputError message={errors.category_id} />
+                        </FieldSet>
+
+                        {/* ════════════════════════════════════════════════
+                            ROW 2 — Title
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <Field>
+                                <Label className="text-base font-bold text-stone-900 font-alumni">
+                                    Title
+                                </Label>
+                                <Input
+                                    value={data.name}
+                                    onChange={(e) => setData("name", e.target.value)}
+                                    placeholder="Enter title"
+                                    className={fieldStyle}
+                                    required
+                                />
+                                <InputError message={errors.name} />
+                            </Field>
+                        </FieldSet>
+
+                        {/* ════════════════════════════════════════════════
+                            ROW 3 — Category + Subcategory
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                {/* Category */}
+                                <Field>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">
+                                        Category
+                                    </Label>
+                                    <Select
+                                        value={data.category_id}
+                                        onValueChange={handleCategoryChange}
+                                    >
+                                        <SelectTrigger className={cn(fieldStyle, "w-full")}>
+                                            <SelectValue placeholder="Select category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map((c) => (
+                                                <SelectItem key={c.id} value={String(c.id)}>
+                                                    {c.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.category_id} />
+                                </Field>
+
+                                {/* Subcategory — disabled until a category with children is chosen */}
+                                <Field>
+                                    <Label
+                                        className={cn(
+                                            "text-base font-bold font-alumni transition-colors duration-200",
+                                            subcategoryDisabled
+                                                ? "text-stone-400"
+                                                : "text-stone-900"
+                                        )}
+                                    >
+                                        Subcategory
+                                    </Label>
+                                    <Select
+                                        value={data.subcategory_id}
+                                        onValueChange={(v) => setData("subcategory_id", v)}
+                                        disabled={subcategoryDisabled}
+                                    >
+                                        <SelectTrigger
+                                            className={cn(
+                                                fieldStyle,
+                                                "w-full transition-opacity duration-200",
+                                                subcategoryDisabled &&
+                                                "opacity-50 cursor-not-allowed"
+                                            )}
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    !data.category_id
+                                                        ? "Select a category first"
+                                                        : filteredSubcategories.length === 0
+                                                            ? "No subcategories available"
+                                                            : "Select subcategory"
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {filteredSubcategories.map((s) => (
+                                                <SelectItem key={s.id} value={String(s.id)}>
+                                                    {s.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+
+                            </div>
+                        </FieldSet>
+
+                        {/* ════════════════════════════════════════════════
+                            ROW 4 — Price · Discount Type · Discount Value
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                                {/* Price */}
+                                <Field>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">
+                                        Price
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={data.price}
+                                        onChange={(e) => setData("price", e.target.value)}
+                                        placeholder="0.00"
+                                        className={fieldStyle}
+                                        required
+                                    />
+                                    <InputError message={errors.price} />
+                                </Field>
+
+                                {/* Discount Type */}
+                                <Field>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">
+                                        Discount Type
+                                    </Label>
+                                    <Select
+                                        value={data.discount_type}
+                                        onValueChange={handleDiscountTypeChange}
+                                    >
+                                        <SelectTrigger className={cn(fieldStyle, "w-full")}>
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="fixed">Fixed (amount)</SelectItem>
+                                            <SelectItem value="percent">Percent (%)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+
+                                {/* Discount Value — disabled until type chosen */}
+                                <Field>
+                                    <Label
+                                        className={cn(
+                                            "text-base font-bold font-alumni transition-colors duration-200",
+                                            data.discount_type
+                                                ? "text-stone-900"
+                                                : "text-stone-400"
+                                        )}
+                                    >
+                                        Discount Value
+                                        {data.discount_type === "percent" && (
+                                            <span className="ml-1 text-sm font-normal text-stone-500">
+                                                (%)
+                                            </span>
+                                        )}
+                                        {data.discount_type === "fixed" && (
+                                            <span className="ml-1 text-sm font-normal text-stone-500">
+                                                (amount)
+                                            </span>
+                                        )}
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step={data.discount_type === "percent" ? "1" : "0.01"}
+                                        max={
+                                            data.discount_type === "percent" ? "100" : undefined
+                                        }
+                                        value={data.discount_value}
+                                        onChange={(e) =>
+                                            setData("discount_value", e.target.value)
+                                        }
+                                        placeholder={discountPlaceholder}
+                                        disabled={!data.discount_type}
+                                        className={cn(
+                                            fieldStyle,
+                                            "transition-opacity duration-200",
+                                            !data.discount_type && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    />
+                                </Field>
+
+                            </div>
+                        </FieldSet>
+
+                        {/* ════════════════════════════════════════════════
+                            ROW 5 — Variants (Size · Color · Stock)
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <div className="flex flex-col gap-3">
+                                {variants.map((variant, idx) => (
+                                    <div
+                                        key={variant.id}
+                                        className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end"
+                                    >
+                                        {/* Size */}
+                                        <Field>
+                                            {idx === 0 && (
+                                                <Label className="text-base font-bold text-stone-900 font-alumni">
+                                                    Size
+                                                </Label>
+                                            )}
+                                            <Input
+                                                value={variant.size}
+                                                onChange={(e) =>
+                                                    updateVariant(variant.id, "size", e.target.value)
+                                                }
+                                                placeholder="e.g. XL, L, 40"
+                                                className={fieldStyle}
+                                            />
+                                        </Field>
+
+                                        {/* Color */}
+                                        <Field>
+                                            {idx === 0 && (
+                                                <Label className="text-base font-bold text-stone-900 font-alumni">
+                                                    Colors
+                                                </Label>
+                                            )}
+                                            <Input
+                                                value={variant.color}
+                                                onChange={(e) =>
+                                                    updateVariant(variant.id, "color", e.target.value)
+                                                }
+                                                type="color"
+                                                className={cn(fieldStyle, "px-2 py-1 cursor-pointer")}
+                                            />
+                                        </Field>
+
+                                        {/* Stock Level */}
+                                        <Field>
+                                            {idx === 0 && (
+                                                <Label className="text-base font-bold text-stone-900 font-alumni">
+                                                    Stock Level
+                                                </Label>
+                                            )}
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                value={variant.quantity}
+                                                onChange={(e) =>
+                                                    updateVariant(
+                                                        variant.id,
+                                                        "quantity",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="10"
+                                                className={fieldStyle}
+                                            />
+                                        </Field>
+
+                                        {/* Add More / Remove */}
+                                        <div>
+                                            {idx === variants.length - 1 ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={addVariant}
+                                                    className="h-11 px-5 border border-stone-300 bg-transparent hover:bg-stone-100 text-stone-700 font-medium rounded-md gap-1.5 cursor-pointer"
+                                                >
+                                                    <Plus className="size-4" />
+                                                    Add More
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeVariant(variant.id)}
+                                                    className="h-11 w-11 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
+                                                >
+                                                    <X className="size-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </FieldSet>
+
+                        {/* ════════════════════════════════════════════════
+                            ROW 6 — Description
+                        ════════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <Field>
+                                <Label className="text-base font-bold text-stone-900 font-alumni">
+                                    Description
+                                </Label>
+                                <Textarea
+                                    rows={6}
+                                    value={data.description}
+                                    onChange={(e) => setData("description", e.target.value)}
+                                    placeholder="Enter description"
+                                    className={cn(fieldStyle, "h-auto resize-none py-3")}
+                                />
+                                <InputError message={errors.description} />
+                            </Field>
+                        </FieldSet>
+
+                        {/* ── Submit ── */}
+                        <div className="pt-2">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white px-10 h-11 rounded-md shadow-md transition-all font-medium cursor-pointer"
+                            >
+                                {processing
+                                    ? "Saving..."
+                                    : isEdit
+                                        ? "Update Product"
+                                        : "Upload"}
+                            </Button>
                         </div>
 
-                        {/* Stock */}
-                        <div>
-                            <label className="block text-base font-bold text-stone-900 mb-2 font-alumni">
-                                Stock Level
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={data.stock}
-                                onChange={(e) => setData("stock", e.target.value)}
-                                placeholder="10"
-                                className="w-full bg-[var(--bg-grayslight)] border-none rounded p-3 focus:ring-2 focus:ring-red-600 outline-none"
-                                required
-                            />
-                            <InputError message={errors.stock} />
-                        </div>
-
-                        {/* Price */}
-                        <div>
-                            <label className="block text-base font-bold text-stone-900 mb-2 font-alumni">
-                                Price
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={data.price}
-                                onChange={(e) => setData("price", e.target.value)}
-                                placeholder="0.00"
-                                className="w-full bg-[var(--bg-grayslight)] border-none rounded p-3 focus:ring-2 focus:ring-red-600 outline-none"
-                                required
-                            />
-                            <InputError message={errors.price} />
-                        </div>
-                    </div>
-
-                    {/* ── Submit ────────────────────────────────────────── */}
-                    <div className="pt-4">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white px-10 py-3 rounded shadow-md transition-all font-medium cursor-pointer"
-                        >
-                            {processing
-                                ? "Saving..."
-                                : isEdit
-                                    ? "Update Product"
-                                    : "Upload"}
-                        </button>
-                    </div>
+                    </FieldGroup>
                 </form>
             </div>
         </AdminLayout>

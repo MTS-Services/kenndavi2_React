@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
 use App\Enums\ProductStatus;
 use App\Enums\ProductType;
 use Database\Factories\ProductFactory;
@@ -24,6 +25,9 @@ class Product extends Model
         'title',
         'slug',
         'description',
+        'price',
+        'discount',
+        'discount_type',
         'type',
         'is_featured',
         'status',
@@ -45,6 +49,8 @@ class Product extends Model
             'status' => ProductStatus::class,
             'is_featured' => 'boolean',
             'meta_keywords' => 'array',
+            'price' => 'decimal:2',
+            'discount_type' => DiscountType::class,
         ];
     }
 

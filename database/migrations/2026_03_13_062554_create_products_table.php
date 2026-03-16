@@ -16,13 +16,16 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
 
-            $table->string('title', 255);
+            $table->string('title', 255)->index();
             $table->string('slug', 300)->unique();
             $table->text('description')->nullable();
-            $table->string('type', 20);
-            $table->boolean('is_featured')->default(false);
-            $table->string('status', 20)->default('draft');
-            $table->integer('sort_order')->default(0);
+            $table->decimal('price', 15, 2)->index();
+            $table->string('discount')->nullable();
+            $table->string('discount_type')->nullable()->index();
+            $table->string('type', 20)->index();
+            $table->boolean('is_featured')->default(false)->index();
+            $table->string('status', 20)->default('draft')->index();
+            $table->integer('sort_order')->default(0)->index();
 
             $table->string('meta_title', 160)->nullable();
             $table->string('meta_description', 320)->nullable();
