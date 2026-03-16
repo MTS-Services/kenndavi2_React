@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title', 255)->index();
             $table->string('slug', 300)->unique();
             $table->text('description')->nullable();
-            $table->decimal('price', 15, 2)->index();
+            $table->decimal('price', 15, 2)->default(0)->index();
             $table->string('discount')->nullable();
             $table->string('discount_type')->nullable()->index();
             $table->string('type', 20)->index();

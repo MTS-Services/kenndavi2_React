@@ -6,7 +6,6 @@ use App\Enums\DiscountType;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,11 +16,9 @@ class ProductController extends Controller
         return Inertia::render('backend/Admin/product/index');
     }
 
-    // create
     public function create(): Response
     {
         return Inertia::render('backend/Admin/product/product-from', [
-            // Only top-level categories (no parents), each carrying their children
             'categories'    => Category::whereDoesntHave('parents')
                 ->with('children:id,title')
                 ->get(['id', 'title']),
@@ -29,13 +26,37 @@ class ProductController extends Controller
         ]);
     }
 
-    // edit — passes the full product so the form pre-fills from props (no fetch needed)
-    public function edit(string $id): Response
+    public function edit(Product $product): Response
     {
-        $product = Product::with(['primaryImage', 'images', 'category'])->findOrFail($id);
+        // Eager-load everything the form needs so no client-side fetch is required
+        $product->load([
+            'images',
+            'variants.color:id,name,hex',   // colour name + hex for the colour input
+            'variants.size:id,name',         // size label
+        ]);
+
+        // Resolve subcategory: if the product's category has a parent, it IS a subcategory
+        $categoryId    = null;
+        $subcategoryId = null;
+
+        if ($product->category_id) {
+            $category = Category::with('parents:id,title')->find($product->category_id);
+
+            if ($category?->parents->isNotEmpty()) {
+                // product is stored against a subcategory
+                $subcategoryId = $product->category_id;
+                $categoryId    = $category->parents->first()->id;
+            } else {
+                // product is stored against a top-level category
+                $categoryId = $product->category_id;
+            }
+        }
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'product'       => $product,
+            'product'             => array_merge($product->toArray(), [
+                'resolved_category_id'    => $categoryId,
+                'resolved_subcategory_id' => $subcategoryId,
+            ]),
             'categories'    => Category::whereDoesntHave('parents')
                 ->with('children:id,title')
                 ->get(['id', 'title']),

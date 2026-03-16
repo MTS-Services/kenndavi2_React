@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon, X, Plus } from "lucide-react";
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import FileUpload from "@/components/file-upload";
-import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
     Select,
     SelectContent,
@@ -19,12 +22,17 @@ import {
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────────────────────── */
-/* Types                                                           */
+/* Constants                                                       */
 /* ─────────────────────────────────────────────────────────────── */
 
-const TOTAL_SLOTS = 5;
+const TOTAL_IMAGE_SLOTS = 5;   // slot 0 = primary, 1-4 = additional
+const PRODUCT_TYPE = "men"; // hardcoded as instructed
 
-interface ExistingImage {
+/* ─────────────────────────────────────────────────────────────── */
+/* ExistingFile — matches FileUpload component's prop interface    */
+/* ─────────────────────────────────────────────────────────────── */
+
+interface ExistingFile {
     id: number | string;
     path: string;
     url: string;
@@ -33,62 +41,118 @@ interface ExistingImage {
     size?: number;
 }
 
-/** A slim subcategory entry (just id + title) */
-interface SubcategoryForSelect {
+/* ─────────────────────────────────────────────────────────────── */
+/* ProductImage — mirrors the Laravel ProductImage model           */
+/* ─────────────────────────────────────────────────────────────── */
+
+interface ProductImage {
     id: number;
-    title: string;
+    url: string;
+    alt_text?: string | null;
+    is_primary: boolean;
+    sort_order: number;
+    color_id?: number | null;
 }
 
 /**
- * A top-level category that already carries its children (subcategories).
- * The controller eager-loads them via ->with('children:id,title').
+ * Adapter: converts a ProductImage (from the API) into the ExistingFile
+ * shape that FileUpload expects.
+ *
+ * `path` is satisfied by `url` (same value — FileUpload uses it for display).
+ * `mime_type` defaults to "image/jpeg" because all ProductImages are images;
+ *  the server can include the real type if needed in the future.
  */
-export interface CategoryForSelect {
+function toExistingFile(img: ProductImage): ExistingFile {
+    return {
+        id: img.id,
+        url: img.url,
+        path: img.url,               // FileUpload only uses url for <img src>
+        mime_type: "image/jpeg",          // all ProductImage rows are images
+        name: img.alt_text ?? undefined,
+    };
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Other types                                                     */
+/* ─────────────────────────────────────────────────────────────── */
+
+interface ProductVariant {
     id: number;
-    title: string;
-    children: SubcategoryForSelect[]; // always present (may be [])
+    color_id?: number | null;
+    size_id?: number | null;
+    color?: { id: number; name: string; hex: string } | null;
+    size?: { id: number; name: string } | null;
+    status?: string;
 }
 
 export interface Product {
     id: number;
-    name: string;
-    description: string;
-    price: number;
-    stock: number;
+    title: string;
+    description: string | null;
+    price: string;
+    discount: string | null;
+    discount_type: "percentage" | "fixed" | null;
+    discount_starts_at: string | null;
+    discount_ends_at: string | null;
+    type: string;
     category_id: number | null;
-    subcategory_id: number | null;
-    primary_image?: ExistingImage | null;
-    images?: ExistingImage[];
+    is_featured: boolean;
+    status: string;
+    images: ProductImage[];
+    variants: ProductVariant[];
+    // resolved by controller
+    resolved_category_id: number | null;
+    resolved_subcategory_id: number | null;
 }
 
+interface SubcategoryOption { id: number; title: string; }
+
+export interface CategoryForSelect {
+    id: number;
+    title: string;
+    children: SubcategoryOption[];
+}
+
+export interface EnumOption { value: string; label: string; }
+
+interface PageProps {
+    product?: Product;
+    categories?: CategoryForSelect[];
+    discountTypes?: EnumOption[];
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Variant row (local UI state)                                    */
+/* ─────────────────────────────────────────────────────────────── */
+
 interface VariantRow {
-    id: string;
+    existingId?: number;
     size: string;
     color: string;
     quantity: string;
 }
 
-export type DiscountType = "fixed" | "percent" | "";
-
-interface PageProps {
-    product?: Product;
-    categories?: CategoryForSelect[];
-    discountTypes?: DiscountType[];
-}
+/* ─────────────────────────────────────────────────────────────── */
+/* Inertia form shape                                              */
+/* ─────────────────────────────────────────────────────────────── */
 
 interface ProductFormData {
     _method: "PUT" | "";
-    name: string;
+    title: string;
     description: string;
+    type: string;
     price: string;
-    discount_type: DiscountType;
-    discount_value: string;
-    stock: string;
+    discount: string;
+    discount_type: string;
+    discount_starts_at: string;
+    discount_ends_at: string;
     category_id: string;
     subcategory_id: string;
     primary_image: File | null;
-    images: (File | null)[];
+    new_images: (File | null)[];
     removed_image_ids: number[];
+    new_variants: { size: string; color: string; quantity: string }[];
+    removed_variant_ids: number[];
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -98,129 +162,222 @@ interface ProductFormData {
 function Field({ children, className }: { children: React.ReactNode; className?: string }) {
     return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
 }
-
 function FieldGroup({ children, className }: { children: React.ReactNode; className?: string }) {
     return <div className={cn("flex flex-col gap-6", className)}>{children}</div>;
 }
-
 function FieldSet({ children, className }: { children: React.ReactNode; className?: string }) {
+    return <fieldset className={cn("border-0 p-0 m-0 min-w-0", className)}>{children}</fieldset>;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Shared field class                                              */
+/* ─────────────────────────────────────────────────────────────── */
+
+const field =
+    "bg-[#1103040A] border-0 rounded-md focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-0 shadow-none h-11 text-stone-800 placeholder:text-stone-400";
+
+/* ─────────────────────────────────────────────────────────────── */
+/* DatePickerField                                                 */
+/* ─────────────────────────────────────────────────────────────── */
+
+interface DatePickerFieldProps {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+    placeholder?: string;
+    minDate?: Date;
+}
+
+function DatePickerField({ label, value, onChange, disabled, placeholder, minDate }: DatePickerFieldProps) {
+    const selected = value ? parseISO(value) : undefined;
+
     return (
-        <fieldset className={cn("border-0 p-0 m-0 min-w-0", className)}>
-            {children}
-        </fieldset>
+        <Field>
+            <Label
+                className={cn(
+                    "text-base font-bold font-alumni transition-colors duration-200",
+                    disabled ? "text-stone-400" : "text-stone-900"
+                )}
+            >
+                {label}
+            </Label>
+            <Popover>
+                <PopoverTrigger asChild disabled={disabled}>
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        className={cn(
+                            field,
+                            "flex items-center justify-between px-3 w-full rounded-md text-left transition-opacity duration-200",
+                            disabled && "opacity-50 cursor-not-allowed",
+                            !selected && "text-stone-400"
+                        )}
+                    >
+                        <span className="text-sm">
+                            {selected ? format(selected, "dd MMM yyyy") : (placeholder ?? "Pick a date")}
+                        </span>
+                        <CalendarIcon className="size-4 text-stone-500 shrink-0" />
+                    </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        mode="single"
+                        selected={selected}
+                        onSelect={(date) => onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                        disabled={minDate ? (d) => d < minDate : undefined}
+                        captionLayout="dropdown"
+                        initialFocus
+                    />
+                    {selected && (
+                        <div className="border-t px-3 py-2">
+                            <button
+                                type="button"
+                                onClick={() => onChange("")}
+                                className="text-xs text-stone-500 hover:text-red-600 transition-colors"
+                            >
+                                Clear date
+                            </button>
+                        </div>
+                    )}
+                </PopoverContent>
+            </Popover>
+        </Field>
     );
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* Shared style                                                    */
+/* Helpers                                                         */
 /* ─────────────────────────────────────────────────────────────── */
 
-const fieldStyle =
-    "bg-[#1103040A] border-0 rounded-md focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-0 shadow-none h-11 text-stone-800 placeholder:text-stone-400";
+const toDateInput = (iso: string | null | undefined): string => {
+    if (!iso) return "";
+    try { return format(parseISO(iso), "yyyy-MM-dd"); }
+    catch { return ""; }
+};
 
 /* ─────────────────────────────────────────────────────────────── */
-/* Page                                                            */
+/* Page Component                                                  */
 /* ─────────────────────────────────────────────────────────────── */
 
-export default function ProductForm({
-    product,
-    categories = [],
-    discountTypes = [],
-}: PageProps) {
+export default function ProductForm({ product, categories = [], discountTypes = [] }: PageProps) {
     const isEdit = Boolean(product?.id);
 
-    /* ── Existing additional images ── */
-    const [existingImages, setExistingImages] = useState<(ExistingImage | null)[]>(
-        () => {
-            const filled = product?.images ?? [];
-            return Array.from({ length: TOTAL_SLOTS - 1 }, (_, i) => filled[i] ?? null);
-        }
-    );
+    /* ── Resolve images → ExistingFile shape ── */
+    const resolvedPrimaryFile: ExistingFile | null = useMemo(() => {
+        const img = product?.images.find((i) => i.is_primary) ?? null;
+        return img ? toExistingFile(img) : null;
+    }, [product]);
 
-    /* ── Variants ── */
-    const [variants, setVariants] = useState<VariantRow[]>([
-        { id: crypto.randomUUID(), size: "", color: "", quantity: "" },
-    ]);
-
-    const addVariant = () =>
-        setVariants((prev) => [
-            ...prev,
-            { id: crypto.randomUUID(), size: "", color: "", quantity: "" },
-        ]);
-
-    const removeVariant = (id: string) =>
-        setVariants((prev) => prev.filter((v) => v.id !== id));
-
-    const updateVariant = (
-        id: string,
-        field: keyof Omit<VariantRow, "id">,
-        value: string
-    ) =>
-        setVariants((prev) =>
-            prev.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+    const resolvedAdditional: (ExistingFile | null)[] = useMemo(() => {
+        const additional = (product?.images ?? []).filter((i) => !i.is_primary);
+        return Array.from(
+            { length: TOTAL_IMAGE_SLOTS - 1 },
+            (_, idx) => (additional[idx] ? toExistingFile(additional[idx]) : null)
         );
+    }, [product]);
+
+    const [existingAdditional, setExistingAdditional] =
+        useState<(ExistingFile | null)[]>(resolvedAdditional);
+
+    /* ── Variant rows ── */
+    const [variantRows, setVariantRows] = useState<VariantRow[]>(() => {
+        if (isEdit && product?.variants?.length) {
+            return product.variants.map((v) => ({
+                existingId: v.id,
+                size: v.size?.name ?? "",
+                color: v.color?.hex ? `#${v.color.hex.replace("#", "")}` : "#000000",
+                quantity: "",
+            }));
+        }
+        return [{ size: "", color: "#000000", quantity: "" }];
+    });
+
+    const addVariantRow = () =>
+        setVariantRows((p) => [...p, { size: "", color: "#000000", quantity: "" }]);
+
+    const removeVariantRow = (idx: number) => {
+        const row = variantRows[idx];
+        if (row.existingId) {
+            setData("removed_variant_ids", [...data.removed_variant_ids, row.existingId]);
+        }
+        setVariantRows((p) => p.filter((_, i) => i !== idx));
+    };
+
+    const updateVariantRow = (
+        idx: number,
+        key: keyof Omit<VariantRow, "existingId">,
+        value: string
+    ) => setVariantRows((p) => p.map((r, i) => (i === idx ? { ...r, [key]: value } : r)));
 
     /* ── Inertia form ── */
     const { data, setData, post, processing, errors } = useForm<ProductFormData>({
         _method: isEdit ? "PUT" : "",
-        name: product?.name ?? "",
+        title: product?.title ?? "",
         description: product?.description ?? "",
-        price: product?.price != null ? String(product.price) : "",
-        discount_type: "",
-        discount_value: "",
-        stock: product?.stock != null ? String(product.stock) : "",
-        category_id: product?.category_id != null ? String(product.category_id) : "",
-        subcategory_id:
-            product?.subcategory_id != null ? String(product.subcategory_id) : "",
+        type: PRODUCT_TYPE,
+        price: product?.price ?? "",
+        discount: product?.discount ?? "",
+        discount_type: product?.discount_type ?? "",
+        discount_starts_at: toDateInput(product?.discount_starts_at),
+        discount_ends_at: toDateInput(product?.discount_ends_at),
+        category_id: product?.resolved_category_id != null
+            ? String(product.resolved_category_id) : "",
+        subcategory_id: product?.resolved_subcategory_id != null
+            ? String(product.resolved_subcategory_id) : "",
         primary_image: null,
-        images: Array(TOTAL_SLOTS - 1).fill(null),
+        new_images: Array(TOTAL_IMAGE_SLOTS - 1).fill(null),
         removed_image_ids: [],
+        new_variants: [],
+        removed_variant_ids: [],
     });
 
-    /* ────────────────────────────────────────────────────────────
-     * Derived: subcategories that belong to the selected category.
-     * We look up the selected category object in the prop list and
-     * return its `children` array — already eager-loaded by Laravel.
-     * ──────────────────────────────────────────────────────────── */
-    const filteredSubcategories = useMemo<SubcategoryForSelect[]>(() => {
+    /* ── Derived: filtered subcategories ── */
+    const filteredSubcategories = useMemo<SubcategoryOption[]>(() => {
         if (!data.category_id) return [];
-        const selected = categories.find((c) => String(c.id) === data.category_id);
-        return selected?.children ?? [];
+        return categories.find((c) => String(c.id) === data.category_id)?.children ?? [];
     }, [data.category_id, categories]);
 
-    /* Subcategory select is only enabled when a category is chosen
-       AND that category actually has children. */
     const subcategoryDisabled = !data.category_id || filteredSubcategories.length === 0;
+    const discountFieldsDisabled = !data.discount_type;
 
-    /* ── Category change: reset subcategory whenever parent changes ── */
-    const handleCategoryChange = (value: string) => {
-        setData("category_id", value);
-        setData("subcategory_id", ""); // reset stale subcategory
+    /* ── Handlers ── */
+    const handleCategoryChange = (v: string) => {
+        setData("category_id", v);
+        setData("subcategory_id", "");
     };
 
-    /* ── Image helpers ── */
-    const setImageSlot = (slotIndex: number, file: File | null) => {
-        const updated = [...data.images];
-        updated[slotIndex] = file;
-        setData("images", updated);
+    const handleDiscountTypeChange = (v: string) => {
+        setData("discount_type", v);
+        setData("discount", "");
+        setData("discount_starts_at", "");
+        setData("discount_ends_at", "");
     };
 
-    const handleRemoveExisting = (slotIndex: number, id: number | string) => {
-        const updatedExisting = [...existingImages];
-        updatedExisting[slotIndex] = null;
-        setExistingImages(updatedExisting);
+    const setImageSlot = (i: number, file: File | null) => {
+        const updated = [...data.new_images];
+        updated[i] = file;
+        setData("new_images", updated);
+    };
+
+    const handleRemoveExistingImage = (slotIdx: number, id: number | string) => {
+        const updated = [...existingAdditional];
+        updated[slotIdx] = null;
+        setExistingAdditional(updated);
         setData("removed_image_ids", [...data.removed_image_ids, Number(id)]);
-    };
-
-    /* ── Discount type change: reset value ── */
-    const handleDiscountTypeChange = (value: string) => {
-        setData("discount_type", value as DiscountType);
-        setData("discount_value", "");
     };
 
     /* ── Submit ── */
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Flush new variant rows into form data right before submitting
+        const newVariants = variantRows
+            .filter((r) => !r.existingId)
+            .map(({ size, color, quantity }) => ({ size, color, quantity }));
+
+        setData("new_variants", newVariants);
+
         post(
             isEdit
                 ? route("admin.products.update", product!.id)
@@ -238,24 +395,19 @@ export default function ProductForm({
     };
 
     const discountPlaceholder =
-        data.discount_type === "percent"
-            ? "e.g. 10"
-            : data.discount_type === "fixed"
-                ? "e.g. 5.00"
+        data.discount_type === "percentage" ? "e.g. 10"
+            : data.discount_type === "fixed" ? "e.g. 5.00"
                 : "Set type first";
 
+    /* ── Render ── */
     return (
         <AdminLayout
             title={isEdit ? "Edit Product" : "Add New Product"}
-            description={
-                isEdit
-                    ? "Update the product details below."
-                    : "Fill in the details to add a new product."
-            }
+            description={isEdit ? "Update the product details below." : "Fill in the details to add a new product."}
         >
             <div className="bg-[#FDF7F7] w-full p-8 rounded-lg shadow-lg">
 
-                {/* ── Header ── */}
+                {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-bold text-stone-900 font-alumni">
                         {isEdit ? "Edit Product" : "Add new Product"}
@@ -271,11 +423,13 @@ export default function ProductForm({
                 <form onSubmit={submit}>
                     <FieldGroup>
 
-                        {/* ════════════════════════════════════════════════
-                            ROW 1 — Image Slots (max 5)
-                        ════════════════════════════════════════════════ */}
+                        {/* ══════════════════════════════════════════════
+                            ROW 1 — Images
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+
+                                {/* Primary image slot */}
                                 <Field>
                                     <FileUpload
                                         value={data.primary_image}
@@ -283,8 +437,8 @@ export default function ProductForm({
                                             setData("primary_image", file as File | null)
                                         }
                                         existingFiles={
-                                            isEdit && product?.primary_image
-                                                ? [product.primary_image]
+                                            isEdit && resolvedPrimaryFile
+                                                ? [resolvedPrimaryFile]
                                                 : []
                                         }
                                         accept="image/*"
@@ -295,25 +449,26 @@ export default function ProductForm({
                                     />
                                 </Field>
 
-                                {Array.from({ length: TOTAL_SLOTS - 1 }, (_, i) => {
-                                    const existing = existingImages[i];
+                                {/* Additional image slots 1-4 */}
+                                {Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, i) => {
+                                    const existing = existingAdditional[i]; // already ExistingFile | null
                                     return (
                                         <Field key={i}>
                                             <FileUpload
-                                                value={data.images[i]}
+                                                value={data.new_images[i]}
                                                 onChange={(file) =>
                                                     setImageSlot(i, file as File | null)
                                                 }
                                                 existingFiles={existing ? [existing] : []}
                                                 onRemoveExisting={(id) =>
-                                                    handleRemoveExisting(i, id)
+                                                    handleRemoveExistingImage(i, id)
                                                 }
                                                 accept="image/*"
                                                 maxSize={10}
                                                 maxFiles={1}
                                                 error={
                                                     (errors as Record<string, string>)[
-                                                    `images.${i}`
+                                                    `new_images.${i}`
                                                     ]
                                                 }
                                                 innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
@@ -324,32 +479,31 @@ export default function ProductForm({
                             </div>
                         </FieldSet>
 
-                        {/* ════════════════════════════════════════════════
+                        {/* ══════════════════════════════════════════════
                             ROW 2 — Title
-                        ════════════════════════════════════════════════ */}
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <Field>
                                 <Label className="text-base font-bold text-stone-900 font-alumni">
                                     Title
                                 </Label>
                                 <Input
-                                    value={data.name}
-                                    onChange={(e) => setData("name", e.target.value)}
-                                    placeholder="Enter title"
-                                    className={fieldStyle}
+                                    value={data.title}
+                                    onChange={(e) => setData("title", e.target.value)}
+                                    placeholder="Enter product title"
+                                    className={field}
                                     required
                                 />
-                                <InputError message={errors.name} />
+                                <InputError message={errors.title} />
                             </Field>
                         </FieldSet>
 
-                        {/* ════════════════════════════════════════════════
+                        {/* ══════════════════════════════════════════════
                             ROW 3 — Category + Subcategory
-                        ════════════════════════════════════════════════ */}
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                                {/* Category */}
                                 <Field>
                                     <Label className="text-base font-bold text-stone-900 font-alumni">
                                         Category
@@ -358,7 +512,7 @@ export default function ProductForm({
                                         value={data.category_id}
                                         onValueChange={handleCategoryChange}
                                     >
-                                        <SelectTrigger className={cn(fieldStyle, "w-full")}>
+                                        <SelectTrigger className={cn(field, "w-full")}>
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -372,14 +526,11 @@ export default function ProductForm({
                                     <InputError message={errors.category_id} />
                                 </Field>
 
-                                {/* Subcategory — disabled until a category with children is chosen */}
                                 <Field>
                                     <Label
                                         className={cn(
                                             "text-base font-bold font-alumni transition-colors duration-200",
-                                            subcategoryDisabled
-                                                ? "text-stone-400"
-                                                : "text-stone-900"
+                                            subcategoryDisabled ? "text-stone-400" : "text-stone-900"
                                         )}
                                     >
                                         Subcategory
@@ -391,10 +542,8 @@ export default function ProductForm({
                                     >
                                         <SelectTrigger
                                             className={cn(
-                                                fieldStyle,
-                                                "w-full transition-opacity duration-200",
-                                                subcategoryDisabled &&
-                                                "opacity-50 cursor-not-allowed"
+                                                field, "w-full transition-opacity duration-200",
+                                                subcategoryDisabled && "opacity-50 cursor-not-allowed"
                                             )}
                                         >
                                             <SelectValue
@@ -420,13 +569,12 @@ export default function ProductForm({
                             </div>
                         </FieldSet>
 
-                        {/* ════════════════════════════════════════════════
+                        {/* ══════════════════════════════════════════════
                             ROW 4 — Price · Discount Type · Discount Value
-                        ════════════════════════════════════════════════ */}
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                                {/* Price */}
                                 <Field>
                                     <Label className="text-base font-bold text-stone-900 font-alumni">
                                         Price
@@ -438,13 +586,12 @@ export default function ProductForm({
                                         value={data.price}
                                         onChange={(e) => setData("price", e.target.value)}
                                         placeholder="0.00"
-                                        className={fieldStyle}
+                                        className={field}
                                         required
                                     />
                                     <InputError message={errors.price} />
                                 </Field>
 
-                                {/* Discount Type */}
                                 <Field>
                                     <Label className="text-base font-bold text-stone-900 font-alumni">
                                         Discount Type
@@ -453,73 +600,92 @@ export default function ProductForm({
                                         value={data.discount_type}
                                         onValueChange={handleDiscountTypeChange}
                                     >
-                                        <SelectTrigger className={cn(fieldStyle, "w-full")}>
+                                        <SelectTrigger className={cn(field, "w-full")}>
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="fixed">Fixed (amount)</SelectItem>
-                                            <SelectItem value="percent">Percent (%)</SelectItem>
+                                            {discountTypes.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </Field>
 
-                                {/* Discount Value — disabled until type chosen */}
                                 <Field>
                                     <Label
                                         className={cn(
                                             "text-base font-bold font-alumni transition-colors duration-200",
-                                            data.discount_type
-                                                ? "text-stone-900"
-                                                : "text-stone-400"
+                                            discountFieldsDisabled ? "text-stone-400" : "text-stone-900"
                                         )}
                                     >
                                         Discount Value
-                                        {data.discount_type === "percent" && (
-                                            <span className="ml-1 text-sm font-normal text-stone-500">
-                                                (%)
-                                            </span>
+                                        {data.discount_type === "percentage" && (
+                                            <span className="ml-1 text-sm font-normal text-stone-500">(%)</span>
                                         )}
                                         {data.discount_type === "fixed" && (
-                                            <span className="ml-1 text-sm font-normal text-stone-500">
-                                                (amount)
-                                            </span>
+                                            <span className="ml-1 text-sm font-normal text-stone-500">(amount)</span>
                                         )}
                                     </Label>
                                     <Input
                                         type="number"
                                         min="0"
-                                        step={data.discount_type === "percent" ? "1" : "0.01"}
-                                        max={
-                                            data.discount_type === "percent" ? "100" : undefined
-                                        }
-                                        value={data.discount_value}
-                                        onChange={(e) =>
-                                            setData("discount_value", e.target.value)
-                                        }
+                                        step={data.discount_type === "percentage" ? "1" : "0.01"}
+                                        max={data.discount_type === "percentage" ? "100" : undefined}
+                                        value={data.discount}
+                                        onChange={(e) => setData("discount", e.target.value)}
                                         placeholder={discountPlaceholder}
-                                        disabled={!data.discount_type}
+                                        disabled={discountFieldsDisabled}
                                         className={cn(
-                                            fieldStyle,
-                                            "transition-opacity duration-200",
-                                            !data.discount_type && "opacity-50 cursor-not-allowed"
+                                            field, "transition-opacity duration-200",
+                                            discountFieldsDisabled && "opacity-50 cursor-not-allowed"
                                         )}
                                     />
+                                    <InputError message={errors.discount} />
                                 </Field>
 
                             </div>
                         </FieldSet>
 
-                        {/* ════════════════════════════════════════════════
+                        {/* ══════════════════════════════════════════════
+                            ROW 4b — Offer Start / End Date
+                            (disabled until a discount type is selected)
+                        ══════════════════════════════════════════════ */}
+                        <FieldSet>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <DatePickerField
+                                    label="Offer Start Date"
+                                    value={data.discount_starts_at}
+                                    onChange={(v) => setData("discount_starts_at", v)}
+                                    disabled={discountFieldsDisabled}
+                                    placeholder="Select start date"
+                                />
+                                <DatePickerField
+                                    label="Offer End Date"
+                                    value={data.discount_ends_at}
+                                    onChange={(v) => setData("discount_ends_at", v)}
+                                    disabled={discountFieldsDisabled}
+                                    placeholder="Select end date"
+                                    minDate={
+                                        data.discount_starts_at
+                                            ? parseISO(data.discount_starts_at)
+                                            : undefined
+                                    }
+                                />
+                            </div>
+                        </FieldSet>
+
+                        {/* ══════════════════════════════════════════════
                             ROW 5 — Variants (Size · Color · Stock)
-                        ════════════════════════════════════════════════ */}
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <div className="flex flex-col gap-3">
-                                {variants.map((variant, idx) => (
+                                {variantRows.map((row, idx) => (
                                     <div
-                                        key={variant.id}
+                                        key={idx}
                                         className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-end"
                                     >
-                                        {/* Size */}
                                         <Field>
                                             {idx === 0 && (
                                                 <Label className="text-base font-bold text-stone-900 font-alumni">
@@ -527,33 +693,31 @@ export default function ProductForm({
                                                 </Label>
                                             )}
                                             <Input
-                                                value={variant.size}
+                                                value={row.size}
                                                 onChange={(e) =>
-                                                    updateVariant(variant.id, "size", e.target.value)
+                                                    updateVariantRow(idx, "size", e.target.value)
                                                 }
                                                 placeholder="e.g. XL, L, 40"
-                                                className={fieldStyle}
+                                                className={field}
                                             />
                                         </Field>
 
-                                        {/* Color */}
                                         <Field>
                                             {idx === 0 && (
                                                 <Label className="text-base font-bold text-stone-900 font-alumni">
-                                                    Colors
+                                                    Color
                                                 </Label>
                                             )}
                                             <Input
-                                                value={variant.color}
-                                                onChange={(e) =>
-                                                    updateVariant(variant.id, "color", e.target.value)
-                                                }
                                                 type="color"
-                                                className={cn(fieldStyle, "px-2 py-1 cursor-pointer")}
+                                                value={row.color}
+                                                onChange={(e) =>
+                                                    updateVariantRow(idx, "color", e.target.value)
+                                                }
+                                                className={cn(field, "px-2 py-1 cursor-pointer")}
                                             />
                                         </Field>
 
-                                        {/* Stock Level */}
                                         <Field>
                                             {idx === 0 && (
                                                 <Label className="text-base font-bold text-stone-900 font-alumni">
@@ -563,26 +727,21 @@ export default function ProductForm({
                                             <Input
                                                 type="number"
                                                 min="0"
-                                                value={variant.quantity}
+                                                value={row.quantity}
                                                 onChange={(e) =>
-                                                    updateVariant(
-                                                        variant.id,
-                                                        "quantity",
-                                                        e.target.value
-                                                    )
+                                                    updateVariantRow(idx, "quantity", e.target.value)
                                                 }
                                                 placeholder="10"
-                                                className={fieldStyle}
+                                                className={field}
                                             />
                                         </Field>
 
-                                        {/* Add More / Remove */}
                                         <div>
-                                            {idx === variants.length - 1 ? (
+                                            {idx === variantRows.length - 1 ? (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    onClick={addVariant}
+                                                    onClick={addVariantRow}
                                                     className="h-11 px-5 border border-stone-300 bg-transparent hover:bg-stone-100 text-stone-700 font-medium rounded-md gap-1.5 cursor-pointer"
                                                 >
                                                     <Plus className="size-4" />
@@ -593,7 +752,7 @@ export default function ProductForm({
                                                     type="button"
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => removeVariant(variant.id)}
+                                                    onClick={() => removeVariantRow(idx)}
                                                     className="h-11 w-11 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
                                                 >
                                                     <X className="size-4" />
@@ -605,9 +764,9 @@ export default function ProductForm({
                             </div>
                         </FieldSet>
 
-                        {/* ════════════════════════════════════════════════
+                        {/* ══════════════════════════════════════════════
                             ROW 6 — Description
-                        ════════════════════════════════════════════════ */}
+                        ══════════════════════════════════════════════ */}
                         <FieldSet>
                             <Field>
                                 <Label className="text-base font-bold text-stone-900 font-alumni">
@@ -617,25 +776,21 @@ export default function ProductForm({
                                     rows={6}
                                     value={data.description}
                                     onChange={(e) => setData("description", e.target.value)}
-                                    placeholder="Enter description"
-                                    className={cn(fieldStyle, "h-auto resize-none py-3")}
+                                    placeholder="Enter product description"
+                                    className={cn(field, "h-auto resize-none py-3")}
                                 />
                                 <InputError message={errors.description} />
                             </Field>
                         </FieldSet>
 
-                        {/* ── Submit ── */}
+                        {/* Submit */}
                         <div className="pt-2">
                             <Button
                                 type="submit"
                                 disabled={processing}
                                 className="bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white px-10 h-11 rounded-md shadow-md transition-all font-medium cursor-pointer"
                             >
-                                {processing
-                                    ? "Saving..."
-                                    : isEdit
-                                        ? "Update Product"
-                                        : "Upload"}
+                                {processing ? "Saving…" : isEdit ? "Update Product" : "Upload"}
                             </Button>
                         </div>
 
