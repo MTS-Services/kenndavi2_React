@@ -13,15 +13,15 @@ class SizeSeeder extends Seeder
     public function run(): void
     {
         $sizes = [
-            ['name' => 'S', 'code' => 'S', 'type' => 'alpha'],
-            ['name' => 'M', 'code' => 'M', 'type' => 'alpha'],
-            ['name' => 'L', 'code' => 'L', 'type' => 'alpha'],
-            ['name' => 'XL', 'code' => 'XL', 'type' => 'alpha'],
-            ['name' => 'XXL', 'code' => 'XXL', 'type' => 'alpha'],
+            ['name' => 'S', 'sort_order' => 1],
+            ['name' => 'M', 'sort_order' => 2],
+            ['name' => 'L', 'sort_order' => 3],
+            ['name' => 'XL', 'sort_order' => 4],
+            ['name' => 'XXL', 'sort_order' => 5],
         ];
 
         foreach ($sizes as $index => $size) {
-            Size::updateOrCreate(['code' => $size['code']], array_merge($size, ['sort_order' => $index + 1]));
+            Size::updateOrCreate(['name' => $size['name']], array_merge($size, ['sort_order' => $index + 1]));
         }
     }
 }

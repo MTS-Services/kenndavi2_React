@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('sort_order')->default(0);
             $table->string('name', 80)->nullable();
-            $table->char('hex_code', 7);
+            $table->char('hex', 7);
             $table->timestamps();
         });
     }

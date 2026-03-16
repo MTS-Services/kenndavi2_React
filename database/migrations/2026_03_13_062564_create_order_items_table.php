@@ -17,15 +17,15 @@ return new class extends Migration
             $table->foreign('order_id')->references('id')->on('orders')->onUpdate('cascade')->onDelete('cascade');
             $table->unsignedBigInteger('variant_id')->nullable();
             $table->foreign('variant_id')->references('id')->on('product_variants')->onUpdate('cascade')->onDelete('cascade');
-            $table->string('product_title', 255);
-            $table->string('sku', 100);
-            $table->string('color_name', 80);
-            $table->string('size_name', 20);
+            $table->string('product_title', 255)->nullable();
+            $table->string('sku', 100)->nullable();
+            $table->string('color_name', 80)->nullable();
+            $table->string('size_name', 20)->nullable();
             $table->string('image_url', 500)->nullable();
-            $table->decimal('unit_price', 10, 2);
-            $table->decimal('offer_price', 10, 2)->nullable();
+            $table->decimal('unit_price', 15, 2)->default(0);
+            $table->decimal('offer_price', 15, 2)->nullable();
             $table->integer('quantity')->default(1);
-            $table->decimal('total_price', 10, 2);
+            $table->decimal('total_price', 15, 2)->default(0);
             $table->timestamps();
         });
     }

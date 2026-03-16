@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Enums\VariantStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductVariant extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'product_id',
         'color_id',
@@ -20,7 +23,7 @@ class ProductVariant extends Model
     protected function casts(): array
     {
         return [
-            'status'   => VariantStatus::class,
+            'status' => VariantStatus::class,
             'quantity' => 'integer',
         ];
     }
@@ -65,6 +68,7 @@ class ProductVariant extends Model
         }
 
         $this->decrement('quantity', $qty);
+
         return true;
     }
 

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Color extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['name', 'hex'];
 
     /* ── Relations ─────────────────────────────────────────────── */
@@ -21,7 +24,7 @@ class Color extends Model
     /**
      * Find or create a Color by its hex value.
      *
-     * @param  string       $hex   e.g. "#ff0000"  (always stored lowercase)
+     * @param  string  $hex  e.g. "#ff0000"  (always stored lowercase)
      * @param  string|null  $name  Optional display name; used only on creation
      */
     public static function firstOrCreateByHex(string $hex, ?string $name = null): static
@@ -32,9 +35,9 @@ class Color extends Model
         if (strlen($hex) === 4) {
             // Short form  #rgb → #rrggbb
             $hex = '#'
-                . str_repeat($hex[1], 2)
-                . str_repeat($hex[2], 2)
-                . str_repeat($hex[3], 2);
+                .str_repeat($hex[1], 2)
+                .str_repeat($hex[2], 2)
+                .str_repeat($hex[3], 2);
         }
 
         return static::firstOrCreate(

@@ -72,9 +72,8 @@ export default function ProductIndex({
             {
                 preserveState: true,
                 preserveScroll: true,
-                only: ONLY_PROPS,
-            }
-        );
+                only: ONLY_PROPS
+            });
     };
 
     return (
@@ -111,7 +110,7 @@ export default function ProductIndex({
                     </Tabs>
 
                     {/* Add New Product — carries active type as query param */}
-                    <Link href={route("admin.products.create", { type: activeType })}>
+                    <Link href={`${route("admin.products.create")}?type=${activeType}`}>
                         <Button className="font-normal cursor-pointer bg-red-700 hover:bg-red-800 text-white">
                             Add New Product
                         </Button>
@@ -253,7 +252,7 @@ function DeleteDialog({
     const [open, setOpen] = useState(false);
 
     const handleDelete = () => {
-        router.delete(route("admin.products.destroy", id), {
+        router.delete(`${route("admin.products.destroy", id)}?type=${activeType}`, {
             preserveScroll: true,
             // After delete, reload keeping the current type tab active
             data: { type: activeType },
