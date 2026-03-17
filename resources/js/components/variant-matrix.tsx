@@ -293,7 +293,7 @@ const VariantMatrix = forwardRef<VariantMatrixRef, VariantMatrixProps>(
                                 <div
                                     className={cn(
                                         fieldStyle,
-                                        "flex-1 flex items-center gap-3 h-11 px-3 rounded-md cursor-pointer"
+                                        "flex-1 flex items-center gap-3 h-11 px-3 rounded-md cursor-pointer relative"
                                     )}
                                     onClick={() => colorPickerRef.current?.click()}
                                 >
@@ -310,7 +310,7 @@ const VariantMatrix = forwardRef<VariantMatrixRef, VariantMatrixProps>(
                                         type="color"
                                         value={colorPicker}
                                         onChange={(e) => setColorPicker(e.target.value)}
-                                        className="sr-only"
+                                        className="sr-only bottom-0 right-0"
                                     />
                                 </div>
                                 <Button

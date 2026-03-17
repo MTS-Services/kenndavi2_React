@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('category_id')->index();
             $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('subcategory_id')->nullable()->index();
+            $table->foreign('subcategory_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
 
             $table->string('title', 255)->index();
             $table->string('slug', 300)->unique();
@@ -26,6 +28,7 @@ return new class extends Migration
             $table->dateTime('discount_ends_at')->nullable();
             $table->string('type', 20)->index();
             $table->boolean('is_featured')->default(false)->index();
+            $table->boolean('is_new')->default(false)->index();
             $table->string('status', 20)->default('draft')->index();
             $table->integer('sort_order')->default(0)->index();
 

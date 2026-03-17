@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Enums\DiscountType;
 use App\Enums\ProductType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
@@ -47,8 +48,24 @@ class UpdateProductRequest extends FormRequest
             'discount_ends_at' => ['nullable', 'date', 'after_or_equal:discount_starts_at'],
 
             /* ── Category ── */
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'subcategory_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id'    => ['nullable', 'integer', 'exists:categories,id'],
+            'subcategory_id' => [
+                'nullable',
+                'integer',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    if (! $value || ! $this->category_id) return;
+
+                    $valid = DB::table('category_relations')
+                        ->where('category_id',    (int) $this->category_id)
+                        ->where('sub_category_id', (int) $value)
+                        ->exists();
+
+                    if (! $valid) {
+                        $fail('The selected subcategory does not belong to the chosen category.');
+                    }
+                },
+            ],
 
             /* ── Images ── */
             'primary_image' => ['nullable', 'image', 'max:10240'],

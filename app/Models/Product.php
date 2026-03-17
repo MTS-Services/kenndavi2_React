@@ -22,6 +22,7 @@ class Product extends Model
      */
     protected $fillable = [
         'category_id',
+        'subcategory_id',
         'title',
         'slug',
         'description',
@@ -32,6 +33,7 @@ class Product extends Model
         'discount_ends_at',
         'type',
         'is_featured',
+        'is_new',
         'status',
         'sort_order',
         'meta_title',
@@ -47,20 +49,33 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'type' => ProductType::class,
-            'status' => ProductStatus::class,
-            'is_featured' => 'boolean',
-            'meta_keywords' => 'array',
-            'price' => 'decimal:2',
-            'discount_type' => DiscountType::class,
+            'type'               => ProductType::class,
+            'status'             => ProductStatus::class,
+            'is_featured'        => 'boolean',
+            'is_new'             => 'boolean',
+            'meta_keywords'      => 'array',
+            'price'              => 'decimal:2',
+            'discount_type'      => DiscountType::class,
             'discount_starts_at' => 'datetime',
-            'discount_ends_at' => 'datetime',
+            'discount_ends_at'   => 'datetime',
         ];
     }
 
+    /* ── Relations ── */
+
+    /** The top-level (parent) category */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    /**
+     * The chosen subcategory (child of `category`).
+     * Null when the product is not assigned to any subcategory.
+     */
+    public function subcategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'subcategory_id');
     }
 
     public function variants(): HasMany

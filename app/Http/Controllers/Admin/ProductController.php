@@ -37,13 +37,13 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         $paginator = Product::with([
-            'images' => fn ($q) => $q->where('is_primary', true),
+            'images' => fn($q) => $q->where('is_primary', true),
         ])
             ->where('type', $type->value)
             ->latest()
             ->paginate(self::PER_PAGE, ['*'], 'page', $request->query('page', 1));
 
-        $products = $paginator->through(fn (Product $p) => [
+        $products = $paginator->through(fn(Product $p) => [
             'id'                => $p->id,
             'title'             => $p->title,
             'slug'              => $p->slug,
@@ -58,7 +58,6 @@ class ProductController extends Controller
             'products'     => $products,
             'activeType'   => $type->value,
             'productTypes' => ProductType::options(),
-            'success'      => session('success'),
         ]);
     }
 
@@ -80,7 +79,7 @@ class ProductController extends Controller
         }
 
         $exists = Product::where('slug', $slug)
-            ->when($excludeId, fn ($q) => $q->where('id', '!=', (int) $excludeId))
+            ->when($excludeId, fn($q) => $q->where('id', '!=', (int) $excludeId))
             ->exists();
 
         return response()->json(['available' => ! $exists]);
@@ -107,13 +106,16 @@ class ProductController extends Controller
 
     /* ─────────────────────────────────────────────────────────────
      | STORE
+     |
+     | The frontend sends category_id and subcategory_id as two
+     | completely separate fields. We write them as-is — no merging,
+     | no replacing, no guessing. Each column stores exactly what
+     | the user selected.
      | ─────────────────────────────────────────────────────────────*/
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
-            $categoryId = $this->resolveCategoryIdFromRequest($request);
-
             $product = Product::create([
                 'title'              => $request->title,
                 'slug'               => $request->slug,
@@ -124,9 +126,12 @@ class ProductController extends Controller
                 'discount_type'      => $request->discount_type ?: null,
                 'discount_starts_at' => $request->discount_starts_at ?: null,
                 'discount_ends_at'   => $request->discount_ends_at   ?: null,
-                'category_id'        => $categoryId,
+                // ── Write both columns directly from the request ──
+                'category_id'        => $request->filled('category_id')    ? (int) $request->category_id    : null,
+                'subcategory_id'     => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
                 'status'             => $request->input('status', ProductStatus::ACTIVE->value),
                 'is_featured'        => $request->boolean('is_featured', false),
+                'is_new'             => $request->boolean('is_new', false),
                 'created_by'         => auth('admin')->id(),
                 'updated_by'         => auth('admin')->id(),
             ]);
@@ -148,9 +153,10 @@ class ProductController extends Controller
     public function show(Product $product, Request $request): Response
     {
         $product->load([
-            'images'          => fn ($q) => $q->orderBy('sort_order'),
+            'images'           => fn($q) => $q->orderBy('sort_order'),
             'tags:id,name',
             'category:id,title',
+            'subcategory:id,title',
             'variants.color:id,name,hex',
             'variants.size:id,name',
         ]);
@@ -168,24 +174,29 @@ class ProductController extends Controller
             'type'               => $product->type->value,
             'status'             => $product->status->value,
             'is_featured'        => (bool) $product->is_featured,
+            'is_new'             => (bool) $product->is_new,
+            // Both relations loaded independently — no ambiguity
             'category'           => $product->category
                 ? ['id' => $product->category->id, 'title' => $product->category->title]
                 : null,
-            'images'             => $product->images->map(fn ($img) => [
+            'subcategory'        => $product->subcategory
+                ? ['id' => $product->subcategory->id, 'title' => $product->subcategory->title]
+                : null,
+            'images'             => $product->images->map(fn($img) => [
                 'id'         => $img->id,
                 'url'        => $img->url,
                 'alt_text'   => $img->alt_text,
                 'is_primary' => (bool) $img->is_primary,
                 'sort_order' => $img->sort_order,
             ])->values()->toArray(),
-            'variants'           => $product->variants->map(fn ($v) => [
+            'variants'           => $product->variants->map(fn($v) => [
                 'id'       => $v->id,
                 'quantity' => (int) $v->quantity,
                 'status'   => $v->status?->value,
                 'color'    => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
                 'size'     => $v->size  ? ['id' => $v->size->id,  'name' => $v->size->name]  : null,
             ])->values()->toArray(),
-            'tags'               => $product->tags->map(fn ($t) => [
+            'tags'               => $product->tags->map(fn($t) => [
                 'id'   => $t->id,
                 'name' => $t->name,
             ])->values()->toArray(),
@@ -201,6 +212,9 @@ class ProductController extends Controller
 
     /* ─────────────────────────────────────────────────────────────
      | EDIT
+     |
+     | Read category_id and subcategory_id directly from the product
+     | columns. No parent-walking, no guessing.
      | ─────────────────────────────────────────────────────────────*/
 
     public function edit(Product $product): Response
@@ -211,8 +225,6 @@ class ProductController extends Controller
             'variants.color:id,name,hex',
             'variants.size:id,name',
         ]);
-
-        [$categoryId, $subcategoryId] = $this->resolveCategory($product);
 
         $productData = [
             'id'                      => $product->id,
@@ -227,11 +239,12 @@ class ProductController extends Controller
             'type'                    => $product->type->value,
             'status'                  => $product->status->value,
             'is_featured'             => (bool) $product->is_featured,
-            'category_id'             => $product->category_id,
-            'resolved_category_id'    => $categoryId,
-            'resolved_subcategory_id' => $subcategoryId,
+            'is_new'                  => (bool) $product->is_new,
+            // ── Read both columns directly — no helper needed ──
+            'resolved_category_id'    => $product->category_id,
+            'resolved_subcategory_id' => $product->subcategory_id,
             'tag_ids'                 => $product->tags->pluck('id')->values()->all(),
-            'images'                  => $product->images->map(fn ($img) => [
+            'images'                  => $product->images->map(fn($img) => [
                 'id'         => $img->id,
                 'url'        => $img->url,
                 'alt_text'   => $img->alt_text,
@@ -239,7 +252,7 @@ class ProductController extends Controller
                 'sort_order' => $img->sort_order,
                 'color_id'   => $img->color_id,
             ])->values()->toArray(),
-            'variants'                => $product->variants->map(fn ($v) => [
+            'variants'                => $product->variants->map(fn($v) => [
                 'id'       => $v->id,
                 'color_id' => $v->color_id,
                 'size_id'  => $v->size_id,
@@ -262,13 +275,14 @@ class ProductController extends Controller
 
     /* ─────────────────────────────────────────────────────────────
      | UPDATE
+     |
+     | Same principle as store — write both columns as-is from
+     | the request. No merging or overwriting.
      | ─────────────────────────────────────────────────────────────*/
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         DB::transaction(function () use ($request, $product) {
-            $categoryId = $this->resolveCategoryIdFromRequest($request);
-
             $product->update([
                 'title'              => $request->title,
                 'slug'               => $request->slug,
@@ -279,9 +293,12 @@ class ProductController extends Controller
                 'discount_type'      => $request->discount_type ?: null,
                 'discount_starts_at' => $request->discount_starts_at ?: null,
                 'discount_ends_at'   => $request->discount_ends_at   ?: null,
-                'category_id'        => $categoryId,
+                // ── Write both columns directly from the request ──
+                'category_id'        => $request->filled('category_id')    ? (int) $request->category_id    : null,
+                'subcategory_id'     => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
                 'status'             => $request->input('status', $product->status->value),
                 'is_featured'        => $request->boolean('is_featured', false),
+                'is_new'             => $request->boolean('is_new', false),
                 'updated_by'         => auth('admin')->id(),
             ]);
 
@@ -324,13 +341,12 @@ class ProductController extends Controller
 
     /* ─────────────────────────────────────────────────────────────
      | PRIVATE HELPERS
+     |
+     | NOTE: resolveCategoryIdFromRequest() and resolveCategory()
+     | have been intentionally removed. They were the source of the
+     | category/subcategory mix-up. Both columns are now written and
+     | read directly — no intermediate resolution needed.
      | ─────────────────────────────────────────────────────────────*/
-
-    private function resolveCategoryIdFromRequest(Request $request): ?int
-    {
-        if ($request->filled('subcategory_id')) return (int) $request->subcategory_id;
-        return $request->filled('category_id') ? (int) $request->category_id : null;
-    }
 
     private function syncVariants(Product $product, array $variants, array $removedIds): void
     {
@@ -352,8 +368,15 @@ class ProductController extends Controller
                 $color = Color::firstOrCreateByHex($row['color']);
                 $size  = Size::firstOrCreateByName($row['size']);
                 ProductVariant::updateOrCreate(
-                    ['product_id' => $product->id, 'color_id' => $color->id, 'size_id' => $size->id],
-                    ['quantity' => $quantity, 'status' => 'active']
+                    [
+                        'product_id' => $product->id,
+                        'color_id'   => $color->id,
+                        'size_id'    => $size->id,
+                    ],
+                    [
+                        'quantity' => $quantity,
+                        'status'   => 'active',
+                    ]
                 );
             }
         }
@@ -365,10 +388,15 @@ class ProductController extends Controller
 
         if ($request->hasFile('primary_image')) {
             $url = $request->file('primary_image')->store('products', 'public');
+
             if (! $isPrimarySlot) {
                 $old = $product->images()->where('is_primary', true)->first();
-                if ($old) { $this->deleteImageFile($old); $old->delete(); }
+                if ($old) {
+                    $this->deleteImageFile($old);
+                    $old->delete();
+                }
             }
+
             $product->images()->create([
                 'url'        => Storage::url($url),
                 'is_primary' => true,
@@ -402,16 +430,6 @@ class ProductController extends Controller
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }
-    }
-
-    private function resolveCategory(Product $product): array
-    {
-        if (! $product->category_id) return [null, null];
-        $category = Category::with('parents:id')->find($product->category_id);
-        if ($category?->parents->isNotEmpty()) {
-            return [$category->parents->first()->id, $product->category_id];
-        }
-        return [$product->category_id, null];
     }
 
     private function categoriesForSelect(): \Illuminate\Database\Eloquent\Collection
