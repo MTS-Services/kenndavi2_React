@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import Marquee from 'react-fast-marquee';
 
 import FrontendLayout from '@/layouts/frontend-layout';
 
@@ -110,9 +111,9 @@ export default function Home() {
                 </section>
 
                 <div className="bg-[var(--bg-red)] text-white py-3 overflow-hidden whitespace-nowrap relative z-10">
-                    <div className="inline-block animate-[scroll_30s_linear_infinite] text-[10px] font-bold uppercase tracking-widest">
+                    <Marquee className=" text-[10px] font-bold uppercase tracking-widest">
                         Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns |
-                    </div>
+                    </Marquee>
                 </div>
 
 
