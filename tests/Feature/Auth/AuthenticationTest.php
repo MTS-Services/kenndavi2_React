@@ -1,84 +1,120 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\RateLimiter;
-use Laravel\Fortify\Features;
+use App\Models\UserOtpChallenge;
+use App\Notifications\UserOtpCodeNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 
     $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('auth/login')
+    );
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('users can request a sign-in code and open the signed challenge page', function () {
+    Notification::fake();
 
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
+    $email = fake()->safeEmail();
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
+
+    $user = User::where('email', $email)->firstOrFail();
+    $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
+
+    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $notification) use ($challenge, $user) {
+        expect($notification->challengeUrl)->toContain($challenge->challenge_token);
+        expect($notification->verifyUrl)->toContain($challenge->challenge_token);
+
+        $this->get($notification->challengeUrl)
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/two-factor-challenge')
+                ->where('email', $user->email)
+            );
+
+        return true;
+    });
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
+test('users can authenticate using a valid sign-in code', function () {
+    Notification::fake();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
+    $email = fake()->safeEmail();
+
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
+
+    $user = User::where('email', $email)->firstOrFail();
+
+    $notification = null;
+
+    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $sent) use (&$notification) {
+        $notification = $sent;
+
+        return true;
+    });
+
+    $this->post($notification->verifyUrl, [
+        'code' => $notification->code,
+    ])->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
+});
+
+test('users can request a fresh sign-in code from the signed challenge page', function () {
+    Notification::fake();
+
+    $email = fake()->safeEmail();
+
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
+
+    $user = User::where('email', $email)->firstOrFail();
+    $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
+
+    $resendUrl = URL::temporarySignedRoute('user.otp.resend', now()->addMinutes(10), [
+        'challenge' => $challenge->challenge_token,
     ]);
 
-    $user = User::factory()->create();
+    $this->post($resendUrl)
+        ->assertRedirect();
 
-    $user->forceFill([
-        'two_factor_secret' => encrypt('test-secret'),
-        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-        'two_factor_confirmed_at' => now(),
-    ])->save();
+    $freshChallenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
 
-    $response = $this->post(route('login'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
+    expect($freshChallenge->challenge_token)->not()->toEqual($challenge->challenge_token);
+});
 
-    $response->assertRedirect(route('two-factor.login'));
-    $response->assertSessionHas('login.id', $user->id);
+test('users cannot authenticate with an invalid sign-in code', function () {
+    Notification::fake();
+
+    $email = fake()->safeEmail();
+
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
+
+    $user = User::where('email', $email)->firstOrFail();
+
+    $notification = null;
+
+    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $sent) use (&$notification) {
+        $notification = $sent;
+
+        return true;
+    });
+
+    $this->post($notification->verifyUrl, [
+        'code' => '000000',
+    ])->assertSessionHasErrors('code');
+
     $this->assertGuest();
-});
-
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
-
-    $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'wrong-password',
-    ]);
-
-    $this->assertGuest();
-});
-
-test('users can logout', function () {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->post(route('logout'));
-
-    $this->assertGuest();
-    $response->assertRedirect('/');
-});
-
-test('users are rate limited', function () {
-    $user = User::factory()->create();
-
-    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
-
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'wrong-password',
-    ]);
-
-    $response->assertTooManyRequests();
 });

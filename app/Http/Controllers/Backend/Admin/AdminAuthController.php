@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Backend\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LoginRequest;
 use App\Models\Admin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -21,7 +23,7 @@ class AdminAuthController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('frontend/User/admin-login', [
+        return Inertia::render('auth/admin-login', [
             'status' => session('status'),
             'error' => session('error'),
         ]);
@@ -30,24 +32,13 @@ class AdminAuthController extends Controller
     /**
      * Handle an admin login attempt using email and password.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $request->authenticate();
 
-        $remember = $request->boolean('remember');
+        $request->session()->regenerate();
 
-        if (Auth::guard('admin')->attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return back()->withErrors([
-            'email' => __('The provided credentials do not match our records.'),
-        ])->onlyInput('email');
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     /**
@@ -111,10 +102,10 @@ class AdminAuthController extends Controller
                 $message->to($request->email)->subject('Admin Password Reset Verification Code');
             });
         } catch (\Throwable $e) {
-            \Log::warning("Could not send admin password reset email: {$e->getMessage()}");
+            Log::warning("Could not send admin password reset email: {$e->getMessage()}");
         }
 
-        \Log::info("Admin password reset code for {$request->email}: $code");
+        Log::info("Admin password reset code for {$request->email}: $code");
 
         RateLimiter::hit($key, 60);
 
@@ -291,10 +282,10 @@ class AdminAuthController extends Controller
                 $message->to($email)->subject('Admin Password Reset Verification Code');
             });
         } catch (\Throwable $e) {
-            \Log::warning("Could not send admin password reset email: {$e->getMessage()}");
+            Log::warning("Could not send admin password reset email: {$e->getMessage()}");
         }
 
-        \Log::info("Admin password reset code (resent) for $email: $code");
+        Log::info("Admin password reset code (resent) for $email: $code");
 
         RateLimiter::hit($key, 60);
 

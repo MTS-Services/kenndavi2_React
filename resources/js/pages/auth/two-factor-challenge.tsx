@@ -1,68 +1,101 @@
-import { Form, Head } from '@inertiajs/react';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { useMemo, useState } from 'react';
+import { Form, Head, Link } from '@inertiajs/react';
 
+import FrontendLayout from '@/layouts/frontend-layout';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
-import AuthLayout from '@/layouts/auth-layout';
-import { store } from '@/routes/two-factor/login';
 
-export default function TwoFactorChallenge() {
-    const [showRecoveryInput, setShowRecoveryInput] = useState<boolean>(false);
-    const [code, setCode] = useState<string>('');
+interface TwoFactorChallengeProps {
+    email?: string;
+    expiresAt?: string;
+    isExpired?: boolean;
+    resendUrl: string;
+    status?: string;
+    verifyUrl: string;
+}
 
-    const content = useMemo(() => ({
-        title: showRecoveryInput ? 'Recovery Code' : 'Authentication Code',
-        description: showRecoveryInput
-            ? 'Enter an emergency recovery code to access your account.'
-            : 'Enter the 6-digit code from your authenticator app.',
-        toggle: showRecoveryInput ? 'Use authenticator code' : 'Use a recovery code'
-    }), [showRecoveryInput]);
-
+export default function TwoFactorChallenge({
+    email = '',
+    expiresAt,
+    isExpired = false,
+    resendUrl,
+    status,
+    verifyUrl,
+}: TwoFactorChallengeProps) {
     return (
-        <AuthLayout title={content.title} description={content.description}>
-            <Head title="Two-Factor Authentication" />
+        <FrontendLayout>
+            <Head title="Enter Code" />
+            <div className="font-sans text-white overflow-x-hidden relative min-h-screen">
+                <div className="container mx-auto p-12 flex justify-center relative z-10">
+                    <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-[#1a1a1a]">
+                        <div className="flex flex-col items-center mb-10">
+                            <img src="/assets/images/Layer_1.png" alt="Logo" className="h-16 w-auto" />
+                        </div>
 
-            <div className="mx-auto w-full max-w-sm rounded-2xl border border-border/50 bg-card/50 p-8 shadow-xl backdrop-blur-sm">
-                <Form {...store.form()} resetOnError resetOnSuccess={!showRecoveryInput} className="space-y-6">
-                    {({ errors, processing, clearErrors }) => (
-                        <>
-                            {showRecoveryInput ? (
-                                <div className="space-y-2">
-                                    <Input name="recovery_code" placeholder="XXXXX-XXXXX" autoFocus className="text-center font-mono uppercase tracking-widest" />
-                                    <InputError message={errors.recovery_code} />
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-4">
-                                    <InputOTP maxLength={OTP_MAX_LENGTH} value={code} onChange={setCode} pattern={REGEXP_ONLY_DIGITS}>
-                                        <InputOTPGroup className="gap-2">
-                                            {Array.from({ length: 6 }).map((_, i) => (
-                                                <InputOTPSlot key={i} index={i} className="h-12 w-10 border-muted-foreground/30 rounded-lg bg-background" />
-                                            ))}
-                                        </InputOTPGroup>
-                                    </InputOTP>
-                                    <InputError message={errors.code} />
-                                </div>
+                        <div className="mb-8">
+                            <h2 className="text-lg font-bold font-['Libre_Franklin']">
+                                Enter code
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1 font-['Libre_Franklin']">
+                                Sent to <span className="font-semibold text-gray-700">{email || 'your email'}</span>
+                            </p>
+                            {isExpired && (
+                                <p className="mt-2 text-sm font-['Libre_Franklin'] text-red-600">
+                                    This code has expired. Request a new one below.
+                                </p>
                             )}
+                            {expiresAt && (
+                                <p className="mt-1 text-xs font-['Libre_Franklin'] text-gray-500">
+                                    Expires {new Date(expiresAt).toLocaleString()}
+                                </p>
+                            )}
+                        {status && (
+                            <p className="mt-2 text-sm font-['Libre_Franklin'] text-emerald-500">
+                                {status}
+                            </p>
+                        )}
+                        </div>
 
-                            <Button type="submit" className="w-full bg-violet-600" disabled={processing || (!showRecoveryInput && code.length < 6)}>
-                                Verify Identity
-                            </Button>
+                        <Form method="post" action={verifyUrl} className="space-y-6">
+                            {({ errors, processing }) => (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2 font-['Libre_Franklin']">
+                                            Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="code"
+                                            placeholder="6-digit code"
+                                            maxLength={6}
+                                            className="w-full p-3 bg-transparent border border-gray-400 rounded-sm focus:outline-none focus:ring-1 focus:ring-red-800 transition-all placeholder:text-gray-500"
+                                        />
+                                        <InputError message={errors.code} />
+                                    </div>
 
-                            <button
-                                type="button"
-                                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                onClick={() => { setShowRecoveryInput(!showRecoveryInput); clearErrors(); setCode(''); }}
-                            >
-                                {content.toggle}
-                            </button>
-                        </>
-                    )}
-                </Form>
+                                    <button
+                                        type="submit"
+                                        disabled={processing || isExpired}
+                                        className="w-full bg-[var(--bg-red)] text-white py-3 font-medium rounded-sm font-['Libre_Franklin'] hover:bg-red-800 transition-colors disabled:opacity-50"
+                                    >
+                                        {processing ? 'Verifying...' : 'Submit'}
+                                    </button>
+                                </>
+                            )}
+                        </Form>
+
+                        <Form method="post" action={resendUrl} className="mt-4">
+                            {({ processing }) => (
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="w-full text-center text-sm text-gray-900 hover:underline font-['Libre_Franklin'] disabled:opacity-50"
+                                >
+                                    Resend code
+                                </button>
+                            )}
+                        </Form>
+                    </div>
+                </div>
             </div>
-        </AuthLayout>
+        </FrontendLayout>
     );
 }
