@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
+use App\Mail\TestMailtrapMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [FrontendController::class, 'index'])->name('home');
@@ -41,3 +43,9 @@ Route::get('/orders2', [FrontendController::class, 'orders2'])->name('orders2');
 Route::get('/shippings', [FrontendController::class, 'shippings'])->name('shippings');
 Route::get('/privacy-policy', [FrontendController::class, 'privacyPolicy'])->name('privacy.policy');
 Route::get('/terms-and-conditions', [FrontendController::class, 'termsAndConditions'])->name('terms.and.conditions');
+
+Route::get('/test-mailtrap', function () {
+    Mail::to('test@example.com')->send(new TestMailtrapMail);
+
+    return 'Mailtrap test email dispatched.';
+})->name('test-mailtrap');
