@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreUserOtpRequest;
 use App\Http\Requests\Auth\VerifyUserOtpRequest;
+use App\Jobs\Auth\SendUserOtpMailJob;
 use App\Models\User;
 use App\Models\UserOtpChallenge;
-use App\Notifications\UserOtpCodeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -19,31 +20,42 @@ use Inertia\Response;
 
 class UserOtpAuthController extends Controller
 {
+    /**
+     * Maximum consecutive wrong-code attempts before the challenge is locked.
+     * The user must request a fresh OTP after hitting this ceiling.
+     */
+    private const MAX_ATTEMPTS = 5;
+
+    // -------------------------------------------------------------------------
+    // Public actions
+    // -------------------------------------------------------------------------
+
     public function store(StoreUserOtpRequest $request): RedirectResponse
     {
         $email = Str::lower(trim($request->string('email')->toString()));
 
-        $user = User::query()->firstOrCreate(
-            ['email' => $email],
-            [
-                'first_name' => $this->deriveFirstName($email),
-                'last_name' => 'User',
-                'password' => Hash::make(Str::random(64)),
-                'status' => 'active',
-            ]
-        );
+        [$user, $challenge] = DB::transaction(function () use ($email, $request) {
+            $user = User::query()->firstOrCreate(
+                ['email' => $email],
+                [
+                    'first_name' => $this->deriveFirstName($email),
+                    'last_name'  => 'User',
+                    'password'   => Hash::make(Str::random(64)),
+                    'status'     => 'active',
+                ],
+            );
 
-        $challenge = $this->issueChallenge($user, $request);
-        $challengeUrl = $this->signedChallengeUrl($challenge);
+            return [$user, $this->issueChallenge($user, $request)];
+        });
 
-        $user->notify(new UserOtpCodeNotification(
-            code: $challenge->getAttribute('plain_code'),
-            challengeUrl: $challengeUrl,
-            verifyUrl: $this->signedVerifyUrl($challenge),
-            expiresAt: $challenge->expires_at,
-        ));
+        // Dispatch the mail job to the queue — the HTTP response returns
+        // immediately. The user lands on the challenge page before the queue
+        // worker even starts the SMTP handshake.
+        $this->dispatchOtpMail($user, $challenge);
 
-        return redirect()->to($challengeUrl)->with('status', 'We sent a one-time code to your email address.');
+        return redirect()
+            ->to($this->signedChallengeUrl($challenge))
+            ->with('status', 'We sent a one-time code to your email address.');
     }
 
     public function challenge(Request $request, string $challenge): Response|RedirectResponse
@@ -57,9 +69,9 @@ class UserOtpAuthController extends Controller
         }
 
         return Inertia::render('auth/two-factor-challenge', [
-            'mode' => 'otp',
-            'email' => $otp->user->email,
-            'status' => $request->session()->get('status'),
+            'mode'      => 'otp',
+            'email'     => $otp->user->email,
+            'status'    => $request->session()->get('status'),
             'expiresAt' => $otp->expires_at?->toIso8601String(),
             'isExpired' => $otp->expires_at?->isPast() ?? true,
             'verifyUrl' => $this->signedVerifyUrl($otp),
@@ -77,21 +89,32 @@ class UserOtpAuthController extends Controller
             ]);
         }
 
-        if (! Hash::check($request->string('code')->toString(), $otp->code_hash)) {
+        // Enforce per-challenge attempt ceiling before doing any hashing work.
+        if ($otp->attempts >= self::MAX_ATTEMPTS) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Too many incorrect attempts. Please request a new code.',
+            ]);
+        }
+
+        if (! $this->verifyCode($request->string('code')->toString(), $otp->code_hash)) {
             $otp->increment('attempts');
 
+            $remaining = self::MAX_ATTEMPTS - $otp->attempts;
+
             return back()->withErrors([
-                'code' => 'The verification code is invalid.',
+                'code' => $remaining > 0
+                    ? "The verification code is invalid. {$remaining} attempt(s) remaining."
+                    : 'Too many incorrect attempts. Please request a new code.',
             ])->withInput();
         }
 
-        $otp->forceFill([
-            'consumed_at' => now(),
-        ])->save();
+        DB::transaction(function () use ($otp) {
+            $otp->forceFill(['consumed_at' => now()])->save();
 
-        $otp->user->forceFill([
-            'email_verified_at' => $otp->user->email_verified_at ?? now(),
-        ])->save();
+            $otp->user->forceFill([
+                'email_verified_at' => $otp->user->email_verified_at ?? now(),
+            ])->save();
+        });
 
         Auth::guard('web')->login($otp->user);
         $request->session()->regenerate();
@@ -112,19 +135,48 @@ class UserOtpAuthController extends Controller
 
         $user = $otp->user;
 
-        $challenge = $this->issueChallenge($user, $request);
-        $challengeUrl = $this->signedChallengeUrl($challenge);
+        $newChallenge = DB::transaction(fn() => $this->issueChallenge($user, $request));
 
-        $user->notify(new UserOtpCodeNotification(
-            code: $challenge->getAttribute('plain_code'),
-            challengeUrl: $challengeUrl,
-            verifyUrl: $this->signedVerifyUrl($challenge),
-            expiresAt: $challenge->expires_at,
-        ));
+        $this->dispatchOtpMail($user, $newChallenge);
 
-        return redirect()->to($challengeUrl)->with('status', 'A fresh one-time code has been sent to your email address.');
+        return redirect()
+            ->to($this->signedChallengeUrl($newChallenge))
+            ->with('status', 'A fresh one-time code has been sent to your email address.');
     }
 
+    // -------------------------------------------------------------------------
+    // Mail dispatch
+    // -------------------------------------------------------------------------
+
+    /**
+     * Push the OTP mail job onto the notifications queue.
+     *
+     * Centralised here so both store() and resend() stay clean and any future
+     * change to dispatch strategy (delay, connection, chain) lives in one place.
+     */
+    private function dispatchOtpMail(User $user, UserOtpChallenge $challenge): void
+    {
+        SendUserOtpMailJob::dispatch(
+            toEmail: $user->email,
+            toName: $user->name,
+            code: $challenge->getAttribute('plain_code'),
+            challengeUrl: $this->signedChallengeUrl($challenge),
+            verifyUrl: $this->signedVerifyUrl($challenge),
+            expiresAt: $challenge->expires_at,
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Challenge lifecycle
+    // -------------------------------------------------------------------------
+
+    /**
+     * Invalidate any open challenges for this user and issue a fresh one.
+     *
+     * Uses HMAC-SHA256 instead of bcrypt for the code hash:
+     *   - bcrypt cost 12 ≈ 200–400 ms per call (correct for long-lived passwords)
+     *   - HMAC-SHA256 ≈ <1 ms (correct for a rate-limited, short-lived, capped OTP)
+     */
     private function issueChallenge(User $user, Request $request): UserOtpChallenge
     {
         UserOtpChallenge::query()
@@ -136,11 +188,11 @@ class UserOtpAuthController extends Controller
 
         $challenge = $user->otpChallenges()->create([
             'challenge_token' => (string) Str::uuid(),
-            'code_hash' => Hash::make($code),
-            'attempts' => 0,
-            'expires_at' => now()->addMinutes(2),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
+            'code_hash'       => $this->hashCode($code),
+            'attempts'        => 0,
+            'expires_at'      => now()->addMinutes(2),
+            'ip_address'      => $request->ip(),
+            'user_agent'      => $request->userAgent(),
         ]);
 
         $challenge->setAttribute('plain_code', $code);
@@ -152,11 +204,7 @@ class UserOtpAuthController extends Controller
     {
         $otp = $this->findChallenge($challenge);
 
-        if (! $otp || $otp->expires_at->isPast()) {
-            return null;
-        }
-
-        return $otp;
+        return ($otp && ! $otp->expires_at->isPast()) ? $otp : null;
     }
 
     private function findChallenge(string $challenge): ?UserOtpChallenge
@@ -168,26 +216,54 @@ class UserOtpAuthController extends Controller
             ->first();
     }
 
+    // -------------------------------------------------------------------------
+    // Hashing
+    // -------------------------------------------------------------------------
+
+    private function hashCode(string $code): string
+    {
+        return hash_hmac('sha256', $code, config('app.key'));
+    }
+
+    private function verifyCode(string $code, string $storedHash): bool
+    {
+        return hash_equals($storedHash, $this->hashCode($code));
+    }
+
+    // -------------------------------------------------------------------------
+    // Signed URLs
+    // -------------------------------------------------------------------------
+
     private function signedChallengeUrl(UserOtpChallenge $challenge): string
     {
-        return URL::temporarySignedRoute('user.otp.challenge', now()->addMinutes(10), [
-            'challenge' => $challenge->challenge_token,
-        ]);
+        return URL::temporarySignedRoute(
+            'user.otp.challenge',
+            now()->addMinutes(10),
+            ['challenge' => $challenge->challenge_token],
+        );
     }
 
     private function signedVerifyUrl(UserOtpChallenge $challenge): string
     {
-        return URL::temporarySignedRoute('user.otp.verify', now()->addMinutes(10), [
-            'challenge' => $challenge->challenge_token,
-        ]);
+        return URL::temporarySignedRoute(
+            'user.otp.verify',
+            now()->addMinutes(10),
+            ['challenge' => $challenge->challenge_token],
+        );
     }
 
     private function signedResendUrl(UserOtpChallenge $challenge): string
     {
-        return URL::temporarySignedRoute('user.otp.resend', now()->addMinutes(10), [
-            'challenge' => $challenge->challenge_token,
-        ]);
+        return URL::temporarySignedRoute(
+            'user.otp.resend',
+            now()->addMinutes(10),
+            ['challenge' => $challenge->challenge_token],
+        );
     }
+
+    // -------------------------------------------------------------------------
+    // Utilities
+    // -------------------------------------------------------------------------
 
     private function deriveFirstName(string $email): string
     {
@@ -196,5 +272,4 @@ class UserOtpAuthController extends Controller
 
         return Str::of(trim($localPart))->headline()->toString() ?: 'User';
     }
-
 }

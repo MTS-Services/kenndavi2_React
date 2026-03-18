@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -101,10 +102,10 @@ class AdminAuthController extends Controller
                 $message->to($request->email)->subject('Admin Password Reset Verification Code');
             });
         } catch (\Throwable $e) {
-            \Log::warning("Could not send admin password reset email: {$e->getMessage()}");
+            Log::warning("Could not send admin password reset email: {$e->getMessage()}");
         }
 
-        \Log::info("Admin password reset code for {$request->email}: $code");
+        Log::info("Admin password reset code for {$request->email}: $code");
 
         RateLimiter::hit($key, 60);
 
@@ -281,10 +282,10 @@ class AdminAuthController extends Controller
                 $message->to($email)->subject('Admin Password Reset Verification Code');
             });
         } catch (\Throwable $e) {
-            \Log::warning("Could not send admin password reset email: {$e->getMessage()}");
+            Log::warning("Could not send admin password reset email: {$e->getMessage()}");
         }
 
-        \Log::info("Admin password reset code (resent) for $email: $code");
+        Log::info("Admin password reset code (resent) for $email: $code");
 
         RateLimiter::hit($key, 60);
 
