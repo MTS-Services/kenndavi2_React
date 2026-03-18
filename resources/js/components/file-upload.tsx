@@ -73,7 +73,6 @@ export default function FileUpload({
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Build flat slides array for all images and videos (existing first, then new)
     const lightboxSlides = [
         ...existingFiles
             .filter(f => f.mime_type.startsWith('image/') || f.mime_type.startsWith('video/'))
@@ -218,13 +217,127 @@ export default function FileUpload({
         }
     }, [value]);
 
-    // Running counter for existing media (images + videos) to get correct slide index
-    let existingMediaCounter = -1;
+    // ─── Single-file preview (existing) ───────────────────────────────────────
+    if (!multiple && existingFiles.length > 0 && filePreviews.length === 0) {
+        const file = existingFiles[0];
+        const isImage = file.mime_type.startsWith('image/');
+        const isVideo = file.mime_type.startsWith('video/');
+        const Icon = getFileIcon(file.mime_type);
 
+        return (
+            <div className={cn('w-full', className)}>
+                <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    slides={lightboxSlides}
+                    index={lightboxIndex}
+                    plugins={[Zoom, Video]}
+                    zoom={{ maxZoomPixelRatio: 4 }}
+                />
+
+                {/* Constrained to the same slot size as the upload area */}
+                <div
+                    className={cn(
+                        'relative group border-2 border-primary rounded-lg overflow-hidden',
+                        innerClassName,
+                        error && 'border-red-500'
+                    )}
+                >
+                    {isImage ? (
+                        <img
+                            src={file.url}
+                            alt={file.name || 'File'}
+                            className="w-full h-full object-cover cursor-zoom-in"
+                            onClick={() => openLightbox('existing', 0)}
+                        />
+                    ) : isVideo ? (
+                        <video
+                            src={file.url}
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => openLightbox('existing', 0)}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Icon className="w-10 h-10 text-gray-400" />
+                        </div>
+                    )}
+
+                    {onRemoveExisting && (
+                        <button
+                            type="button"
+                            onClick={() => onRemoveExisting(file.id)}
+                            className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+
+                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+            </div>
+        );
+    }
+
+    // ─── Single-file preview (new file) ───────────────────────────────────────
+    if (!multiple && filePreviews.length > 0) {
+        const preview = filePreviews[0];
+        const Icon = getFileIcon(preview.file.type);
+
+        return (
+            <div className={cn('w-full', className)}>
+                <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    slides={lightboxSlides}
+                    index={lightboxIndex}
+                    plugins={[Zoom, Video]}
+                    zoom={{ maxZoomPixelRatio: 4 }}
+                />
+
+                <div
+                    className={cn(
+                        'relative group border-2 border-primary rounded-lg overflow-hidden',
+                        innerClassName,
+                        error && 'border-red-500'
+                    )}
+                >
+                    {preview.type === 'image' ? (
+                        <img
+                            src={preview.preview}
+                            alt={preview.file.name}
+                            className="w-full h-full object-cover cursor-zoom-in"
+                            onClick={() => openLightbox('new', 0)}
+                        />
+                    ) : preview.type === 'video' ? (
+                        <video
+                            src={preview.preview}
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => openLightbox('new', 0)}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Icon className="w-10 h-10 text-gray-400" />
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => handleRemoveFile(0)}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+
+                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+            </div>
+        );
+    }
+
+    // ─── Upload area (empty slot) + multiple-file grid ─────────────────────────
     return (
         <div className={cn('w-full', className)}>
 
-            {/* Lightbox */}
             <Lightbox
                 open={lightboxOpen}
                 close={() => setLightboxOpen(false)}
@@ -244,7 +357,6 @@ export default function FileUpload({
                     className={cn(
                         'border-2 rounded-lg transition-all cursor-pointer border-input',
                         'hover:border-primary hover:bg-primary/10',
-                        'dark:border-gray-700 dark:hover:border-primary',
                         isDragging && 'border-primary bg-accent/50 scale-[1.02]',
                         disabled && 'opacity-50 cursor-not-allowed',
                         error && 'border-red-500',
@@ -263,7 +375,6 @@ export default function FileUpload({
                         required={required}
                     />
                     <div className="flex flex-col items-center justify-center text-center">
-                        {/* <ImagePlus className="h-5 w-5 text-input" /> */}
                         <span className="text-xl text-[#110304B8] font-medium">
                             Add Photo
                         </span>
@@ -273,76 +384,56 @@ export default function FileUpload({
 
             {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
 
-            {/* Preview Section */}
-            {(existingFiles.length > 0 || filePreviews.length > 0) && (
+            {/* Multiple-file grid */}
+            {multiple && (existingFiles.length > 0 || filePreviews.length > 0) && (
                 <div className={cn(
-                    'border-2 border-primary rounded-lg p-1',
-                    'dark:border-gray-700',
+                    'border-2 border-primary rounded-lg p-1 mt-2',
                     error && 'border-red-500'
                 )}>
-
-                    {/* Existing Files */}
                     {existingFiles.length > 0 && (
                         <div className="mb-4">
-                            <h3 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-                                Existing Files
-                            </h3>
-                            <div className={cn(
-                                'grid gap-4',
-                                multiple ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'
-                            )}>
-                                {existingFiles.map((file) => {
+                            <h3 className="text-sm font-medium mb-3 text-gray-700">Existing Files</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {existingFiles.map((file, idx) => {
                                     const isImage = file.mime_type.startsWith('image/');
                                     const isVideo = file.mime_type.startsWith('video/');
                                     const Icon = getFileIcon(file.mime_type);
 
-                                    if (isImage || isVideo) existingMediaCounter++;
-                                    const mediaIndex = existingMediaCounter;
-
                                     return (
-                                        <div
-                                            key={file.id}
-                                            className="relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 dark:border-gray-700"
-                                        >
-                                            <div className="aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+                                        <div key={file.id} className="relative group border rounded-lg overflow-hidden bg-white">
+                                            <div className="aspect-video bg-gray-100 flex items-center justify-center">
                                                 {isImage ? (
                                                     <img
                                                         src={file.url}
                                                         alt={file.name || 'File'}
                                                         className="w-full h-full object-cover cursor-zoom-in"
-                                                        onClick={() => openLightbox('existing', mediaIndex)}
+                                                        onClick={() => openLightbox('existing', idx)}
                                                     />
                                                 ) : isVideo ? (
                                                     <video
                                                         src={file.url}
                                                         className="w-full h-full object-cover cursor-pointer"
-                                                        onClick={() => openLightbox('existing', mediaIndex)}
+                                                        onClick={() => openLightbox('existing', idx)}
                                                     />
                                                 ) : (
-                                                    <Icon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+                                                    <Icon className="w-12 h-12 text-gray-400" />
                                                 )}
                                             </div>
-
                                             <div className="p-2">
-                                                <p className="text-xs font-medium truncate dark:text-gray-200">
+                                                <p className="text-xs font-medium truncate">
                                                     {file.name || file.path.split('/').pop()}
                                                 </p>
                                                 {file.size && (
-                                                    <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                    <p className="text-xs text-muted-foreground">
                                                         {formatFileSize(file.size)}
                                                     </p>
                                                 )}
                                             </div>
-
                                             {onRemoveExisting && (
                                                 <button
                                                     type="button"
                                                     onClick={() => onRemoveExisting(file.id)}
-                                                    className={cn(
-                                                        'absolute top-2 right-2 p-1.5 rounded-full',
-                                                        'bg-red-500 text-white opacity-0 group-hover:opacity-100',
-                                                        'transition-opacity hover:bg-red-600'
-                                                    )}
+                                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </button>
@@ -354,32 +445,21 @@ export default function FileUpload({
                         </div>
                     )}
 
-                    {/* New Files */}
                     {filePreviews.length > 0 && (
                         <div>
                             {existingFiles.length > 0 && (
-                                <h3 className="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-                                    New Files
-                                </h3>
+                                <h3 className="text-sm font-medium mb-3 text-gray-700">New Files</h3>
                             )}
-                            <div className={cn(
-                                'grid gap-4',
-                                multiple ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'
-                            )}>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {filePreviews.map((preview, index) => {
                                     const Icon = getFileIcon(preview.file.type);
-
-                                    // Image-only index offset for new media
                                     const newMediaIndex = filePreviews
                                         .slice(0, index)
                                         .filter(p => p.type === 'image' || p.type === 'video').length;
 
                                     return (
-                                        <div
-                                            key={index}
-                                            className="relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 dark:border-gray-700"
-                                        >
-                                            <div className="aspect-video bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+                                        <div key={index} className="relative group border rounded-lg overflow-hidden bg-white">
+                                            <div className="aspect-video bg-gray-100 flex items-center justify-center">
                                                 {preview.type === 'image' ? (
                                                     <img
                                                         src={preview.preview}
@@ -394,27 +474,19 @@ export default function FileUpload({
                                                         onClick={() => openLightbox('new', newMediaIndex)}
                                                     />
                                                 ) : (
-                                                    <Icon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+                                                    <Icon className="w-12 h-12 text-gray-400" />
                                                 )}
                                             </div>
-
                                             <div className="p-2">
-                                                <p className="text-xs font-medium truncate dark:text-gray-200">
-                                                    {preview.file.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground dark:text-gray-400">
+                                                <p className="text-xs font-medium truncate">{preview.file.name}</p>
+                                                <p className="text-xs text-muted-foreground">
                                                     {formatFileSize(preview.file.size)}
                                                 </p>
                                             </div>
-
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveFile(index)}
-                                                className={cn(
-                                                    'absolute top-2 right-2 p-1.5 rounded-full',
-                                                    'bg-red-500 text-white opacity-0 group-hover:opacity-100',
-                                                    'transition-opacity hover:bg-red-600'
-                                                )}
+                                                className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>

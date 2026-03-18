@@ -12,7 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, PencilLine, Trash, Star, Tag, Package, ImageOff } from "lucide-react";
+import { ArrowLeft, PencilLine, Trash, Star, Tag, Package, ImageOff, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -27,7 +27,7 @@ interface ProductImage {
     sort_order: number;
 }
 
-interface SizeOption  { id: number; name: string; }
+interface SizeOption { id: number; name: string; }
 interface ColorOption { id: number; name: string; hex: string; }
 
 interface ProductVariant {
@@ -53,7 +53,9 @@ interface ProductDetail {
     type: string;
     status: string;
     is_featured: boolean;
+    is_new: boolean;
     category: { id: number; title: string } | null;
+    subcategory: { id: number; title: string } | null;
     images: ProductImage[];
     variants: ProductVariant[];
     tags: TagItem[];
@@ -89,7 +91,7 @@ function discountedPrice(
     const p = Number(price);
     const d = Number(discount);
     if (type === "percentage") return `$${(p - (p * d) / 100).toFixed(2)}`;
-    if (type === "fixed")      return `$${(p - d).toFixed(2)}`;
+    if (type === "fixed") return `$${(p - d).toFixed(2)}`;
     return null;
 }
 
@@ -117,9 +119,9 @@ function uniqueColors(variants: ProductVariant[]): ColorOption[] {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-    active:   { bg: "bg-green-50",  text: "text-green-700", dot: "bg-green-500"  },
-    inactive: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400"  },
-    draft:    { bg: "bg-amber-50",  text: "text-amber-700", dot: "bg-amber-400"  },
+    active: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
+    inactive: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
+    draft: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-400" },
 };
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -130,11 +132,11 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
     const primaryImage = product.images.find((img) => img.is_primary) ?? product.images[0] ?? null;
     const [activeImage, setActiveImage] = useState<ProductImage | null>(primaryImage);
 
-    const finalPrice  = discountedPrice(product.price, product.discount, product.discount_type);
+    const finalPrice = discountedPrice(product.price, product.discount, product.discount_type);
     const statusStyle = STATUS_STYLES[product.status] ?? STATUS_STYLES.inactive;
 
     // Build the variant matrix — properly typed, no TS2769
-    const allSizes  = uniqueSizes(product.variants);
+    const allSizes = uniqueSizes(product.variants);
     const allColors = uniqueColors(product.variants);
 
     // Lookup map keyed by "sizeId:colorId"
@@ -235,11 +237,18 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                     </h1>
                                     <p className="text-xs font-mono text-stone-400 mt-1">/{product.slug}</p>
                                 </div>
-                                {product.is_featured && (
-                                    <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-full shrink-0 mt-1">
-                                        <Star className="size-3 fill-amber-400 text-amber-400" /> Featured
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {product.is_featured && (
+                                        <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-full shrink-0 mt-1">
+                                            <Star className="size-3 fill-amber-400 text-amber-400" /> Featured
+                                        </span>
+                                    )}
+                                    {product.is_new && (
+                                        <span className="flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full shrink-0 mt-1">
+                                            <Clock className="size-3 stroke-emerald-400 text-emerald-400" /> New Arrival
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Status + Type + Category */}
@@ -248,15 +257,24 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                     "inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full capitalize",
                                     statusStyle.bg, statusStyle.text
                                 )}>
+                                    <strong className="font-bold pr-1">Status:</strong>
                                     <span className={cn("size-1.5 rounded-full", statusStyle.dot)} />
                                     {product.status}
                                 </span>
                                 <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-[#1103040A] text-stone-600 capitalize">
+                                    <strong className="font-bold pr-1">Type:</strong>
                                     {product.type}
                                 </span>
                                 {product.category && (
                                     <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-red-50 text-red-700">
+                                        <strong className="font-bold pr-1">Category:</strong>
                                         {product.category.title}
+                                    </span>
+                                )}
+                                {product.subcategory && (
+                                    <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                                        <strong className="font-bold pr-1">Subcategory:</strong>
+                                        {product.subcategory.title}
                                     </span>
                                 )}
                             </div>
@@ -306,7 +324,7 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                         )}
 
                         {/* Tags */}
-                        {product.tags.length > 0 && (
+                        {/* {product.tags.length > 0 && (
                             <div className="bg-[#FDF7F7] rounded-lg border border-border-primary p-5">
                                 <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                                     <Tag className="size-3.5" /> Tags
@@ -319,7 +337,7 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                     ))}
                                 </div>
                             </div>
-                        )}
+                        )} */}
 
                         {/* Meta */}
                         <div className="bg-[#FDF7F7] rounded-lg border border-border-primary p-5">
@@ -377,9 +395,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                                             {qty !== null ? (
                                                                 <span className={cn(
                                                                     "inline-block px-2.5 py-0.5 rounded-full text-xs font-medium",
-                                                                    qty === 0 ? "bg-red-50 text-red-600"     :
-                                                                    qty <= 5  ? "bg-amber-50 text-amber-700" :
-                                                                                "bg-green-50 text-green-700"
+                                                                    qty === 0 ? "bg-red-50 text-red-600" :
+                                                                        qty <= 5 ? "bg-amber-50 text-amber-700" :
+                                                                            "bg-green-50 text-green-700"
                                                                 )}>
                                                                     {qty}
                                                                 </span>
@@ -404,9 +422,9 @@ export default function ProductDetails({ product, activeType = "men" }: PageProp
                                         </span>
                                         <span className={cn(
                                             "text-xs font-semibold px-2 py-0.5 rounded-full",
-                                            v.quantity === 0 ? "bg-red-50 text-red-600"     :
-                                            v.quantity <= 5  ? "bg-amber-50 text-amber-700" :
-                                                               "bg-green-50 text-green-700"
+                                            v.quantity === 0 ? "bg-red-50 text-red-600" :
+                                                v.quantity <= 5 ? "bg-amber-50 text-amber-700" :
+                                                    "bg-green-50 text-green-700"
                                         )}>
                                             {v.quantity}
                                         </span>

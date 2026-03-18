@@ -349,8 +349,8 @@ function ProductCard({
             {/* Body */}
             <div className="p-4 flex flex-col flex-1 gap-3">
                 <div className="flex-1">
-                    <h3 className="font-alumni text-xl font-semibold leading-tight">{product.title}</h3>
-                    <p className="text-xs font-mono text-stone-400 mt-0.5 truncate">/{product.slug}</p>
+                    <h3 className="font-alumni text-xl font-semibold leading-tight truncate">{product.title}</h3>
+                    {/* <p className="text-xs font-mono text-stone-400 mt-0.5 truncate">/{product.slug}</p> */}
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
                 </div>
 

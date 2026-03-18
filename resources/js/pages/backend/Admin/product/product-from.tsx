@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon, X, CheckCircle2, AlertCircle, Loader2, Star } from "lucide-react";
+import { CalendarIcon, X, CheckCircle2, AlertCircle, Loader2, Star, Clock } from "lucide-react";
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import FileUpload from "@/components/file-upload";
@@ -114,6 +114,7 @@ export interface Product {
     type: string;
     status: string;
     is_featured: boolean;
+    is_new: boolean;
     category_id: number | null;
     tag_ids: number[];
     images: ProductImage[];
@@ -150,6 +151,7 @@ interface ProductFormData {
     type: string;
     status: string;
     is_featured: boolean;
+    is_new: boolean;
     price: string;
     discount: string;
     discount_type: string;
@@ -450,6 +452,7 @@ const buildFormDefaults = (product: Product | undefined, resolvedType: string): 
     type: resolvedType,
     status: product?.status ?? "active",
     is_featured: product?.is_featured ?? false,
+    is_new: product?.is_new ?? false,
     price: product?.price ?? "",
     discount: product?.discount ?? "",
     discount_type: product?.discount_type ?? "",
@@ -500,6 +503,10 @@ export default function ProductForm({
     const [existingAdditional, setExistingAdditional] =
         useState<(ExistingFile | null)[]>(resolvedAdditional);
 
+    /* ── Track whether primary image has been removed ── */
+    const [existingPrimary, setExistingPrimary] =
+        useState<ExistingFile | null>(resolvedPrimaryFile);
+
     /* ── Inertia form ── */
     const { data, setData, post, processing, errors } =
         useForm<ProductFormData>(buildFormDefaults(product, resolvedType));
@@ -511,6 +518,7 @@ export default function ProductForm({
             setData(key, val as never);
         });
         setSlugAutoMode(!product?.id);
+        setExistingPrimary(resolvedPrimaryFile);
         setExistingAdditional(
             Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, idx) => {
                 const additional = (product?.images ?? []).filter((i) => !i.is_primary);
@@ -550,6 +558,12 @@ export default function ProductForm({
 
     const setImageSlot = (i: number, file: File | null) => {
         const updated = [...data.new_images]; updated[i] = file; setData("new_images", updated);
+    };
+
+    /* ── FIX: Primary image remove handler ── */
+    const handleRemovePrimaryImage = (id: number | string) => {
+        setExistingPrimary(null);
+        setData("removed_image_ids", [...data.removed_image_ids, Number(id)]);
     };
 
     const handleRemoveExistingImage = (slotIdx: number, id: number | string) => {
@@ -616,16 +630,21 @@ export default function ProductForm({
                         {/* ══ ROW 1 — Images ══ */}
                         <FieldSet>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+
+                                {/* ── Primary image — FIX: onRemoveExisting added ── */}
                                 <Field>
                                     <FileUpload
                                         value={data.primary_image}
                                         onChange={(file) => setData("primary_image", file as File | null)}
-                                        existingFiles={isEdit && resolvedPrimaryFile ? [resolvedPrimaryFile] : []}
+                                        existingFiles={isEdit && existingPrimary ? [existingPrimary] : []}
+                                        onRemoveExisting={handleRemovePrimaryImage}
                                         accept="image/*" maxSize={10} maxFiles={1}
                                         error={errors.primary_image}
                                         innerClassName="aspect-7/5 flex items-center justify-center bg-[#1103040A] rounded-md"
                                     />
                                 </Field>
+
+                                {/* ── Additional images ── */}
                                 {Array.from({ length: TOTAL_IMAGE_SLOTS - 1 }, (_, i) => (
                                     <Field key={i}>
                                         <FileUpload
@@ -666,9 +685,9 @@ export default function ProductForm({
                             </div>
                         </FieldSet>
 
-                        {/* ══ ROW 3 — Category + Subcategory ══ */}
+                        {/* ══ ROW 3 — Category + Subcategory + Status + Featured ══ */}
                         <FieldSet>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                                 <Field>
                                     <Label className="text-base font-bold text-stone-900 font-alumni">Category</Label>
                                     <Select value={data.category_id} onValueChange={handleCategoryChange}>
@@ -759,16 +778,24 @@ export default function ProductForm({
                                     <InputError message={errors.is_featured as unknown as string} />
                                 </Field>
 
-                                {/* Tags */}
-                                {/* <Field>
-                                    <Label className="text-base font-bold text-stone-900 font-alumni">Tags</Label>
-                                    <TagsMultiSelect
-                                        options={availableTags}
-                                        selectedIds={data.tag_ids}
-                                        onChange={(ids) => setData("tag_ids", ids)}
-                                    />
-                                    <InputError message={errors.tag_ids as unknown as string} />
-                                </Field> */}
+                                {/* Is New */}
+                                <Field>
+                                    <Label className="text-base font-bold text-stone-900 font-alumni">Arrivals</Label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData("is_new", !data.is_new)}
+                                        className={cn(
+                                            "flex items-center gap-3 h-11 px-4 rounded-md text-sm font-medium transition-all duration-200 border-0",
+                                            data.is_new
+                                                ? "bg-emerald-50 text-emerald-700 ring-2 ring-emerald-400"
+                                                : "bg-[#1103040A] text-stone-500 hover:bg-stone-100"
+                                        )}
+                                    >
+                                        <Clock className={cn("size-4 transition-colors", data.is_new ? "stroke-emerald-400 text-emerald-400" : "text-stone-400")} />
+                                        {data.is_new ? "New Arrival" : "Not New Arrival"}
+                                    </button>
+                                    <InputError message={errors.is_new as unknown as string} />
+                                </Field>
                             </div>
                         </FieldSet>
 
