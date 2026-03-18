@@ -10,7 +10,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
 import AlertError from './alert-error';
 
@@ -27,7 +26,6 @@ export default function TwoFactorRecoveryCodes({
 }: TwoFactorRecoveryCodesProps) {
     const [codesAreVisible, setCodesAreVisible] = useState<boolean>(false);
     const codesSectionRef = useRef<HTMLDivElement | null>(null);
-    const canRegenerateCodes = recoveryCodesList.length > 0 && codesAreVisible;
 
     const toggleCodesVisibility = useCallback(async () => {
         if (!codesAreVisible && !recoveryCodesList.length) {
@@ -81,24 +79,7 @@ export default function TwoFactorRecoveryCodes({
                         {codesAreVisible ? 'Hide' : 'View'} Recovery Codes
                     </Button>
 
-                    {canRegenerateCodes && (
-                        <Form
-                            {...regenerateRecoveryCodes.form()}
-                            options={{ preserveScroll: true }}
-                            onSuccess={fetchRecoveryCodes}
-                        >
-                            {({ processing }) => (
-                                <Button
-                                    variant="secondary"
-                                    type="submit"
-                                    disabled={processing}
-                                    aria-describedby="regenerate-warning"
-                                >
-                                    <RefreshCw /> Regenerate Codes
-                                </Button>
-                            )}
-                        </Form>
-                    )}
+                    {/* Regenerate is intentionally omitted unless the backend route exists. */}
                 </div>
                 <div
                     id="recovery-codes-section"
@@ -146,12 +127,12 @@ export default function TwoFactorRecoveryCodes({
                                 </div>
 
                                 <div className="text-xs text-muted-foreground select-none">
-                                    <p id="regenerate-warning">
+                                    <p>
                                         Each recovery code can be used once to
                                         access your account and will be removed
                                         after use. If you need more, click{' '}
                                         <span className="font-bold">
-                                            Regenerate Codes
+                                            View Recovery Codes
                                         </span>{' '}
                                         above.
                                     </p>
