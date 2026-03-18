@@ -1,45 +1,59 @@
 <?php
 
 use App\Models\User;
+use App\Models\UserOtpChallenge;
+use App\Notifications\UserOtpCodeNotification;
 use Inertia\Testing\AssertableInertia as Assert;
-use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Notification;
 
-test('two factor challenge redirects to login when not authenticated', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
+test('signed user otp challenge page can be rendered', function () {
+    Notification::fake();
 
-    $response = $this->get(route('two-factor.login'));
+    $email = fake()->safeEmail();
 
-    $response->assertRedirect(route('login'));
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
+
+    $user = User::where('email', $email)->firstOrFail();
+    $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
+
+    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $notification) use ($user, $challenge) {
+        expect($notification->challengeUrl)->toContain($challenge->challenge_token);
+        expect($notification->verifyUrl)->toContain($challenge->challenge_token);
+
+        $this->get($notification->challengeUrl)
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/two-factor-challenge')
+                ->where('email', $user->email)
+            );
+
+        return true;
+    });
 });
 
-test('two factor challenge can be rendered', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
+test('tampered user otp challenge signatures are rejected', function () {
+    Notification::fake();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
+    $email = fake()->safeEmail();
 
-    $user = User::factory()->create();
+    $this->post(route('user.otp.request'), [
+        'email' => $email,
+    ])->assertRedirect();
 
-    $user->forceFill([
-        'two_factor_secret' => encrypt('test-secret'),
-        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-        'two_factor_confirmed_at' => now(),
-    ])->save();
+    $user = User::where('email', $email)->firstOrFail();
+    $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
 
-    $this->post(route('login'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
+    $notification = null;
 
-    $this->get(route('two-factor.login'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('auth/two-factor-challenge')
-        );
+    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $sent) use (&$notification) {
+        $notification = $sent;
+
+        return true;
+    });
+
+    $tamperedUrl = str_replace($challenge->challenge_token, 'tampered-token', $notification->challengeUrl);
+
+    $this->get($tamperedUrl)->assertForbidden();
 });

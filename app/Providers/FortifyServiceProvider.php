@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -46,7 +45,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('frontend/User/userlogin', [
+        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'status' => $request->session()->get('status'),
         ]));
 
@@ -75,6 +74,19 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
+        RateLimiter::for('admin-login', function (Request $request) {
+            $throttleKey = Str::transliterate(Str::lower((string) $request->input('email')).'|'.$request->ip());
+
+            return Limit::perMinute(5)->by($throttleKey);
+        });
+
+        RateLimiter::for('user-otp', function (Request $request) {
+            $identifier = (string) ($request->input('email') ?: $request->route('challenge', ''));
+            $throttleKey = Str::transliterate(Str::lower($identifier).'|'.$request->ip());
+
+            return Limit::perMinute(5)->by($throttleKey);
+        });
+
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });

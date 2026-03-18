@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LoginRequest;
 use App\Models\Admin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class AdminAuthController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('frontend/User/admin-login', [
+        return Inertia::render('auth/admin-login', [
             'status' => session('status'),
             'error' => session('error'),
         ]);
@@ -30,24 +31,13 @@ class AdminAuthController extends Controller
     /**
      * Handle an admin login attempt using email and password.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $request->authenticate();
 
-        $remember = $request->boolean('remember');
+        $request->session()->regenerate();
 
-        if (Auth::guard('admin')->attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return back()->withErrors([
-            'email' => __('The provided credentials do not match our records.'),
-        ])->onlyInput('email');
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     /**

@@ -135,4 +135,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ShippingAddress::class);
     }
+
+    public function otpChallenges(): HasMany
+    {
+        return $this->hasMany(UserOtpChallenge::class);
+    }
 }
