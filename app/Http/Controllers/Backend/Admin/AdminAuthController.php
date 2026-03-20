@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +24,8 @@ class AdminAuthController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/admin-login', [
+        // Use the app-styled admin login page component (frontend/User/admin-login.tsx)
+        return Inertia::render('frontend/User/admin-login', [
             'status' => session('status'),
             'error' => session('error'),
         ]);
@@ -34,7 +36,25 @@ class AdminAuthController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
+        } catch (ValidationException $e) {
+            // Keep login failures as a controlled redirect + form errors (no 500s).
+            return redirect()
+                ->back()
+                ->withErrors($e->errors())
+                ->withInput($request->only('email'));
+        } catch (\Throwable $e) {
+            Log::error('Admin login failed with unexpected error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Avoid exposing internal error details; still prevent raw 500.
+            return redirect()
+                ->back()
+                ->with('error', 'Unable to log in at the moment. Please try again.');
+        }
 
         $request->session()->regenerate();
 
@@ -58,7 +78,7 @@ class AdminAuthController extends Controller
      */
     public function showForgot(): Response
     {
-        return Inertia::render('auth/admin-forgot-password');
+        return Inertia::render('auth/default/admin-forgot-password');
     }
 
     /**
@@ -126,7 +146,7 @@ class AdminAuthController extends Controller
             ]);
         }
 
-        return Inertia::render('auth/admin-reset-password-code', [
+        return Inertia::render('auth/default/admin-reset-password-code', [
             'email' => $email,
         ]);
     }
@@ -194,7 +214,7 @@ class AdminAuthController extends Controller
             ]);
         }
 
-        return Inertia::render('auth/admin-reset-password', [
+        return Inertia::render('auth/default/admin-reset-password', [
             'email' => $email,
             'token' => $token,
         ]);

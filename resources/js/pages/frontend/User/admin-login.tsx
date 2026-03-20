@@ -96,7 +96,7 @@ export default function AdminLogin({ status, error }: Props) {
 
                     <div className="text-sm mt-6 text-center">
                         <Link
-                            href={route('userlogin')}
+                            href={route('login')}
                             className="text-sidebar hover:underline font-['Libre_Franklin']"
                         >
                             Sign in as user instead

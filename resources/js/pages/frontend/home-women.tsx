@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import FrontendLayout from '@/layouts/frontend-layout';
 

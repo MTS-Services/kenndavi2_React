@@ -13,15 +13,21 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        Admin::insert(
+        // Make this seeder idempotent so it can be re-run safely.
+        // Some environments may already contain `superadmin@dev.com`, which would
+        // otherwise block inserting the second record and leave `admin@dev.com` missing.
+        Admin::updateOrCreate(
+            ['email' => 'superadmin@dev.com'],
             [
                 'name' => 'Super Admin',
-                'email' => 'superadmin@dev.com',
                 'password' => Hash::make('superadmin@dev.com'),
-            ],
+            ]
+        );
+
+        Admin::updateOrCreate(
+            ['email' => 'admin@dev.com'],
             [
                 'name' => 'Admin',
-                'email' => 'admin@dev.com',
                 'password' => Hash::make('admin@dev.com'),
             ]
         );
