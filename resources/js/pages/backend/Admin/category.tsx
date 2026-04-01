@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import AdminLayout from "@/layouts/admin-layout";
 import InputError from "@/components/input-error";
 import { Check, ChevronsUpDown, PencilLine, Trash, X } from "lucide-react";
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useForm, router } from "@inertiajs/react";
 import { toast } from "sonner";
@@ -37,6 +37,7 @@ export interface CategoryChild {
     title: string;
     slug: string;
     parent_ids: number[];
+    types: string[];
 }
 
 export interface CategoryShape {
@@ -44,17 +45,26 @@ export interface CategoryShape {
     title: string;
     slug: string;
     status?: string;
+    types: string[];
     children: CategoryChild[];
 }
 
 export interface CategoryForSelect {
     id: number;
     title: string;
+    types: string[];
+}
+
+export interface EnumOption {
+    value: string;
+    label: string;
 }
 
 interface PageProps {
     categories: CategoryShape[];
     categoriesForSelect: CategoryForSelect[];
+    activeType: string;
+    productTypes: EnumOption[];
     success?: string;
 }
 
@@ -68,7 +78,7 @@ interface FlashProps {
 /* Partial reload props — plain string[] avoids TS2345            */
 /* ─────────────────────────────────────────────────────────────── */
 
-const ONLY_PROPS: string[] = ["categories", "categoriesForSelect", "success"];
+const ONLY_PROPS: string[] = ["categories", "categoriesForSelect", "activeType", "productTypes", "success"];
 
 /* ─────────────────────────────────────────────────────────────── */
 /* Helpers                                                         */
@@ -193,7 +203,12 @@ function IconButton({ icon, onClick }: { icon: ReactNode; onClick?: () => void }
 /* Page                                                            */
 /* ─────────────────────────────────────────────────────────────── */
 
-export default function CategoryIndex({ categories, categoriesForSelect }: PageProps) {
+export default function CategoryIndex({
+    categories,
+    categoriesForSelect,
+    activeType,
+    productTypes,
+}: PageProps) {
     useEffect(() => {
         return router.on("success", (event) => {
             const { success } = event.detail.page.props as unknown as FlashProps;
@@ -204,14 +219,38 @@ export default function CategoryIndex({ categories, categoriesForSelect }: PageP
     return (
         <AdminLayout title="Category Management" description="Manage your categories effectively.">
             <section className="p-4 md:p-10 font-sans rounded-lg shadow-sm border border-destructive">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                     <h3 className="text-2xl font-semibold font-alumni text-text-primary">
                         Categories
                     </h3>
+                    <div className="flex items-center gap-2 bg-[#1103040A] p-2 rounded-md">
+                        {productTypes.map((t) => {
+                            const isActive = t.value === activeType;
+                            return (
+                                <button
+                                    key={t.value}
+                                    type="button"
+                                    onClick={() => router.get(route("admin.categories.index"), { type: t.value }, { preserveScroll: true })}
+                                    className={cn(
+                                        "px-4 py-2 rounded-md text-sm font-medium transition-colors border",
+                                        isActive
+                                            ? "bg-red-700 text-white border-red-700"
+                                            : "bg-[#FDF7F7] text-stone-700 border-stone-200 hover:bg-stone-100"
+                                    )}
+                                >
+                                    {t.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                     <div className="flex items-center justify-end gap-7">
                         {/* Add modals are standalone — no trigger prop needed */}
-                        <CategoryFormModal />
-                        <SubcategoryFormModal categoriesForSelect={categoriesForSelect} />
+                        <CategoryFormModal activeType={activeType} productTypes={productTypes} />
+                        <SubcategoryFormModal
+                            categoriesForSelect={categoriesForSelect}
+                            activeType={activeType}
+                            productTypes={productTypes}
+                        />
                     </div>
                 </div>
 
@@ -221,6 +260,8 @@ export default function CategoryIndex({ categories, categoriesForSelect }: PageP
                             key={category.id}
                             category={category}
                             categoriesForSelect={categoriesForSelect}
+                            activeType={activeType}
+                            productTypes={productTypes}
                         />
                     ))}
                 </div>
@@ -236,9 +277,13 @@ export default function CategoryIndex({ categories, categoriesForSelect }: PageP
 function CategoryCard({
     category,
     categoriesForSelect,
+    activeType,
+    productTypes,
 }: {
     category: CategoryShape;
     categoriesForSelect: CategoryForSelect[];
+    activeType: string;
+    productTypes: EnumOption[];
 }) {
     return (
         <div className="bg-[#1103040A] p-4 rounded-lg border border-border-primary">
@@ -246,7 +291,7 @@ function CategoryCard({
                 <h2 className="font-alumni text-2xl font-semibold">{category.title}</h2>
                 <div className="flex items-center gap-2">
                     {/* Edit / delete for the parent category */}
-                    <CategoryFormModal category={category} />
+                    <CategoryFormModal category={category} activeType={activeType} productTypes={productTypes} />
                     <DeleteDialog
                         id={category.id}
                         label={`Delete category "${category.title}"?`}
@@ -263,6 +308,8 @@ function CategoryCard({
                             <SubcategoryFormModal
                                 subcategory={subcategory}
                                 categoriesForSelect={categoriesForSelect}
+                                activeType={activeType}
+                                productTypes={productTypes}
                             />
                             <DeleteDialog
                                 id={subcategory.id}
@@ -341,18 +388,31 @@ function DeleteDialog({
 interface CategoryFormData {
     title: string;
     slug: string;
+    types: string[];
 }
 
-function CategoryFormModal({ category }: { category?: CategoryShape }) {
+function CategoryFormModal({
+    category,
+    activeType,
+    productTypes,
+}: {
+    category?: CategoryShape;
+    activeType: string;
+    productTypes: EnumOption[];
+}) {
     const [open, setOpen] = useState(false);
     const isEdit = Boolean(category?.id);
 
     const { data, setData, post, put, processing, errors, clearErrors, reset } =
-        useForm<CategoryFormData>({ title: "", slug: "" });
+        useForm<CategoryFormData>({ title: "", slug: "", types: [activeType] });
 
     const handleOpen = () => {
         // Pre-fill with existing values when editing
-        setData({ title: category?.title ?? "", slug: category?.slug ?? "" });
+        setData({
+            title: category?.title ?? "",
+            slug: category?.slug ?? "",
+            types: category?.types?.length ? category.types : [activeType],
+        });
         clearErrors();
         setOpen(true);
     };
@@ -409,6 +469,42 @@ function CategoryFormModal({ category }: { category?: CategoryShape }) {
 
                     <form onSubmit={submit} className="flex flex-col gap-5 py-4">
                         <div className="flex flex-col gap-2">
+                            <Label className="text-lg font-medium font-alumni">
+                                Types
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                                {productTypes.map((t) => {
+                                    const selected = data.types.includes(t.value);
+                                    return (
+                                        <button
+                                            key={t.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setData(
+                                                    "types",
+                                                selected
+                                                    ? (data.types.length === 1
+                                                        ? data.types
+                                                        : data.types.filter((x) => x !== t.value))
+                                                        : [...data.types, t.value]
+                                                );
+                                            }}
+                                            className={cn(
+                                                "px-3 py-2 rounded-md text-sm border transition-colors",
+                                                selected
+                                                    ? "bg-red-700 text-white border-red-700"
+                                                    : "bg-[#1103040A] text-stone-700 border-stone-200 hover:bg-stone-100"
+                                            )}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <InputError message={errors.types as unknown as string} />
+                        </div>
+
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="cat-title" className="text-lg font-medium font-alumni">
                                 Category Name
                             </Label>
@@ -423,7 +519,7 @@ function CategoryFormModal({ category }: { category?: CategoryShape }) {
                             <InputError message={errors.title} />
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        {/* <div className="flex flex-col gap-2">
                             <Label htmlFor="cat-slug" className="text-lg font-medium font-alumni">
                                 Slug
                             </Label>
@@ -436,7 +532,7 @@ function CategoryFormModal({ category }: { category?: CategoryShape }) {
                                 required
                             />
                             <InputError message={errors.slug} />
-                        </div>
+                        </div> */}
 
                         <DialogFooter className="sm:justify-start">
                             <Button
@@ -465,31 +561,57 @@ interface SubcategoryFormData {
     title: string;
     slug: string;
     category_ids: number[];
+    types: string[];
 }
 
 function SubcategoryFormModal({
     subcategory,
     categoriesForSelect,
+    activeType,
+    productTypes,
 }: {
     subcategory?: CategoryChild;
     categoriesForSelect: CategoryForSelect[];
+    activeType: string;
+    productTypes: EnumOption[];
 }) {
     const [open, setOpen] = useState(false);
     const isEdit = Boolean(subcategory?.id);
 
     const { data, setData, post, put, processing, errors, clearErrors, reset } =
-        useForm<SubcategoryFormData>({ title: "", slug: "", category_ids: [] });
+        useForm<SubcategoryFormData>({ title: "", slug: "", category_ids: [], types: [activeType] });
 
     // Derived from form state — single source of truth, never drifts.
     const selectedCategories = categoriesForSelect.filter((c) =>
         data.category_ids.includes(c.id)
     );
 
+    const allowedTypeValues = useMemo<string[]>(() => {
+        const selected = categoriesForSelect.filter((c) => data.category_ids.includes(c.id));
+        const set = new Set<string>();
+        selected.forEach((c) => (c.types ?? []).forEach((t) => set.add(t)));
+        return Array.from(set);
+    }, [categoriesForSelect, data.category_ids]);
+
+    const typeSelectionDisabled = data.category_ids.length === 0;
+
+    useEffect(() => {
+        if (typeSelectionDisabled) {
+            setData("types", []);
+            return;
+        }
+
+        const nextTypes = data.types.filter((t: string) => allowedTypeValues.includes(t));
+        setData("types", nextTypes.length > 0 ? nextTypes : [allowedTypeValues[0] ?? activeType]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [typeSelectionDisabled, allowedTypeValues.join("|"), data.types.join("|")]);
+
     const handleOpen = () => {
         setData({
             title: subcategory?.title ?? "",
             slug: subcategory?.slug ?? "",
             category_ids: subcategory?.parent_ids ?? [],
+            types: subcategory?.types?.length ? subcategory.types : [activeType],
         });
         clearErrors();
         setOpen(true);
@@ -545,6 +667,49 @@ function SubcategoryFormModal({
                     <form onSubmit={submit} className="flex flex-col gap-5 py-4">
                         <div className="flex flex-col gap-2">
                             <Label className="text-lg font-medium font-alumni">
+                                Types
+                            </Label>
+                            <div className="flex flex-wrap gap-2">
+                                {(typeSelectionDisabled ? productTypes : productTypes.filter((t) => allowedTypeValues.includes(t.value))).map((t) => {
+                                    const selected = data.types.includes(t.value);
+                                    return (
+                                        <button
+                                            key={t.value}
+                                            type="button"
+                                            disabled={typeSelectionDisabled}
+                                            onClick={() => {
+                                                setData(
+                                                    "types",
+                                                selected
+                                                    ? (data.types.length === 1
+                                                        ? data.types
+                                                        : data.types.filter((x) => x !== t.value))
+                                                        : [...data.types, t.value]
+                                                );
+                                            }}
+                                            className={cn(
+                                                "px-3 py-2 rounded-md text-sm border transition-colors",
+                                                typeSelectionDisabled && "opacity-50 cursor-not-allowed",
+                                                selected
+                                                    ? "bg-red-700 text-white border-red-700"
+                                                    : "bg-[#1103040A] text-stone-700 border-stone-200 hover:bg-stone-100"
+                                            )}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <InputError message={errors.types as unknown as string} />
+                            {typeSelectionDisabled && (
+                                <p className="text-xs text-stone-500">
+                                    Select a parent category to choose types.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-lg font-medium font-alumni">
                                 Select Categories
                             </Label>
                             <MultiSelect
@@ -571,7 +736,7 @@ function SubcategoryFormModal({
                             <InputError message={errors.title} />
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        {/* <div className="flex flex-col gap-2">
                             <Label htmlFor="sub-slug" className="text-lg font-medium font-alumni">
                                 Slug
                             </Label>
@@ -584,7 +749,7 @@ function SubcategoryFormModal({
                                 required
                             />
                             <InputError message={errors.slug} />
-                        </div>
+                        </div> */}
 
                         <DialogFooter className="sm:justify-start">
                             <Button

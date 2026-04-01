@@ -47,7 +47,23 @@ class StoreProductRequest extends FormRequest
             'discount_ends_at' => ['nullable', 'date', 'after_or_equal:discount_starts_at'],
 
             /* ── Category ── */
-            'category_id'    => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id'    => [
+                'nullable',
+                'integer',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    if (! $value || ! $this->type) return;
+
+                    $valid = DB::table('category_types')
+                        ->where('category_id', (int) $value)
+                        ->where('type', (string) $this->type)
+                        ->exists();
+
+                    if (! $valid) {
+                        $fail('The selected category does not match the chosen product type.');
+                    }
+                },
+            ],
             'subcategory_id' => [
                 'nullable',
                 'integer',
@@ -66,6 +82,18 @@ class StoreProductRequest extends FormRequest
 
                     if (! $valid) {
                         $fail('The selected subcategory does not belong to the chosen category.');
+                    }
+                },
+                function ($attribute, $value, $fail) {
+                    if (! $value || ! $this->type) return;
+
+                    $valid = DB::table('category_types')
+                        ->where('category_id', (int) $value)
+                        ->where('type', (string) $this->type)
+                        ->exists();
+
+                    if (! $valid) {
+                        $fail('The selected subcategory does not match the chosen product type.');
                     }
                 },
             ],

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProductType;
 use App\Models\Category;
 use App\Models\Color;
 use App\Models\Product;
@@ -19,14 +20,20 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = Category::all();
+        $categories = Category::query()
+            ->whereDoesntHave('parents')
+            ->with(['types'])
+            ->get();
         $colors = Color::all();
         $sizes = Size::all();
         $tags = Tag::all();
 
         if ($categories->isEmpty()) {
             $this->call(CategorySeeder::class);
-            $categories = Category::all();
+            $categories = Category::query()
+                ->whereDoesntHave('parents')
+                ->with(['types'])
+                ->get();
         }
 
         if ($colors->isEmpty()) {
@@ -44,9 +51,15 @@ class ProductSeeder extends Seeder
             $tags = Tag::all();
         }
 
-        $categories->each(function ($category) use ($colors, $sizes, $tags) {
+        $categories->each(function (Category $category) use ($colors, $sizes, $tags) {
+            $typeValues = $category->types->pluck('type')->map(fn (ProductType $t) => $t->value)->values();
+            $pickedType = $typeValues->isNotEmpty()
+                ? $typeValues->random()
+                : ProductType::MEN->value;
+
             Product::factory(5)->create([
                 'category_id' => $category->id,
+                'type' => $pickedType,
             ])->each(function ($product) use ($colors, $sizes, $tags) {
                 // Add Images
                 ProductImage::factory(3)->create([

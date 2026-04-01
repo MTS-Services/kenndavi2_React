@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProductType;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -33,7 +34,7 @@ class ProductFactory extends Factory
             'title' => $title . ' ' . $this->faker->unique()->word(),
             'slug' => str($title)->slug() . '-' . $this->faker->unique()->slug(),
             'description' => $this->faker->paragraphs(2, true),
-            'type' => $this->faker->randomElement(['men', 'women', 'accesories']),
+            'type' => $this->faker->randomElement(array_map(fn (ProductType $t) => $t->value, ProductType::cases())),
             'is_featured' => $this->faker->boolean(20),
             'status' => 'active',
             'sort_order' => $this->faker->numberBetween(0, 100),
