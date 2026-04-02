@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryStatus;
+use App\Enums\ProductType;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +47,18 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function types(): HasMany
+    {
+        return $this->hasMany(CategoryType::class);
+    }
+
+    public function scopeForType($query, ProductType|string $type)
+    {
+        $value = $type instanceof ProductType ? $type->value : (string) $type;
+
+        return $query->whereHas('types', fn ($q) => $q->where('type', $value));
     }
 
     public function parents(): BelongsToMany

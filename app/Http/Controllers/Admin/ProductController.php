@@ -96,7 +96,7 @@ class ProductController extends Controller
 
         return Inertia::render('backend/Admin/product/product-from', [
             'initialType'     => $type->value,
-            'categories'      => $this->categoriesForSelect(),
+            'categories'      => $this->categoriesForSelect($type),
             'discountTypes'   => DiscountType::options(),
             'productTypes'    => ProductType::options(),
             'productStatuses' => ProductStatus::options(),
@@ -265,7 +265,7 @@ class ProductController extends Controller
 
         return Inertia::render('backend/Admin/product/product-from', [
             'product'         => $productData,
-            'categories'      => $this->categoriesForSelect(),
+            'categories'      => $this->categoriesForSelect($product->type),
             'discountTypes'   => DiscountType::options(),
             'productTypes'    => ProductType::options(),
             'productStatuses' => ProductStatus::options(),
@@ -432,10 +432,13 @@ class ProductController extends Controller
         }
     }
 
-    private function categoriesForSelect(): \Illuminate\Database\Eloquent\Collection
+    private function categoriesForSelect(ProductType $type): \Illuminate\Database\Eloquent\Collection
     {
         return Category::whereDoesntHave('parents')
-            ->with('children:id,title')
+            ->forType($type)
+            ->with([
+                'children' => fn ($q) => $q->forType($type)->select(['categories.id', 'categories.title']),
+            ])
             ->get(['id', 'title']);
     }
 

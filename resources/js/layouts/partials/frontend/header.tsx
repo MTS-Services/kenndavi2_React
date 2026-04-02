@@ -1,11 +1,21 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useState } from 'react';
+import { logout, login } from '@/routes';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { type SharedData } from '@/types';
 
 const navigationItems = [
     //   { name: 'Home', href: '/' },
-    { name: 'Men', href: '/' },
-    { name: 'Women', href: '/home-women' },
+    { name: 'Men', href: '/men' },
+    { name: 'Women', href: '/women' },
     { name: 'Accessories', href: '/accessories' },
 ];
 
@@ -36,13 +46,82 @@ const womenSubcategories: NavSubItem[] = [
     { label: 'Shorts', href: '/hoodies-women', indent: true },
 ];
 
+function DesktopDropdownNavItem({
+    label,
+    href,
+    isActive,
+    subItems,
+}: {
+    label: string;
+    href: string;
+    isActive: boolean;
+    subItems?: NavSubItem[];
+}) {
+    return (
+        <li className="group relative">
+            <Link
+                href={href}
+                className={`transition hover:text-white ${
+                    isActive ? 'font-bold text-white' : 'text-gray-900'
+                }`}
+            >
+                {label}
+            </Link>
+
+            {subItems && (
+                <div className="absolute top-full left-0 z-9999 mt-3 w-56 overflow-visible rounded-md border border-white/10 bg-black/95 opacity-0 backdrop-blur-md transition-opacity duration-150 group-hover:opacity-100">
+                    <ul className="py-2">
+                        {subItems.map((sub, idx) => (
+                            <li key={`${sub.label}-${idx}`}>
+                                {sub.isHeader ? (
+                                    <span className="block px-4 py-2 text-xs tracking-wide text-gray-400 uppercase">
+                                        {sub.label}
+                                    </span>
+                                ) : (
+                                    <Link
+                                        href={sub.href as string}
+                                        className={`block py-2 text-sm text-gray-100 transition hover:bg-white/10 ${
+                                            sub.indent
+                                                ? 'pr-4 pl-8'
+                                                : 'px-4'
+                                        }`}
+                                    >
+                                        {sub.label}
+                                    </Link>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </li>
+    );
+}
+
 export function FrontendHeader() {
-    const { url } = usePage();
+    const { url, props } = usePage<SharedData>();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const user = props?.auth?.user ?? null;
+    const logoutRoute = logout();
+    const logoutHref = (() => {
+        const route = logoutRoute as unknown as {
+            url?: string | (() => string);
+        };
+
+        if (typeof route === 'string') {
+            return route;
+        }
+
+        if (typeof route.url === 'function') {
+            return route.url();
+        }
+
+        return route.url ?? '';
+    })();
 
     return (
-        <section className="overflow-visible font-sans text-gray-900 relative z-[1000]">
-            <nav className="relative z-[1000] container mx-auto mt-10 flex items-center justify-between bg-bg-red backdrop-blur-md px-6 py-5 md:px-12 border-b border-white/10">
+        <section className="relative z-1000 overflow-visible font-sans text-gray-900">
+            <nav className="relative z-1000 container mx-auto mt-10 flex items-center justify-between border-b border-white/10 bg-bg-red px-6 py-5 backdrop-blur-md md:px-12">
                 {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link href="/">
@@ -56,65 +135,24 @@ export function FrontendHeader() {
 
                 {/* Desktop Navigation */}
                 <ul className="text-md hidden space-x-10 font-[Libre_Franklin] font-semibold tracking-wider md:flex">
-                    {navigationItems.map((item) => (
-                        <li key={item.name} className="relative group">
-                            <Link
+                    {navigationItems.map((item) => {
+                        const subItems =
+                            item.name === 'Men'
+                                ? menSubcategories
+                                : item.name === 'Women'
+                                  ? womenSubcategories
+                                  : undefined;
+
+                        return (
+                            <DesktopDropdownNavItem
+                                key={item.name}
+                                label={item.name}
                                 href={item.href}
-                                className={`transition hover:text-white ${url === item.href ? 'text-white font-bold' : 'text-gray-900'
-                                    }`}
-                            >
-                                {item.name}
-                            </Link>
-
-                            {item.name === 'Men' && (
-                                <div className="absolute left-0 top-full mt-3 w-56 z-[9999] rounded-md bg-black/95 border border-white/10 backdrop-blur-md overflow-visible opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                    <ul className="py-2">
-                                        {menSubcategories.map((sub, idx) => (
-                                            <li key={`${sub.label}-${idx}`}>
-                                                {sub.isHeader ? (
-                                                    <span className="block px-4 py-2 text-xs uppercase tracking-wide text-gray-400">
-                                                        {sub.label}
-                                                    </span>
-                                                ) : (
-                                                    <Link
-                                                        key={`${sub.label}-${idx}`}
-                                                        href={sub.href as string}
-                                                        className={`block py-2 text-sm text-gray-100 hover:bg-white/10 transition ${sub.indent ? 'pl-8 pr-4' : 'px-4'}`}
-                                                    >
-                                                        {sub.label}
-                                                    </Link>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {item.name === 'Women' && (
-                                <div className="absolute left-0 top-full mt-3 w-56 z-[9999] rounded-md bg-black/95 border border-white/10 backdrop-blur-md overflow-visible opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                    <ul className="py-2">
-                                        {womenSubcategories.map((sub, idx) => (
-                                            <li key={`${sub.label}-${idx}`}>
-                                                {sub.isHeader ? (
-                                                    <span className="block px-4 py-2 text-xs uppercase tracking-wide text-gray-400">
-                                                        {sub.label}
-                                                    </span>
-                                                ) : (
-                                                    <Link
-                                                        key={`${sub.label}-${idx}`}
-                                                        href={sub.href as string}
-                                                        className={`block py-2 text-sm text-gray-100 hover:bg-white/10 transition ${sub.indent ? 'pl-8 pr-4' : 'px-4'}`}
-                                                    >
-                                                        {sub.label}
-                                                    </Link>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </li>
-                    ))}
+                                isActive={url === item.href}
+                                subItems={subItems}
+                            />
+                        );
+                    })}
                 </ul>
 
                 {/* Right Side Icons */}
@@ -132,18 +170,72 @@ export function FrontendHeader() {
                     {/* Cart */}
                     <button
                         onClick={() => router.get('/cartpage')}
-                        className="text-lg transition hover:text-white text-gray-900"
+                        className="text-lg text-gray-900 transition hover:text-white"
                     >
                         <ShoppingCart size={20} />
                     </button>
 
                     {/* User */}
-                    <button
-                        onClick={() => router.get('/userlogin')}
-                        className="text-lg transition hover:text-white text-gray-900"
-                    >
-                        <User size={20} />
-                    </button>
+                    {user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type="button"
+                                    className="text-lg text-gray-900 transition hover:text-white"
+                                    aria-label="Open user menu"
+                                >
+                                    <User size={20} />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                className="w-56"
+                                align="end"
+                                sideOffset={8}
+                            >
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">
+                                            {user.name}
+                                        </p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href="/profile"
+                                        className="cursor-pointer"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href={logoutHref}
+                                        method="post"
+                                        as="button"
+                                        className="w-full cursor-pointer"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Log out
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Link
+                            href={login()}
+                            className="text-lg text-gray-900 transition hover:text-white"
+                            aria-label="Login"
+                            onClick={() => setMobileOpen(false)}
+                        >
+                            <User size={20} />
+                        </Link>
+                    )}
 
                     {/* Mobile Toggle */}
                     <button
@@ -156,24 +248,25 @@ export function FrontendHeader() {
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div className="absolute top-full left-0 w-full border-t border-white/10 bg-black/90 backdrop-blur-md p-6 md:hidden">
+                    <div className="absolute top-full left-0 w-full border-t border-white/10 bg-black/90 p-6 backdrop-blur-md md:hidden">
                         <ul className="flex flex-col space-y-4 text-sm font-semibold tracking-wider uppercase">
                             {navigationItems.map((item) => (
                                 <li key={item.name}>
                                     <Link
                                         href={item.href}
-                                        className={`block ${url === item.href
-                                            ? 'text-white font-bold'
-                                            : 'text-gray-300'
-                                            }`}
+                                        className={`block ${
+                                            url === item.href
+                                                ? 'font-bold text-white'
+                                                : 'text-gray-300'
+                                        }`}
                                         onClick={() => setMobileOpen(false)}
                                     >
                                         {item.name}
                                     </Link>
 
                                     {item.name === 'Men' && (
-                                        <div className="mt-3 pl-4 space-y-2 uppercase normal-case">
-                                            {menSubcategories.map((sub, idx) => (
+                                        <div className="mt-3 space-y-2 pl-4 uppercase">
+                                            {menSubcategories.map((sub, idx) =>
                                                 sub.isHeader ? (
                                                     <span
                                                         key={`${sub.label}-${idx}`}
@@ -184,42 +277,98 @@ export function FrontendHeader() {
                                                 ) : (
                                                     <Link
                                                         key={`${sub.label}-${idx}`}
-                                                        href={sub.href as string}
-                                                        onClick={() => setMobileOpen(false)}
-                                                        className={`block text-xs text-gray-200 hover:text-white transition ${sub.indent ? 'pl-4' : ''}`}
+                                                        href={
+                                                            sub.href as string
+                                                        }
+                                                        onClick={() =>
+                                                            setMobileOpen(false)
+                                                        }
+                                                        className={`block text-xs text-gray-200 transition hover:text-white ${sub.indent ? 'pl-4' : ''}`}
                                                     >
                                                         {sub.label}
                                                     </Link>
-                                                )
-                                            ))}
+                                                ),
+                                            )}
                                         </div>
                                     )}
 
                                     {item.name === 'Women' && (
-                                        <div className="mt-3 pl-4 space-y-2 uppercase normal-case">
-                                            {womenSubcategories.map((sub, idx) => (
-                                                sub.isHeader ? (
-                                                    <span
-                                                        key={`${sub.label}-${idx}`}
-                                                        className="block text-xs text-gray-400"
-                                                    >
-                                                        {sub.label}
-                                                    </span>
-                                                ) : (
-                                                    <Link
-                                                        key={`${sub.label}-${idx}`}
-                                                        href={sub.href as string}
-                                                        onClick={() => setMobileOpen(false)}
-                                                        className={`block text-xs text-gray-200 hover:text-white transition ${sub.indent ? 'pl-4' : ''}`}
-                                                    >
-                                                        {sub.label}
-                                                    </Link>
-                                                )
-                                            ))}
+                                        <div className="mt-3 space-y-2 pl-4 uppercase">
+                                            {womenSubcategories.map(
+                                                (sub, idx) =>
+                                                    sub.isHeader ? (
+                                                        <span
+                                                            key={`${sub.label}-${idx}`}
+                                                            className="block text-xs text-gray-400"
+                                                        >
+                                                            {sub.label}
+                                                        </span>
+                                                    ) : (
+                                                        <Link
+                                                            key={`${sub.label}-${idx}`}
+                                                            href={
+                                                                sub.href as string
+                                                            }
+                                                            onClick={() =>
+                                                                setMobileOpen(
+                                                                    false,
+                                                                )
+                                                            }
+                                                            className={`block text-xs text-gray-200 transition hover:text-white ${sub.indent ? 'pl-4' : ''}`}
+                                                        >
+                                                            {sub.label}
+                                                        </Link>
+                                                    ),
+                                            )}
                                         </div>
                                     )}
                                 </li>
                             ))}
+
+                            <li className="border-t border-white/10 pt-4">
+                                {user ? (
+                                    <div className="space-y-3">
+                                        <div className="text-left normal-case">
+                                            <div className="text-sm font-semibold text-white">
+                                                {user.name}
+                                            </div>
+                                            <div className="text-xs text-gray-300">
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <Link
+                                                href="/profile"
+                                                className="text-sm text-gray-200 transition hover:text-white"
+                                                onClick={() =>
+                                                    setMobileOpen(false)
+                                                }
+                                            >
+                                                Profile
+                                            </Link>
+                                            <Link
+                                                href={logoutHref}
+                                                method="post"
+                                                as="button"
+                                                className="text-left text-sm text-gray-200 transition hover:text-white"
+                                                onClick={() =>
+                                                    setMobileOpen(false)
+                                                }
+                                            >
+                                                Log out
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href={login()}
+                                        className="block text-sm text-gray-200 transition hover:text-white"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Login
+                                    </Link>
+                                )}
+                            </li>
 
                             {/* Mobile Search */}
                             <li className="border-t border-white/10 pt-4">

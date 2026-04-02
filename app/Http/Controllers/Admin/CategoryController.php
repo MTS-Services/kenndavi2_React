@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CategoryStatus;
+use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
@@ -16,28 +17,41 @@ use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $type = ProductType::tryFrom($request->query('type', ProductType::MEN->value))
+            ?? ProductType::MEN;
+
         // Exactly 3 queries — no N+1:
         // 1) Top-level categories (whereDoesntHave)
         // 2) Their children via pivot  (BelongsToMany eager-load)
         // 3) Each child's parent IDs  (nested eager-load for parent_ids)
         $topLevel = Category::query()
             ->with([
+                'types',
                 'children' => fn ($q) => $q
+                    ->forType($type)
+                    ->with('types')
                     ->with('parents:id')
                     ->orderBy('sort_order'),
             ])
             ->whereDoesntHave('parents')
+            ->forType($type)
             ->orderBy('sort_order')
             ->get();
 
         return Inertia::render('backend/Admin/category', [
             'categories'          => $this->formatTree($topLevel),
             'categoriesForSelect' => $topLevel
-                ->map(fn (Category $c) => ['id' => $c->id, 'title' => $c->title])
+                ->map(fn (Category $c) => [
+                    'id' => $c->id,
+                    'title' => $c->title,
+                    'types' => $c->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
+                ])
                 ->values()
                 ->all(),
+            'activeType'   => $type->value,
+            'productTypes' => ProductType::options(),
             'success' => session('success'),
         ]);
     }
@@ -46,6 +60,8 @@ class CategoryController extends Controller
     {
         $data    = $request->validated();
         $adminId = auth('admin')->id();
+        $activeType = ProductType::tryFrom($request->query('type', ProductType::MEN->value))
+            ?? ProductType::MEN;
 
         $category = Category::create([
             'title'      => $data['title'],
@@ -56,6 +72,12 @@ class CategoryController extends Controller
             'updated_by' => $adminId,
         ]);
 
+        $category->types()->delete();
+        $types = $data['types'] ?? [$activeType->value];
+        foreach ($types as $type) {
+            $category->types()->create(['type' => $type]);
+        }
+
         if (! empty($data['category_ids'])) {
             $category->parents()->sync(
                 collect($data['category_ids'])
@@ -64,7 +86,7 @@ class CategoryController extends Controller
             );
         }
 
-        return to_route('admin.categories.index')
+        return to_route('admin.categories.index', ['type' => $types[0] ?? $activeType->value])
             ->with('success', __('Category created successfully.'));
     }
 
@@ -72,6 +94,8 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
         $data     = $request->validated();
+        $activeType = ProductType::tryFrom($request->query('type', ProductType::MEN->value))
+            ?? ProductType::MEN;
 
         $category->update([
             'title'      => $data['title'],
@@ -86,7 +110,13 @@ class CategoryController extends Controller
                 ->all()
         );
 
-        return to_route('admin.categories.index')
+        $category->types()->delete();
+        $types = $data['types'] ?? [$activeType->value];
+        foreach ($types as $type) {
+            $category->types()->create(['type' => $type]);
+        }
+
+        return to_route('admin.categories.index', ['type' => $types[0] ?? $activeType->value])
             ->with('success', __('Category updated successfully.'));
     }
 
@@ -188,11 +218,13 @@ class CategoryController extends Controller
             'title'    => $category->title,
             'slug'     => $category->slug,
             'status'   => $category->status?->value,
+            'types'    => $category->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
             'children' => $category->children->map(fn (Category $child) => [
                 'id'         => $child->id,
                 'title'      => $child->title,
                 'slug'       => $child->slug,
                 'parent_ids' => $child->parents->pluck('id')->values()->all(),
+                'types'      => $child->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
             ])->values()->all(),
         ])->values()->all();
     }

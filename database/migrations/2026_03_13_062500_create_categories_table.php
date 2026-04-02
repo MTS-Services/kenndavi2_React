@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->integer('sort_order')->default(0);
             $table->string('title', 120);
-            $table->string('slug', 160)->unique();
+            $table->string('slug', 160)->unique()->nullable();
             $table->string('image', 500)->nullable();
             $table->text('description')->nullable();
             $table->string('status', 20)->default(CategoryStatus::ACTIVE->value);

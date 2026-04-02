@@ -6,7 +6,7 @@ enum ProductType: string
 {
     case MEN = 'men';
     case WOMEN = 'women';
-    case ACCESSORIES = 'accesories';
+    case ACCESSORIES = 'accessories';
 
     public function label(): string
     {

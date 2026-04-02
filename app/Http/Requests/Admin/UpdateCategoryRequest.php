@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ProductType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -28,6 +30,8 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'max:160', Rule::unique('categories', 'slug')->ignore($id)],
+            'types' => ['nullable', 'array'],
+            'types.*' => ['required_with:types', new Enum(ProductType::class)],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
         ];
