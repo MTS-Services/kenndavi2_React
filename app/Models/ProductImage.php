@@ -26,9 +26,9 @@ class ProductImage extends Model
         'sort_order',
     ];
 
-    protected $appends = [
-        'http_url',
-    ];
+    // protected $appends = [
+    //     'http_url',
+    // ];
 
     /**
      * @return array<string, string>
@@ -50,18 +50,18 @@ class ProductImage extends Model
         return $this->belongsTo(Color::class);
     }
 
-    public function getHttpUrlAttribute(): ?string
-    {
-        if (! is_string($this->url) || $this->url === '' || $this->url === null) {
-            return null;
-        }
+    // public function getHttpUrlAttribute(): ?string
+    // {
+    //     if (! is_string($this->url) || $this->url === '' || $this->url === null) {
+    //         return null;
+    //     }
 
-        if (filter_var($this->url, FILTER_VALIDATE_URL) && (str_starts_with($this->url, 'https://') || str_starts_with($this->url, 'http://'))) {
-            return $this->url;
-        }
+    //     if (filter_var($this->url, FILTER_VALIDATE_URL) && (str_starts_with($this->url, 'https://') || str_starts_with($this->url, 'http://'))) {
+    //         return $this->url;
+    //     }
 
-        return Storage::disk('public')->url($this->url ?? null);
-    }
+    //     return Storage::disk('public')->url($this->url ?? null);
+    // }
 
     public function scopePrimary(Builder $query): Builder
     {

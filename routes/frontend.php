@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
 use App\Mail\TestMailtrapMail;
 use Illuminate\Support\Facades\Mail;
@@ -55,6 +56,8 @@ Route::get('/test-mailtrap', function () {
 
 // //////////////////////////////
 
-Route::controller(HomeController::class)->group(function () {
-    Route::get('/', 'index')->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+Route::controller(ProductController::class)->group(function () {
+    Route::get('/details/{id}', 'details')->name('details');
 });

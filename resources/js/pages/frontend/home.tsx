@@ -1,4 +1,5 @@
-import { Head, router } from '@inertiajs/react';
+import { details as productDetailsRoute } from '@/routes';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import Marquee from 'react-fast-marquee';
 
@@ -41,7 +42,6 @@ interface ProductPrimaryImage {
     id: number;
     url: string;
     alt_text: string | null;
-    http_url: string | null;
 }
 
 interface FeaturedProduct {
@@ -178,7 +178,7 @@ export default function Home({
                             ) : (
                                 products.map((product) => {
                                     const imageSrc =
-                                        product.primary_image?.http_url ??
+                                        product.primary_image?.url ??
                                         featuredFallbackImage;
                                     const alt =
                                         product.primary_image?.alt_text ??
@@ -210,20 +210,18 @@ export default function Home({
 
                                                 <div className="mb-4 h-10 w-px origin-top scale-y-0 bg-white/50 transition-all delay-200 duration-700 group-hover:scale-y-100 lg:mb-8 lg:h-24"></div>
 
-                                                <button
+                                                <Link
                                                     type="button"
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            '/productdetails',
-                                                        )
-                                                    }
+                                                    href={productDetailsRoute(
+                                                        product.id,
+                                                    )}
                                                     className="ease-elastic pointer-events-none relative max-w-[200px] scale-75 rotate-[-5deg] overflow-hidden bg-[var(--bg-red)] px-10 py-3 text-base font-medium opacity-0 shadow-lg transition-all delay-300 duration-700 group-hover:pointer-events-auto group-hover:scale-100 group-hover:rotate-0 group-hover:opacity-100 hover:bg-[var(--bg-red-dark)] hover:shadow-xl active:scale-95 sm:w-auto md:py-4 md:text-lg lg:w-full"
                                                 >
                                                     <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]"></span>
                                                     <span className="relative z-10">
                                                         View Details
                                                     </span>
-                                                </button>
+                                                </Link>
                                             </div>
 
                                             <div className="pointer-events-none absolute inset-0 rounded-md border-2 border-transparent transition-all duration-500 group-hover:border-white/20"></div>
