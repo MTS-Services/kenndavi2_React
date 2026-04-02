@@ -663,7 +663,7 @@ export default function ProductForm({
 
                         {/* ══ ROW 2 — Title + Slug ══ */}
                         <FieldSet>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6">
                                 <Field>
                                     <Label className="text-base font-bold text-stone-900 font-alumni">Title</Label>
                                     <Input
