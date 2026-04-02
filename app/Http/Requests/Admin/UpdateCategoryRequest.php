@@ -29,7 +29,7 @@ class UpdateCategoryRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:120'],
-            'slug' => ['required', 'string', 'max:160', Rule::unique('categories', 'slug')->ignore($id)],
+            'slug' => ['nullable', 'string', 'max:160', Rule::unique('categories', 'slug')->ignore($id)],
             'types' => ['nullable', 'array'],
             'types.*' => ['required_with:types', new Enum(ProductType::class)],
             'category_ids' => ['nullable', 'array'],
