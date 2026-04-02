@@ -10,6 +10,7 @@ Route::get('/', [FrontendController::class, 'index'])->name('home');
 Route::get('/men', [FrontendController::class, 'men'])->name('men');
 Route::get('/women', [FrontendController::class, 'women'])->name('women');
 Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
+Route::get('/accessories/catalog', [FrontendController::class, 'accessoriesCatalog'])->name('accessories.catalog');
 Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
 Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
 Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');

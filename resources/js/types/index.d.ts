@@ -37,11 +37,34 @@ export interface NavItem {
 // Alias for backward compatibility
 export type NavItem = NavItem;
 
+export interface FrontendNavCategoryChild {
+    id: number;
+    title: string;
+}
+
+export interface FrontendNavCategory {
+    id: number;
+    title: string;
+    children: FrontendNavCategoryChild[];
+}
+
+export interface FrontendNavByTypeEntry {
+    landingHref: string;
+    listingHref: string;
+    categories: FrontendNavCategory[];
+}
+
+export interface FrontendNav {
+    productTypes: Array<{ value: string; label: string }>;
+    byType: Record<string, FrontendNavByTypeEntry>;
+}
+
 export interface SharedData {
     name: string;
     auth: Auth;
     features: Features;
     sidebarOpen: boolean;
+    frontendNav?: FrontendNav;
     [key: string]: unknown;
 }
 

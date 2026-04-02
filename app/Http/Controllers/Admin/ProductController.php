@@ -18,6 +18,7 @@ use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -37,26 +38,26 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         $paginator = Product::with([
-            'images' => fn($q) => $q->where('is_primary', true),
+            'images' => fn ($q) => $q->where('is_primary', true),
         ])
             ->where('type', $type->value)
             ->latest()
             ->paginate(self::PER_PAGE, ['*'], 'page', $request->query('page', 1));
 
-        $products = $paginator->through(fn(Product $p) => [
-            'id'                => $p->id,
-            'title'             => $p->title,
-            'slug'              => $p->slug,
-            'description'       => $p->description,
-            'price'             => (string) $p->price,
-            'status'            => $p->status->value,
-            'type'              => $p->type->value,
+        $products = $paginator->through(fn (Product $p) => [
+            'id' => $p->id,
+            'title' => $p->title,
+            'slug' => $p->slug,
+            'description' => $p->description,
+            'price' => (string) $p->price,
+            'status' => $p->status->value,
+            'type' => $p->type->value,
             'primary_image_url' => $p->images->first()?->url,
         ]);
 
         return Inertia::render('backend/Admin/product/index', [
-            'products'     => $products,
-            'activeType'   => $type->value,
+            'products' => $products,
+            'activeType' => $type->value,
             'productTypes' => ProductType::options(),
         ]);
     }
@@ -67,7 +68,7 @@ class ProductController extends Controller
 
     public function checkSlug(Request $request): JsonResponse
     {
-        $slug      = strtolower(trim($request->query('slug', '')));
+        $slug = strtolower(trim($request->query('slug', '')));
         $excludeId = $request->query('exclude_id');
 
         if (! $slug) {
@@ -79,7 +80,7 @@ class ProductController extends Controller
         }
 
         $exists = Product::where('slug', $slug)
-            ->when($excludeId, fn($q) => $q->where('id', '!=', (int) $excludeId))
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', (int) $excludeId))
             ->exists();
 
         return response()->json(['available' => ! $exists]);
@@ -95,12 +96,12 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'initialType'     => $type->value,
-            'categories'      => $this->categoriesForSelect($type),
-            'discountTypes'   => DiscountType::options(),
-            'productTypes'    => ProductType::options(),
+            'initialType' => $type->value,
+            'categories' => $this->categoriesForSelect($type),
+            'discountTypes' => DiscountType::options(),
+            'productTypes' => ProductType::options(),
             'productStatuses' => ProductStatus::options(),
-            'availableTags'   => $this->tagsForSelect(),
+            'availableTags' => $this->tagsForSelect(),
         ]);
     }
 
@@ -117,23 +118,23 @@ class ProductController extends Controller
     {
         DB::transaction(function () use ($request) {
             $product = Product::create([
-                'title'              => $request->title,
-                'slug'               => $request->slug,
-                'description'        => $request->description,
-                'type'               => $request->type,
-                'price'              => $request->price,
-                'discount'           => $request->discount ?: null,
-                'discount_type'      => $request->discount_type ?: null,
+                'title' => $request->title,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'type' => $request->type,
+                'price' => $request->price,
+                'discount' => $request->discount ?: null,
+                'discount_type' => $request->discount_type ?: null,
                 'discount_starts_at' => $request->discount_starts_at ?: null,
-                'discount_ends_at'   => $request->discount_ends_at   ?: null,
+                'discount_ends_at' => $request->discount_ends_at ?: null,
                 // ── Write both columns directly from the request ──
-                'category_id'        => $request->filled('category_id')    ? (int) $request->category_id    : null,
-                'subcategory_id'     => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
-                'status'             => $request->input('status', ProductStatus::ACTIVE->value),
-                'is_featured'        => $request->boolean('is_featured', false),
-                'is_new'             => $request->boolean('is_new', false),
-                'created_by'         => auth('admin')->id(),
-                'updated_by'         => auth('admin')->id(),
+                'category_id' => $request->filled('category_id') ? (int) $request->category_id : null,
+                'subcategory_id' => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
+                'status' => $request->input('status', ProductStatus::ACTIVE->value),
+                'is_featured' => $request->boolean('is_featured', false),
+                'is_new' => $request->boolean('is_new', false),
+                'created_by' => auth('admin')->id(),
+                'updated_by' => auth('admin')->id(),
             ]);
 
             $product->tags()->sync($request->input('tag_ids', []));
@@ -153,7 +154,7 @@ class ProductController extends Controller
     public function show(Product $product, Request $request): Response
     {
         $product->load([
-            'images'           => fn($q) => $q->orderBy('sort_order'),
+            'images' => fn ($q) => $q->orderBy('sort_order'),
             'tags:id,name',
             'category:id,title',
             'subcategory:id,title',
@@ -162,50 +163,50 @@ class ProductController extends Controller
         ]);
 
         $productData = [
-            'id'                 => $product->id,
-            'title'              => $product->title,
-            'slug'               => $product->slug,
-            'description'        => $product->description,
-            'price'              => (string) $product->price,
-            'discount'           => $product->discount ? (string) $product->discount : null,
-            'discount_type'      => $product->discount_type?->value,
+            'id' => $product->id,
+            'title' => $product->title,
+            'slug' => $product->slug,
+            'description' => $product->description,
+            'price' => (string) $product->price,
+            'discount' => $product->discount ? (string) $product->discount : null,
+            'discount_type' => $product->discount_type?->value,
             'discount_starts_at' => $product->discount_starts_at?->toDateTimeString(),
-            'discount_ends_at'   => $product->discount_ends_at?->toDateTimeString(),
-            'type'               => $product->type->value,
-            'status'             => $product->status->value,
-            'is_featured'        => (bool) $product->is_featured,
-            'is_new'             => (bool) $product->is_new,
+            'discount_ends_at' => $product->discount_ends_at?->toDateTimeString(),
+            'type' => $product->type->value,
+            'status' => $product->status->value,
+            'is_featured' => (bool) $product->is_featured,
+            'is_new' => (bool) $product->is_new,
             // Both relations loaded independently — no ambiguity
-            'category'           => $product->category
+            'category' => $product->category
                 ? ['id' => $product->category->id, 'title' => $product->category->title]
                 : null,
-            'subcategory'        => $product->subcategory
+            'subcategory' => $product->subcategory
                 ? ['id' => $product->subcategory->id, 'title' => $product->subcategory->title]
                 : null,
-            'images'             => $product->images->map(fn($img) => [
-                'id'         => $img->id,
-                'url'        => $img->url,
-                'alt_text'   => $img->alt_text,
+            'images' => $product->images->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $img->url,
+                'alt_text' => $img->alt_text,
                 'is_primary' => (bool) $img->is_primary,
                 'sort_order' => $img->sort_order,
             ])->values()->toArray(),
-            'variants'           => $product->variants->map(fn($v) => [
-                'id'       => $v->id,
+            'variants' => $product->variants->map(fn ($v) => [
+                'id' => $v->id,
                 'quantity' => (int) $v->quantity,
-                'status'   => $v->status?->value,
-                'color'    => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
-                'size'     => $v->size  ? ['id' => $v->size->id,  'name' => $v->size->name]  : null,
+                'status' => $v->status?->value,
+                'color' => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
+                'size' => $v->size ? ['id' => $v->size->id,  'name' => $v->size->name] : null,
             ])->values()->toArray(),
-            'tags'               => $product->tags->map(fn($t) => [
-                'id'   => $t->id,
+            'tags' => $product->tags->map(fn ($t) => [
+                'id' => $t->id,
                 'name' => $t->name,
             ])->values()->toArray(),
-            'created_at'         => $product->created_at->toDateTimeString(),
-            'updated_at'         => $product->updated_at->toDateTimeString(),
+            'created_at' => $product->created_at->toDateTimeString(),
+            'updated_at' => $product->updated_at->toDateTimeString(),
         ];
 
         return Inertia::render('backend/Admin/product/details', [
-            'product'    => $productData,
+            'product' => $productData,
             'activeType' => $request->query('type', $product->type->value),
         ]);
     }
@@ -227,49 +228,49 @@ class ProductController extends Controller
         ]);
 
         $productData = [
-            'id'                      => $product->id,
-            'title'                   => $product->title,
-            'slug'                    => $product->slug,
-            'description'             => $product->description,
-            'price'                   => (string) $product->price,
-            'discount'                => $product->discount ? (string) $product->discount : '',
-            'discount_type'           => $product->discount_type?->value ?? '',
-            'discount_starts_at'      => $product->discount_starts_at?->toDateTimeString(),
-            'discount_ends_at'        => $product->discount_ends_at?->toDateTimeString(),
-            'type'                    => $product->type->value,
-            'status'                  => $product->status->value,
-            'is_featured'             => (bool) $product->is_featured,
-            'is_new'                  => (bool) $product->is_new,
+            'id' => $product->id,
+            'title' => $product->title,
+            'slug' => $product->slug,
+            'description' => $product->description,
+            'price' => (string) $product->price,
+            'discount' => $product->discount ? (string) $product->discount : '',
+            'discount_type' => $product->discount_type?->value ?? '',
+            'discount_starts_at' => $product->discount_starts_at?->toDateTimeString(),
+            'discount_ends_at' => $product->discount_ends_at?->toDateTimeString(),
+            'type' => $product->type->value,
+            'status' => $product->status->value,
+            'is_featured' => (bool) $product->is_featured,
+            'is_new' => (bool) $product->is_new,
             // ── Read both columns directly — no helper needed ──
-            'resolved_category_id'    => $product->category_id,
+            'resolved_category_id' => $product->category_id,
             'resolved_subcategory_id' => $product->subcategory_id,
-            'tag_ids'                 => $product->tags->pluck('id')->values()->all(),
-            'images'                  => $product->images->map(fn($img) => [
-                'id'         => $img->id,
-                'url'        => $img->url,
-                'alt_text'   => $img->alt_text,
+            'tag_ids' => $product->tags->pluck('id')->values()->all(),
+            'images' => $product->images->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $img->url,
+                'alt_text' => $img->alt_text,
                 'is_primary' => (bool) $img->is_primary,
                 'sort_order' => $img->sort_order,
-                'color_id'   => $img->color_id,
+                'color_id' => $img->color_id,
             ])->values()->toArray(),
-            'variants'                => $product->variants->map(fn($v) => [
-                'id'       => $v->id,
+            'variants' => $product->variants->map(fn ($v) => [
+                'id' => $v->id,
                 'color_id' => $v->color_id,
-                'size_id'  => $v->size_id,
+                'size_id' => $v->size_id,
                 'quantity' => (int) $v->quantity,
-                'status'   => $v->status?->value,
-                'color'    => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
-                'size'     => $v->size  ? ['id' => $v->size->id,  'name' => $v->size->name]  : null,
+                'status' => $v->status?->value,
+                'color' => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
+                'size' => $v->size ? ['id' => $v->size->id,  'name' => $v->size->name] : null,
             ])->values()->toArray(),
         ];
 
         return Inertia::render('backend/Admin/product/product-from', [
-            'product'         => $productData,
-            'categories'      => $this->categoriesForSelect($product->type),
-            'discountTypes'   => DiscountType::options(),
-            'productTypes'    => ProductType::options(),
+            'product' => $productData,
+            'categories' => $this->categoriesForSelect($product->type),
+            'discountTypes' => DiscountType::options(),
+            'productTypes' => ProductType::options(),
             'productStatuses' => ProductStatus::options(),
-            'availableTags'   => $this->tagsForSelect(),
+            'availableTags' => $this->tagsForSelect(),
         ]);
     }
 
@@ -284,22 +285,22 @@ class ProductController extends Controller
     {
         DB::transaction(function () use ($request, $product) {
             $product->update([
-                'title'              => $request->title,
-                'slug'               => $request->slug,
-                'description'        => $request->description,
-                'type'               => $request->type,
-                'price'              => $request->price,
-                'discount'           => $request->discount ?: null,
-                'discount_type'      => $request->discount_type ?: null,
+                'title' => $request->title,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'type' => $request->type,
+                'price' => $request->price,
+                'discount' => $request->discount ?: null,
+                'discount_type' => $request->discount_type ?: null,
                 'discount_starts_at' => $request->discount_starts_at ?: null,
-                'discount_ends_at'   => $request->discount_ends_at   ?: null,
+                'discount_ends_at' => $request->discount_ends_at ?: null,
                 // ── Write both columns directly from the request ──
-                'category_id'        => $request->filled('category_id')    ? (int) $request->category_id    : null,
-                'subcategory_id'     => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
-                'status'             => $request->input('status', $product->status->value),
-                'is_featured'        => $request->boolean('is_featured', false),
-                'is_new'             => $request->boolean('is_new', false),
-                'updated_by'         => auth('admin')->id(),
+                'category_id' => $request->filled('category_id') ? (int) $request->category_id : null,
+                'subcategory_id' => $request->filled('subcategory_id') ? (int) $request->subcategory_id : null,
+                'status' => $request->input('status', $product->status->value),
+                'is_featured' => $request->boolean('is_featured', false),
+                'is_new' => $request->boolean('is_new', false),
+                'updated_by' => auth('admin')->id(),
             ]);
 
             $product->tags()->sync($request->input('tag_ids', []));
@@ -358,7 +359,7 @@ class ProductController extends Controller
 
         foreach ($variants as $row) {
             $existingId = isset($row['existingId']) ? (int) $row['existingId'] : null;
-            $quantity   = (int) ($row['quantity'] ?? 0);
+            $quantity = (int) ($row['quantity'] ?? 0);
 
             if ($existingId) {
                 ProductVariant::where('id', $existingId)
@@ -366,16 +367,16 @@ class ProductController extends Controller
                     ->update(['quantity' => $quantity]);
             } else {
                 $color = Color::firstOrCreateByHex($row['color']);
-                $size  = Size::firstOrCreateByName($row['size']);
+                $size = Size::firstOrCreateByName($row['size']);
                 ProductVariant::updateOrCreate(
                     [
                         'product_id' => $product->id,
-                        'color_id'   => $color->id,
-                        'size_id'    => $size->id,
+                        'color_id' => $color->id,
+                        'size_id' => $size->id,
                     ],
                     [
                         'quantity' => $quantity,
-                        'status'   => 'active',
+                        'status' => 'active',
                     ]
                 );
             }
@@ -398,17 +399,19 @@ class ProductController extends Controller
             }
 
             $product->images()->create([
-                'url'        => Storage::url($url),
+                'url' => Storage::url($url),
                 'is_primary' => true,
                 'sort_order' => 0,
             ]);
         }
 
         foreach ((array) $request->file('new_images', []) as $i => $file) {
-            if (! $file) continue;
+            if (! $file) {
+                continue;
+            }
             $url = $file->store('products', 'public');
             $product->images()->create([
-                'url'        => Storage::url($url),
+                'url' => Storage::url($url),
                 'is_primary' => false,
                 'sort_order' => $sortOffset + $i + 1,
             ]);
@@ -417,7 +420,9 @@ class ProductController extends Controller
 
     private function removeImages(array $ids): void
     {
-        if (empty($ids)) return;
+        if (empty($ids)) {
+            return;
+        }
         ProductImage::whereIn('id', $ids)->each(function (ProductImage $image) {
             $this->deleteImageFile($image);
             $image->delete();
@@ -437,12 +442,15 @@ class ProductController extends Controller
         return Category::whereDoesntHave('parents')
             ->forType($type)
             ->with([
-                'children' => fn ($q) => $q->forType($type)->select(['categories.id', 'categories.title']),
+                'children' => fn ($q) => $q
+                    ->forType($type)
+                    ->select(['categories.id', 'categories.title'])
+                    ->orderByPivot('sort_order'),
             ])
             ->get(['id', 'title']);
     }
 
-    private function tagsForSelect(): \Illuminate\Support\Collection
+    private function tagsForSelect(): Collection
     {
         return Tag::orderBy('name')->get(['id', 'name']);
     }

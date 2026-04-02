@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Models\CategoryRelation;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,7 @@ class CategoryController extends Controller
                     ->forType($type)
                     ->with('types')
                     ->with('parents:id')
-                    ->orderBy('sort_order'),
+                    ->orderByPivot('sort_order'),
             ])
             ->whereDoesntHave('parents')
             ->forType($type)
@@ -41,7 +42,7 @@ class CategoryController extends Controller
             ->get();
 
         return Inertia::render('backend/Admin/category', [
-            'categories'          => $this->formatTree($topLevel),
+            'categories' => $this->formatTree($topLevel),
             'categoriesForSelect' => $topLevel
                 ->map(fn (Category $c) => [
                     'id' => $c->id,
@@ -50,7 +51,7 @@ class CategoryController extends Controller
                 ])
                 ->values()
                 ->all(),
-            'activeType'   => $type->value,
+            'activeType' => $type->value,
             'productTypes' => ProductType::options(),
             'success' => session('success'),
         ]);
@@ -58,16 +59,16 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $data    = $request->validated();
+        $data = $request->validated();
         $adminId = auth('admin')->id();
         $activeType = ProductType::tryFrom($request->query('type', ProductType::MEN->value))
             ?? ProductType::MEN;
 
         $category = Category::create([
-            'title'      => $data['title'],
-            'slug'       => $data['slug'],
+            'title' => $data['title'],
+            'slug' => $data['slug'],
             'sort_order' => 0,
-            'status'     => CategoryStatus::ACTIVE,
+            'status' => CategoryStatus::ACTIVE,
             'created_by' => $adminId,
             'updated_by' => $adminId,
         ]);
@@ -93,13 +94,13 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, string $id): RedirectResponse
     {
         $category = Category::findOrFail($id);
-        $data     = $request->validated();
+        $data = $request->validated();
         $activeType = ProductType::tryFrom($request->query('type', ProductType::MEN->value))
             ?? ProductType::MEN;
 
         $category->update([
-            'title'      => $data['title'],
-            'slug'       => $data['slug'],
+            'title' => $data['title'],
+            'slug' => $data['slug'],
             'updated_by' => auth('admin')->id(),
         ]);
 
@@ -176,7 +177,7 @@ class CategoryController extends Controller
     }
 
     /* ------------------------------------------------------------------ */
-    /* Private helpers                                                      */
+    /* Private helpers */
     /* ------------------------------------------------------------------ */
 
     /**
@@ -209,22 +210,22 @@ class CategoryController extends Controller
      * Map eager-loaded models to the frontend shape.
      * No extra queries fired — all relations already loaded.
      *
-     * @param \Illuminate\Database\Eloquent\Collection<int, Category> $categories
+     * @param  Collection<int, Category>  $categories
      */
-    private function formatTree(\Illuminate\Database\Eloquent\Collection $categories): array
+    private function formatTree(Collection $categories): array
     {
         return $categories->map(fn (Category $category) => [
-            'id'       => $category->id,
-            'title'    => $category->title,
-            'slug'     => $category->slug,
-            'status'   => $category->status?->value,
-            'types'    => $category->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
+            'id' => $category->id,
+            'title' => $category->title,
+            'slug' => $category->slug,
+            'status' => $category->status?->value,
+            'types' => $category->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
             'children' => $category->children->map(fn (Category $child) => [
-                'id'         => $child->id,
-                'title'      => $child->title,
-                'slug'       => $child->slug,
+                'id' => $child->id,
+                'title' => $child->title,
+                'slug' => $child->slug,
                 'parent_ids' => $child->parents->pluck('id')->values()->all(),
-                'types'      => $child->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
+                'types' => $child->types->pluck('type')->map(fn ($t) => $t->value)->values()->all(),
             ])->values()->all(),
         ])->values()->all();
     }

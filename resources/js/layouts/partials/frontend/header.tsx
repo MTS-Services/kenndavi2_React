@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { logout, login } from '@/routes';
 import {
     DropdownMenu,
@@ -10,88 +10,140 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { type SharedData } from '@/types';
+import { cn } from '@/lib/utils';
+import type { FrontendNav, FrontendNavByTypeEntry, FrontendNavCategory, SharedData } from '@/types';
 
-const navigationItems = [
-    //   { name: 'Home', href: '/' },
-    { name: 'Men', href: '/men' },
-    { name: 'Women', href: '/women' },
-    { name: 'Accessories', href: '/accessories' },
-];
+function pathOnly(href: string): string {
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+        try {
+            return new URL(href).pathname;
+        } catch {
+            return href;
+        }
+    }
+    return href.split('?')[0] ?? href;
+}
 
-type NavSubItem = {
-    label: string;
-    href?: string;
-    indent?: boolean;
-    isHeader?: boolean;
-};
+function catalogFilterHref(listingHref: string, parentId: number, subId?: number): string {
+    const params = new URLSearchParams();
+    params.set('category', String(parentId));
+    if (subId != null) {
+        params.set('subcategory', String(subId));
+    }
+    const qs = params.toString();
+    const sep = listingHref.includes('?') ? '&' : '?';
+    return qs ? `${listingHref}${sep}${qs}` : listingHref;
+}
 
-const menSubcategories: NavSubItem[] = [
-    { label: 'New Arrivals', href: '/sweatsuitsmen' },
-    { label: 'Sweats/Hoodies', href: '/sweatsuitsmen' },
-    // Client requested nested subcategories under Casuals.
-    { label: 'Casuals', isHeader: true },
-    { label: 'Polos', href: '/hoodies-women', indent: true },
-    { label: 'Shirts', href: '/hoodies-women', indent: true },
-    { label: 'Shorts', href: '/hoodies-women', indent: true },
-];
-
-const womenSubcategories: NavSubItem[] = [
-    { label: 'New Arrivals', href: '/hoodies-women' },
-    { label: 'Sweats/Hoodies', href: '/hoodies-women' },
-    // Client requested nested subcategories under Casuals.
-    { label: 'Casuals', isHeader: true },
-    { label: 'Polos', href: '/hoodies-women', indent: true },
-    { label: 'Shirts', href: '/hoodies-women', indent: true },
-    { label: 'Shorts', href: '/hoodies-women', indent: true },
-];
-
-function DesktopDropdownNavItem({
+function DesktopTypeNavItem({
     label,
-    href,
-    isActive,
-    subItems,
+    landingHref,
+    listingHref,
+    categories,
+    currentPath,
 }: {
     label: string;
-    href: string;
-    isActive: boolean;
-    subItems?: NavSubItem[];
+    landingHref: string;
+    listingHref: string;
+    categories: FrontendNavCategory[];
+    currentPath: string;
 }) {
+    const firstExpandableId = useMemo(
+        () => categories.find((c) => c.children.length > 0)?.id ?? null,
+        [categories],
+    );
+
+    const [expandedParentId, setExpandedParentId] = useState<number | null>(() =>
+        categories.find((c) => c.children.length > 0)?.id ?? null,
+    );
+
+    useEffect(() => {
+        setExpandedParentId(firstExpandableId);
+    }, [firstExpandableId]);
+
+    const isLandingActive = pathOnly(currentPath) === pathOnly(landingHref);
+    const hasMenu = categories.length > 0;
+
+    const toggleParent = useCallback((id: number) => {
+        setExpandedParentId((prev) => (prev === id ? null : id));
+    }, []);
+
     return (
         <li className="group relative">
             <Link
-                href={href}
-                className={`transition hover:text-white ${
-                    isActive ? 'font-bold text-white' : 'text-gray-900'
-                }`}
+                href={landingHref}
+                className={cn(
+                    'transition hover:text-white',
+                    isLandingActive ? 'font-bold text-white' : 'text-gray-900',
+                )}
             >
                 {label}
             </Link>
 
-            {subItems && (
-                <div className="absolute top-full left-0 z-9999 mt-3 w-56 overflow-visible rounded-md border border-white/10 bg-black/95 opacity-0 backdrop-blur-md transition-opacity duration-150 group-hover:opacity-100">
+            {hasMenu && (
+                <div
+                    className={cn(
+                        'absolute top-full left-0 z-9999 pt-3',
+                        /* Bridge padding fills the space under the label so the cursor never crosses a dead zone (mt-* gap + pointer-events-none used to drop hover). */
+                        '-ml-2 pl-2 pr-2',
+                        'pointer-events-none group-hover:pointer-events-auto',
+                    )}
+                >
+                    <div className="max-h-[min(24rem,70vh)] w-64 overflow-y-auto rounded-md border border-white/10 bg-black/95 opacity-0 shadow-lg backdrop-blur-md transition-opacity duration-150 group-hover:opacity-100">
                     <ul className="py-2">
-                        {subItems.map((sub, idx) => (
-                            <li key={`${sub.label}-${idx}`}>
-                                {sub.isHeader ? (
-                                    <span className="block px-4 py-2 text-xs tracking-wide text-gray-400 uppercase">
-                                        {sub.label}
-                                    </span>
-                                ) : (
-                                    <Link
-                                        href={sub.href as string}
-                                        className={`block py-2 text-sm text-gray-100 transition hover:bg-white/10 ${
-                                            sub.indent
-                                                ? 'pr-4 pl-8'
-                                                : 'px-4'
-                                        }`}
-                                    >
-                                        {sub.label}
-                                    </Link>
-                                )}
-                            </li>
-                        ))}
+                        {categories.map((cat) => {
+                            const open = expandedParentId === cat.id;
+                            const hasChildren = cat.children.length > 0;
+
+                            return (
+                                <li key={cat.id} className="border-b border-white/5 last:border-0">
+                                    <div className="flex items-stretch gap-0">
+                                        <Link
+                                            href={catalogFilterHref(listingHref, cat.id)}
+                                            className="min-w-0 flex-1 px-4 py-2.5 text-sm text-gray-100 transition hover:bg-white/10"
+                                        >
+                                            {cat.title}
+                                        </Link>
+                                        {hasChildren && (
+                                            <button
+                                                type="button"
+                                                aria-expanded={open}
+                                                aria-label={`Toggle ${cat.title} subcategories`}
+                                                className="shrink-0 px-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    toggleParent(cat.id);
+                                                }}
+                                            >
+                                                <ChevronDown
+                                                    className={cn(
+                                                        'size-4 transition-transform',
+                                                        open && 'rotate-180',
+                                                    )}
+                                                />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {hasChildren && open && (
+                                        <ul className="border-t border-white/5 bg-black/40 py-1">
+                                            {cat.children.map((child) => (
+                                                <li key={child.id}>
+                                                    <Link
+                                                        href={catalogFilterHref(listingHref, cat.id, child.id)}
+                                                        className="block py-2 pr-4 pl-8 text-sm text-gray-200 transition hover:bg-white/10"
+                                                    >
+                                                        {child.title}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </li>
+                            );
+                        })}
                     </ul>
+                    </div>
                 </div>
             )}
         </li>
@@ -101,7 +153,15 @@ function DesktopDropdownNavItem({
 export function FrontendHeader() {
     const { url, props } = usePage<SharedData>();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mobileTypeOpen, setMobileTypeOpen] = useState<string | null>(null);
+    const [mobileParentOpen, setMobileParentOpen] = useState<Record<string, boolean>>({});
+
     const user = props?.auth?.user ?? null;
+    const frontendNav: FrontendNav | undefined = props?.frontendNav;
+
+    const productTypes = frontendNav?.productTypes ?? [];
+    const byType: Record<string, FrontendNavByTypeEntry> = frontendNav?.byType ?? {};
+
     const logoutRoute = logout();
     const logoutHref = (() => {
         const route = logoutRoute as unknown as {
@@ -119,10 +179,15 @@ export function FrontendHeader() {
         return route.url ?? '';
     })();
 
+    const currentPath = useMemo(() => pathOnly(url), [url]);
+
+    const toggleMobileParent = useCallback((key: string) => {
+        setMobileParentOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+    }, []);
+
     return (
         <section className="relative z-1000 overflow-visible font-sans text-gray-900">
             <nav className="relative z-1000 container mx-auto mt-10 flex items-center justify-between border-b border-white/10 bg-bg-red px-6 py-5 backdrop-blur-md md:px-12">
-                {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link href="/">
                         <img
@@ -133,31 +198,25 @@ export function FrontendHeader() {
                     </Link>
                 </div>
 
-                {/* Desktop Navigation */}
                 <ul className="text-md hidden space-x-10 font-[Libre_Franklin] font-semibold tracking-wider md:flex">
-                    {navigationItems.map((item) => {
-                        const subItems =
-                            item.name === 'Men'
-                                ? menSubcategories
-                                : item.name === 'Women'
-                                  ? womenSubcategories
-                                  : undefined;
+                    {productTypes.map((pt) => {
+                        const entry = byType[pt.value];
+                        if (!entry) return null;
 
                         return (
-                            <DesktopDropdownNavItem
-                                key={item.name}
-                                label={item.name}
-                                href={item.href}
-                                isActive={url === item.href}
-                                subItems={subItems}
+                            <DesktopTypeNavItem
+                                key={pt.value}
+                                label={pt.label}
+                                landingHref={entry.landingHref}
+                                listingHref={entry.listingHref}
+                                categories={entry.categories}
+                                currentPath={currentPath}
                             />
                         );
                     })}
                 </ul>
 
-                {/* Right Side Icons */}
                 <div className="flex items-center gap-3 md:gap-6">
-                    {/* Search */}
                     <div className="relative hidden items-center gap-2 rounded bg-gray-900 px-4 py-2.5 sm:flex">
                         <Search size={14} className="text-gray-100" />
                         <input
@@ -167,15 +226,14 @@ export function FrontendHeader() {
                         />
                     </div>
 
-                    {/* Cart */}
                     <button
+                        type="button"
                         onClick={() => router.get('/cartpage')}
                         className="text-lg text-gray-900 transition hover:text-white"
                     >
                         <ShoppingCart size={20} />
                     </button>
 
-                    {/* User */}
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -187,19 +245,11 @@ export function FrontendHeader() {
                                     <User size={20} />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className="w-56"
-                                align="end"
-                                sideOffset={8}
-                            >
+                            <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                        </p>
+                                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
@@ -237,8 +287,8 @@ export function FrontendHeader() {
                         </Link>
                     )}
 
-                    {/* Mobile Toggle */}
                     <button
+                        type="button"
                         className="text-2xl md:hidden"
                         onClick={() => setMobileOpen(!mobileOpen)}
                     >
@@ -246,103 +296,118 @@ export function FrontendHeader() {
                     </button>
                 </div>
 
-                {/* Mobile Menu */}
                 {mobileOpen && (
                     <div className="absolute top-full left-0 w-full border-t border-white/10 bg-black/90 p-6 backdrop-blur-md md:hidden">
-                        <ul className="flex flex-col space-y-4 text-sm font-semibold tracking-wider uppercase">
-                            {navigationItems.map((item) => (
-                                <li key={item.name}>
-                                    <Link
-                                        href={item.href}
-                                        className={`block ${
-                                            url === item.href
-                                                ? 'font-bold text-white'
-                                                : 'text-gray-300'
-                                        }`}
-                                        onClick={() => setMobileOpen(false)}
-                                    >
-                                        {item.name}
-                                    </Link>
+                        <ul className="flex flex-col space-y-2 text-sm font-semibold tracking-wider uppercase">
+                            {productTypes.map((pt) => {
+                                const entry = byType[pt.value];
+                                if (!entry) return null;
 
-                                    {item.name === 'Men' && (
-                                        <div className="mt-3 space-y-2 pl-4 uppercase">
-                                            {menSubcategories.map((sub, idx) =>
-                                                sub.isHeader ? (
-                                                    <span
-                                                        key={`${sub.label}-${idx}`}
-                                                        className="block text-xs text-gray-400"
-                                                    >
-                                                        {sub.label}
-                                                    </span>
-                                                ) : (
-                                                    <Link
-                                                        key={`${sub.label}-${idx}`}
-                                                        href={
-                                                            sub.href as string
-                                                        }
-                                                        onClick={() =>
-                                                            setMobileOpen(false)
-                                                        }
-                                                        className={`block text-xs text-gray-200 transition hover:text-white ${sub.indent ? 'pl-4' : ''}`}
-                                                    >
-                                                        {sub.label}
-                                                    </Link>
-                                                ),
+                                const typeExpanded = mobileTypeOpen === pt.value;
+                                const landingActive = currentPath === pathOnly(entry.landingHref);
+
+                                return (
+                                    <li key={pt.value} className="border-b border-white/10 pb-3 last:border-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <Link
+                                                href={entry.landingHref}
+                                                className={cn(
+                                                    'block flex-1',
+                                                    landingActive ? 'font-bold text-white' : 'text-gray-300',
+                                                )}
+                                                onClick={() => setMobileOpen(false)}
+                                            >
+                                                {pt.label}
+                                            </Link>
+                                            {entry.categories.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={typeExpanded}
+                                                    className="shrink-0 p-1 text-gray-400"
+                                                    onClick={() =>
+                                                        setMobileTypeOpen((v) => (v === pt.value ? null : pt.value))
+                                                    }
+                                                >
+                                                    <ChevronDown
+                                                        className={cn('size-5 transition-transform', typeExpanded && 'rotate-180')}
+                                                    />
+                                                </button>
                                             )}
                                         </div>
-                                    )}
 
-                                    {item.name === 'Women' && (
-                                        <div className="mt-3 space-y-2 pl-4 uppercase">
-                                            {womenSubcategories.map(
-                                                (sub, idx) =>
-                                                    sub.isHeader ? (
-                                                        <span
-                                                            key={`${sub.label}-${idx}`}
-                                                            className="block text-xs text-gray-400"
-                                                        >
-                                                            {sub.label}
-                                                        </span>
-                                                    ) : (
-                                                        <Link
-                                                            key={`${sub.label}-${idx}`}
-                                                            href={
-                                                                sub.href as string
-                                                            }
-                                                            onClick={() =>
-                                                                setMobileOpen(
-                                                                    false,
-                                                                )
-                                                            }
-                                                            className={`block text-xs text-gray-200 transition hover:text-white ${sub.indent ? 'pl-4' : ''}`}
-                                                        >
-                                                            {sub.label}
-                                                        </Link>
-                                                    ),
-                                            )}
-                                        </div>
-                                    )}
-                                </li>
-                            ))}
+                                        {typeExpanded && entry.categories.length > 0 && (
+                                            <ul className="mt-2 space-y-1 border-l border-white/10 pl-3 normal-case">
+                                                {entry.categories.map((cat) => {
+                                                    const pKey = `${pt.value}:${cat.id}`;
+                                                    const pOpen = mobileParentOpen[pKey] ?? false;
+                                                    const hasChildren = cat.children.length > 0;
+
+                                                    return (
+                                                        <li key={cat.id}>
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <Link
+                                                                    href={catalogFilterHref(entry.listingHref, cat.id)}
+                                                                    className="flex-1 text-xs text-gray-200 hover:text-white"
+                                                                    onClick={() => setMobileOpen(false)}
+                                                                >
+                                                                    {cat.title}
+                                                                </Link>
+                                                                {hasChildren && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="p-1 text-gray-500"
+                                                                        aria-expanded={pOpen}
+                                                                        onClick={() => toggleMobileParent(pKey)}
+                                                                    >
+                                                                        <ChevronDown
+                                                                            className={cn(
+                                                                                'size-4 transition-transform',
+                                                                                pOpen && 'rotate-180',
+                                                                            )}
+                                                                        />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            {hasChildren && pOpen && (
+                                                                <ul className="mt-1 space-y-1 pl-3">
+                                                                    {cat.children.map((child) => (
+                                                                        <li key={child.id}>
+                                                                            <Link
+                                                                                href={catalogFilterHref(
+                                                                                    entry.listingHref,
+                                                                                    cat.id,
+                                                                                    child.id,
+                                                                                )}
+                                                                                className="block text-xs text-gray-300 hover:text-white"
+                                                                                onClick={() => setMobileOpen(false)}
+                                                                            >
+                                                                                {child.title}
+                                                                            </Link>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
+                                    </li>
+                                );
+                            })}
 
                             <li className="border-t border-white/10 pt-4">
                                 {user ? (
-                                    <div className="space-y-3">
-                                        <div className="text-left normal-case">
-                                            <div className="text-sm font-semibold text-white">
-                                                {user.name}
-                                            </div>
-                                            <div className="text-xs text-gray-300">
-                                                {user.email}
-                                            </div>
+                                    <div className="space-y-3 normal-case">
+                                        <div className="text-left">
+                                            <div className="text-sm font-semibold text-white">{user.name}</div>
+                                            <div className="text-xs text-gray-300">{user.email}</div>
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             <Link
                                                 href="/profile"
                                                 className="text-sm text-gray-200 transition hover:text-white"
-                                                onClick={() =>
-                                                    setMobileOpen(false)
-                                                }
+                                                onClick={() => setMobileOpen(false)}
                                             >
                                                 Profile
                                             </Link>
@@ -351,9 +416,7 @@ export function FrontendHeader() {
                                                 method="post"
                                                 as="button"
                                                 className="text-left text-sm text-gray-200 transition hover:text-white"
-                                                onClick={() =>
-                                                    setMobileOpen(false)
-                                                }
+                                                onClick={() => setMobileOpen(false)}
                                             >
                                                 Log out
                                             </Link>
@@ -362,7 +425,7 @@ export function FrontendHeader() {
                                 ) : (
                                     <Link
                                         href={login()}
-                                        className="block text-sm text-gray-200 transition hover:text-white"
+                                        className="block text-sm text-gray-200 transition hover:text-white normal-case"
                                         onClick={() => setMobileOpen(false)}
                                     >
                                         Login
@@ -370,13 +433,9 @@ export function FrontendHeader() {
                                 )}
                             </li>
 
-                            {/* Mobile Search */}
                             <li className="border-t border-white/10 pt-4">
-                                <div className="flex items-center gap-2 rounded bg-white/10 px-4 py-2">
-                                    <Search
-                                        size={14}
-                                        className="text-gray-400"
-                                    />
+                                <div className="flex items-center gap-2 rounded bg-white/10 px-4 py-2 normal-case">
+                                    <Search size={14} className="text-gray-400" />
                                     <input
                                         type="text"
                                         placeholder="Search"
