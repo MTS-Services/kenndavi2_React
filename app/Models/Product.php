@@ -6,11 +6,13 @@ use App\Enums\DiscountType;
 use App\Enums\ProductStatus;
 use App\Enums\ProductType;
 use Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -49,15 +51,15 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'type'               => ProductType::class,
-            'status'             => ProductStatus::class,
-            'is_featured'        => 'boolean',
-            'is_new'             => 'boolean',
-            'meta_keywords'      => 'array',
-            'price'              => 'decimal:2',
-            'discount_type'      => DiscountType::class,
+            'type' => ProductType::class,
+            'status' => ProductStatus::class,
+            'is_featured' => 'boolean',
+            'is_new' => 'boolean',
+            'meta_keywords' => 'array',
+            'price' => 'decimal:2',
+            'discount_type' => DiscountType::class,
             'discount_starts_at' => 'datetime',
-            'discount_ends_at'   => 'datetime',
+            'discount_ends_at' => 'datetime',
         ];
     }
 
@@ -88,6 +90,14 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)
+            ->where('is_primary', true)
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'product_tags');
@@ -111,5 +121,10 @@ class Product extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
     }
 }

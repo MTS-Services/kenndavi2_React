@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\Frontend\FrontendController;
+use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
 use App\Mail\TestMailtrapMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [FrontendController::class, 'index'])->name('home');
+// Route::get('/', [FrontendController::class, 'index'])->name('home');
 Route::get('/men', [FrontendController::class, 'men'])->name('men');
 Route::get('/women', [FrontendController::class, 'women'])->name('women');
 Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
@@ -35,6 +36,7 @@ Route::prefix('user/otp')->name('user.otp.')->controller(UserOtpAuthController::
         ->middleware(['signed', 'throttle:user-otp'])
         ->name('resend');
 });
+
 Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
 Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
 Route::get('/hoodies-women', [FrontendController::class, 'hoodiesWomen'])->name('hoodies.women');
@@ -50,3 +52,9 @@ Route::get('/test-mailtrap', function () {
 
     return 'Mailtrap test email dispatched.';
 })->name('test-mailtrap');
+
+// //////////////////////////////
+
+Route::controller(HomeController::class)->group(function () {
+    Route::get('/', 'index')->name('home');
+});

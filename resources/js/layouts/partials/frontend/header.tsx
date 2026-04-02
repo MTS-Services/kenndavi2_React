@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { logout, login } from '@/routes';
+import {home} from '@/routes'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { FrontendNav, FrontendNavByTypeEntry, FrontendNavCategory, SharedData } from '@/types';
+
 
 function pathOnly(href: string): string {
     if (href.startsWith('http://') || href.startsWith('https://')) {
@@ -189,7 +191,7 @@ export function FrontendHeader() {
         <section className="relative z-1000 overflow-visible font-sans text-gray-900">
             <nav className="relative z-1000 container mx-auto mt-10 flex items-center justify-between border-b border-white/10 bg-bg-red px-6 py-5 backdrop-blur-md md:px-12">
                 <div className="flex items-center gap-2">
-                    <Link href="/">
+                    <Link href={home()}>
                         <img
                             src="/assets/images/Layer_1 (3).png"
                             alt="Logo"
