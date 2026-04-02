@@ -11,7 +11,7 @@ class HomeController extends Controller
 {
     public function index(): Response
     {
-        $products = Product::query()->with('primaryImage')->featured()->take(4)->get();
+        $products = Product::query()->with('primaryImage')->featured()->latest()->take(4)->get();
         return Inertia::render(
             'frontend/home',
             [
