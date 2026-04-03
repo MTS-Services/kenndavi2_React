@@ -1,3 +1,11 @@
+import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Head, InfiniteScroll, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -129,7 +137,7 @@ function ImageSlot({
             </div>
 
             <div className="relative z-10 flex h-full translate-y-6 flex-col items-center justify-center gap-3 px-3 opacity-0 transition-all duration-700 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-                <div className='text-center'>
+                <div className="text-center">
                     <h3 className="text-center font-['Alumni_Sans'] text-base font-semibold tracking-wide text-white uppercase drop-shadow-lg md:text-xl">
                         {productTitle}
                     </h3>
@@ -378,20 +386,25 @@ export default function ProductCategory({
                             <label className="mb-2 block font-['Alumni_Sans'] text-xl font-semibold tracking-wide text-white/80">
                                 Category
                             </label>
-                            <select
+                            <Select
                                 value={category}
-                                onChange={(e) =>
-                                    handleCategoryChange(e.target.value)
-                                }
-                                className="w-full rounded-lg border border-white/10 bg-white/90 py-3 pr-10 pl-4 text-sm font-medium text-gray-900 shadow-sm transition outline-none focus:border-white focus:ring-2 focus:ring-white/20"
+                                onValueChange={handleCategoryChange}
                             >
-                                <option value="all">All</option>
-                                {categories.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className="h-auto w-full rounded-lg border border-white/10 bg-white/90 py-3 pl-4 text-sm font-medium text-gray-900 shadow-sm transition outline-none focus:ring-2 focus:ring-white/20">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {categories.map((opt) => (
+                                        <SelectItem
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Subcategory */}
@@ -405,36 +418,43 @@ export default function ProductCategory({
                             >
                                 Subcategory
                             </label>
-                            <select
+                            <Select
                                 value={subcategory}
+                                onValueChange={handleSubcategoryChange}
                                 disabled={!subcategoryEnabled}
-                                onChange={(e) =>
-                                    handleSubcategoryChange(e.target.value)
-                                }
-                                className={`w-full rounded-lg border border-white/10 py-3 pr-10 pl-4 text-sm font-medium shadow-sm transition-all duration-200 outline-none ${
-                                    subcategoryEnabled
-                                        ? 'bg-white/90 text-gray-900 focus:border-white focus:ring-2 focus:ring-white/20'
-                                        : 'cursor-not-allowed bg-white/20 text-white/30'
-                                }`}
                             >
-                                <option value="all">All</option>
-                                {subcategoryOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    className={`h-auto w-full rounded-lg border border-white/10 py-3 pl-4 text-sm font-medium shadow-sm transition-all duration-200 outline-none ${
+                                        subcategoryEnabled
+                                            ? 'bg-white/90 text-gray-900 focus:ring-2 focus:ring-white/20'
+                                            : 'cursor-not-allowed bg-white/20 text-white/30'
+                                    }`}
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {subcategoryOptions.map((opt) => (
+                                        <SelectItem
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Clear Filters */}
                         <div className="flex items-center justify-between lg:justify-end">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={handleClear}
-                                className="inline-flex items-center justify-center rounded bg-red-700 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-red-800 focus:ring-2 focus:ring-red-500/50 focus:outline-none"
+                                className="inline-flex items-center justify-center rounded bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-red-800 focus:ring-2 focus:ring-red-500/50 focus:outline-none cursor-pointer"
                             >
                                 Clear Filters
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

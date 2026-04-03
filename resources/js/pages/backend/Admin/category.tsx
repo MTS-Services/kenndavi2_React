@@ -519,7 +519,7 @@ function CategoryFormModal({
                             <InputError message={errors.title} />
                         </div>
 
-                        {/* <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="cat-slug" className="text-lg font-medium font-alumni">
                                 Slug
                             </Label>
@@ -532,7 +532,7 @@ function CategoryFormModal({
                                 required
                             />
                             <InputError message={errors.slug} />
-                        </div> */}
+                        </div>
 
                         <DialogFooter className="sm:justify-start">
                             <Button
@@ -736,7 +736,7 @@ function SubcategoryFormModal({
                             <InputError message={errors.title} />
                         </div>
 
-                        {/* <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2">
                             <Label htmlFor="sub-slug" className="text-lg font-medium font-alumni">
                                 Slug
                             </Label>
@@ -749,7 +749,7 @@ function SubcategoryFormModal({
                                 required
                             />
                             <InputError message={errors.slug} />
-                        </div> */}
+                        </div>
 
                         <DialogFooter className="sm:justify-start">
                             <Button

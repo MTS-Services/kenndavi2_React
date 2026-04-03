@@ -15,8 +15,8 @@ class ProductController extends Controller
 {
     public function category(Request $request, ProductType $type): Response
     {
-        $categoryId    = $request->query('category', 'all');
-        $subcategoryId = $request->query('subcategory', 'all');
+        $categorySlug    = $request->query('category', 'all');
+        $subcategorySlug = $request->query('subcategory', 'all');
 
         $query = Product::with([
             'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('sort_order'),
@@ -24,14 +24,14 @@ class ProductController extends Controller
             ->where('type', $type)
             ->where('status', ProductStatus::ACTIVE)
             ->when(
-                $categoryId !== 'all',
+                $categorySlug !== 'all',
                 // FIX: filter by id, not slug
-                fn($q) => $q->whereHas('category', fn($c) => $c->where('id', $categoryId))
+                fn($q) => $q->whereHas('category', fn($c) => $c->where('slug', $categorySlug))
             )
             ->when(
-                $subcategoryId !== 'all',
+                $subcategorySlug !== 'all',
                 // FIX: filter by id, not slug
-                fn($q) => $q->whereHas('subcategory', fn($c) => $c->where('id', $subcategoryId))
+                fn($q) => $q->whereHas('subcategory', fn($c) => $c->where('slug', $subcategorySlug))
             )
             ->latest();
 
@@ -43,11 +43,11 @@ class ProductController extends Controller
             ->map(fn($c) => [
                 // FIX: cast to string so frontend === comparison works
                 // (URL query params are always strings)
-                'value'         => (string) $c->id,
+                'value'         => (string) $c->slug,
                 'label'         => $c->title,
                 'subcategories' => $c->children
                     ->map(fn($sub) => [
-                        'value' => (string) $sub->id, // FIX: cast to string
+                        'value' => (string) $sub->slug, // FIX: cast to string
                         'label' => $sub->title,
                     ])
                     ->values(),
@@ -82,8 +82,8 @@ class ProductController extends Controller
             'type'                 => $type->value,
             'type_label'           => $type->label(),
             'categories'           => $categories,
-            'selected_category'    => $categoryId,    // already a string from query()
-            'selected_subcategory' => $subcategoryId, // already a string from query()
+            'selected_category'    => $categorySlug,    // already a string from query()
+            'selected_subcategory' => $subcategorySlug, // already a string from query()
         ]);
     }
 

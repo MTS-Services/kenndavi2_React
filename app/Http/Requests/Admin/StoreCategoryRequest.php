@@ -26,7 +26,7 @@ class StoreCategoryRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:120'],
-            'slug' => ['nullable', 'string', 'max:160', 'unique:categories,slug'],
+            'slug' => ['required', 'string', 'max:160', 'unique:categories,slug'],
             'types' => ['nullable', 'array'],
             'types.*' => ['required_with:types', new Enum(ProductType::class)],
             'category_ids' => ['nullable', 'array'],
