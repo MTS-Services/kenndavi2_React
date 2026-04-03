@@ -214,19 +214,24 @@ export function FrontendHeader() {
             url.includes('?') ? url.split('?')[1] : '',
         );
         const typeParam = searchParams.get('type');
+        const knownTypes = new Set(productTypes.map((pt) => pt.value));
+        const defaultType = productTypes[0]?.value ?? '';
 
-        // Home route: /?type=men
-        if (currentPath === '/' && typeParam) {
-            const matched = productTypes.find((pt) => pt.value === typeParam);
-            if (matched) return matched.value;
+        // Home route: always active, default to first type if no/invalid param
+        if (currentPath === '/') {
+            return typeParam && knownTypes.has(typeParam)
+                ? typeParam
+                : defaultType;
         }
 
         // products.category route: /men, /women, /accessories
         const segment = currentPath.replace(/^\//, '').split('/')[0] ?? '';
-        const matched = productTypes.find((pt) => pt.value === segment);
+        if (knownTypes.has(segment)) {
+            return segment;
+        }
 
-        // Default to first type (men) when no match
-        return matched?.value ?? productTypes[0]?.value ?? '';
+        // Any other route → nothing active
+        return '';
     }, [url, currentPath, productTypes]);
 
     return (
