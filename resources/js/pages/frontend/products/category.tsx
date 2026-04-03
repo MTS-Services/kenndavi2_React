@@ -107,11 +107,13 @@ function ImageSlot({
     url,
     productId,
     productTitle,
+    productPrice,
     gridClass,
 }: {
     url: string;
     productId: number;
     productTitle: string;
+    productPrice: number;
     gridClass: string;
 }) {
     return (
@@ -127,9 +129,14 @@ function ImageSlot({
             </div>
 
             <div className="relative z-10 flex h-full translate-y-6 flex-col items-center justify-center gap-3 px-3 opacity-0 transition-all duration-700 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-                <h3 className="text-center font-['Alumni_Sans'] text-base font-semibold tracking-wide text-white uppercase drop-shadow-lg md:text-xl">
-                    {productTitle}
-                </h3>
+                <div className='text-center'>
+                    <h3 className="text-center font-['Alumni_Sans'] text-base font-semibold tracking-wide text-white uppercase drop-shadow-lg md:text-xl">
+                        {productTitle}
+                    </h3>
+                    <span className="font-semibold text-white">
+                        ${productPrice.toFixed(2)}
+                    </span>
+                </div>
                 <div className="h-8 w-px origin-top scale-y-0 bg-white/50 transition-all delay-75 duration-700 group-hover:scale-y-100 lg:h-12" />
                 <button
                     onClick={(e) => {
@@ -160,7 +167,7 @@ function ProductCard({ product }: { product: Product }) {
 
     return (
         <article>
-            <div className="mb-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-0.5">
+            {/* <div className="mb-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-0.5">
                 <h2 className="font-['Alumni_Sans'] text-xl font-semibold tracking-wide text-white">
                     {product.title}
                 </h2>
@@ -174,7 +181,7 @@ function ProductCard({ product }: { product: Product }) {
                             : `$${product.discount} OFF`}
                     </span>
                 )}
-            </div>
+            </div> */}
 
             <div className="grid h-[260px] max-h-[500px] min-h-[200px] grid-cols-4 grid-rows-2 gap-2 sm:h-[340px] lg:h-[440px]">
                 {product.images.map((img, i) => (
@@ -183,6 +190,7 @@ function ProductCard({ product }: { product: Product }) {
                         url={resolveUrl(img.url)}
                         productId={product.id}
                         productTitle={product.title}
+                        productPrice={finalPrice}
                         gridClass={layout[i]}
                     />
                 ))}
