@@ -24,13 +24,14 @@ class FrontendNavigation
     public static function build(): array
     {
         $byType = [];
+        
 
         foreach (ProductType::cases() as $case) {
             $topLevel = Category::query()
                 ->whereDoesntHave('parents')
                 ->forType($case)
                 ->with([
-                    'children' => fn ($q) => $q
+                    'children' => fn($q) => $q
                         ->forType($case)
                         ->select(['categories.id', 'categories.title'])
                         ->orderByPivot('sort_order'),
@@ -38,26 +39,20 @@ class FrontendNavigation
                 ->orderBy('sort_order')
                 ->get(['id', 'title']);
 
-            $categories = $topLevel->map(fn (Category $parent) => [
+            $categories = $topLevel->map(fn(Category $parent) => [
                 'id' => (int) $parent->id,
                 'title' => $parent->title,
-                'children' => $parent->children->map(fn (Category $child) => [
+                'children' => $parent->children->map(fn(Category $child) => [
                     'id' => (int) $child->id,
                     'title' => $child->title,
                 ])->values()->all(),
             ])->values()->all();
 
+            $href = route('home', ['type' => $case->value]); // generates /?type=men
+
             $byType[$case->value] = [
-                'landingHref' => match ($case) {
-                    ProductType::MEN => route('men'),
-                    ProductType::WOMEN => route('women'),
-                    ProductType::ACCESSORIES => route('accessories'),
-                },
-                'listingHref' => match ($case) {
-                    ProductType::MEN => route('sweatsuitsmen'),
-                    ProductType::WOMEN => route('hoodies.women'),
-                    ProductType::ACCESSORIES => route('accessories.catalog'),
-                },
+                'landingHref' => $href,
+                'listingHref' => route('products.category', ['type' => $case->value]),
                 'categories' => $categories,
             ];
         }

@@ -1,4 +1,4 @@
-import { details as productDetailsRoute } from '@/routes';
+import { details as productDetailsRoute } from '@/routes/products';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import Marquee from 'react-fast-marquee';

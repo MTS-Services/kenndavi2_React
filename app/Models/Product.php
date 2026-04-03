@@ -129,4 +129,13 @@ class Product extends Model
     {
         return $query->where('is_featured', true);
     }
+
+    public function scopeForType(Builder $query, string|ProductType $type): Builder
+    {
+        $enum = $type instanceof ProductType
+            ? $type
+            : ProductType::from($type);
+
+        return $query->where('type', $enum->value);
+    }
 }

@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import FrontendLayout from '@/layouts/frontend-layout';
+import { cn } from '@/lib/utils';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,15 @@ function computeFinalPrice(
     if (discountType === 'percentage') return price - (price * discount) / 100;
     return Math.max(0, price - discount);
 }
+
+const FALLBACK_IMG = '/assets/images/no-image.png';
+
+function resolveUrl(url: string | null | undefined): string {
+    if (!url) return FALLBACK_IMG;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return url.startsWith('/') ? url : `/${url}`;
+}
+
 
 function StarRow({ rating }: { rating: number }) {
     return (
@@ -242,7 +252,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                             <div>
                                 <div className="aspect-[4/5] max-h-[600px] overflow-hidden rounded-sm bg-white shadow-xl shadow-black/20">
                                     <img
-                                        src={selectedImage?.url}
+                                        src={resolveUrl(selectedImage?.url)}
                                         className="h-full w-full object-contain"
                                         alt={
                                             selectedImage?.alt ?? product.title
@@ -259,14 +269,14 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                 onClick={() =>
                                                     setSelectedImage(img)
                                                 }
-                                                className={`h-20 w-20 cursor-pointer overflow-hidden rounded-lg border-2 bg-white shadow-sm transitionshrink-0 ${
+                                                className={`transitionshrink-0 h-20 w-20 cursor-pointer overflow-hidden rounded-lg border-2 bg-white shadow-sm ${
                                                     selectedImage?.id === img.id
                                                         ? 'border-gray-100 ring-2 ring-primary'
                                                         : 'border-gray-300 hover:border-gray-100'
                                                 }`}
                                             >
                                                 <img
-                                                    src={img.url}
+                                                    src={resolveUrl(img.url)}
                                                     className="h-full w-full object-cover"
                                                     alt={img.alt}
                                                 />
@@ -302,10 +312,10 @@ export default function ProductDetails({ product }: { product: Product }) {
                                 {product.colors.length > 0 && (
                                     <div className="mt-6">
                                         <p className="mb-2 font-semibold text-gray-100">
-                                            Color
-                                            {selectedColor
+                                            Colors
+                                            {/* {selectedColor
                                                 ? `: ${selectedColor.name}`
-                                                : ''}
+                                                : ''} */}
                                         </p>
                                         <div className="flex flex-wrap gap-3">
                                             {product.colors.map((color) => {
@@ -326,11 +336,20 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                                 color,
                                                             )
                                                         }
-                                                        className={`relative h-7 w-7 rounded-full border-2 transition ${
+                                                        // className={`relative h-7 w-7 rounded-full border-2 transition ${
+                                                        //     isSelected
+                                                        //         ? 'scale-110 border-white ring-2 '
+                                                        //         : 'border-transparent hover:border-gray-300'
+                                                        // } ${unavailable ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'}`}
+                                                        className={cn(
+                                                            'relative h-7 w-7 rounded-full border-2 transition',
                                                             isSelected
-                                                                ? 'scale-110 border-white ring-2 ring-primary'
-                                                                : 'border-transparent hover:border-gray-300'
-                                                        } ${unavailable ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'}`}
+                                                                ? `scale-110 border-white  ring-2 ring-primary`
+                                                                : 'border-transparent hover:border-gray-300',
+                                                            unavailable
+                                                                ? 'cursor-not-allowed opacity-30'
+                                                                : 'cursor-pointer',
+                                                        )}
                                                         style={
                                                             isColorCode(
                                                                 color.value,
@@ -579,19 +598,12 @@ export default function ProductDetails({ product }: { product: Product }) {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <img
-                                                        src={
+                                                        src={resolveUrl(
                                                             review.user
-                                                                .avatar ??
-                                                            'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'
-                                                        }
+                                                                .avatar,
+                                                        )}
                                                         className="h-10 w-10 rounded-full object-cover"
                                                         alt={review.user.name}
-                                                        onError={(e) => {
-                                                            (
-                                                                e.currentTarget as HTMLImageElement
-                                                            ).src =
-                                                                'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png';
-                                                        }}
                                                     />
                                                     <div>
                                                         <p className="font-medium">

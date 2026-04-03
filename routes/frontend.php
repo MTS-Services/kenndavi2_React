@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', [FrontendController::class, 'index'])->name('home');
-Route::get('/men', [FrontendController::class, 'men'])->name('men');
-Route::get('/women', [FrontendController::class, 'women'])->name('women');
-Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
+// Route::get('/men', [FrontendController::class, 'men'])->name('men');
+// Route::get('/women', [FrontendController::class, 'women'])->name('women');
+// Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
 Route::get('/accessories/catalog', [FrontendController::class, 'accessoriesCatalog'])->name('accessories.catalog');
 Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
 Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
@@ -58,6 +58,7 @@ Route::get('/test-mailtrap', function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::controller(ProductController::class)->group(function () {
+Route::controller(ProductController::class)->name('products.')->group(function () {
     Route::get('/details/{id}', 'details')->name('details');
+    Route::get('/{type}', 'category')->name('category');
 });

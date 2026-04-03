@@ -11,12 +11,11 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProductController extends Controller
+class ProductControllerCopy extends Controller
 {
     public function category(Request $request, ProductType $type): Response
     {
-        $categoryId    = $request->query('category', 'all');
-        $subcategoryId = $request->query('subcategory', 'all');
+        $categorySlug = $request->query('category', 'all');
 
         $query = Product::with([
             'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('sort_order'),
@@ -24,34 +23,20 @@ class ProductController extends Controller
             ->where('type', $type)
             ->where('status', ProductStatus::ACTIVE)
             ->when(
-                $categoryId !== 'all',
-                // FIX: filter by id, not slug
-                fn($q) => $q->whereHas('category', fn($c) => $c->where('id', $categoryId))
-            )
-            ->when(
-                $subcategoryId !== 'all',
-                // FIX: filter by id, not slug
-                fn($q) => $q->whereHas('subcategory', fn($c) => $c->where('id', $subcategoryId))
+                $categorySlug !== 'all',
+                fn($q) => $q->whereHas('category', fn($c) => $c->where('slug', $categorySlug))
             )
             ->latest();
 
-        $categories = Category::query()
-            ->forType($type)
-            ->whereDoesntHave('parents')
-            ->with('children')
+        // Categories for the filter dropdown (scoped to this type)
+        $categories = Category::whereHas(
+            'products',
+            fn($q) =>
+            $q->where('type', $type)->where('status', ProductStatus::ACTIVE)
+        )
+            ->orderBy('sort_order')
             ->get()
-            ->map(fn($c) => [
-                // FIX: cast to string so frontend === comparison works
-                // (URL query params are always strings)
-                'value'         => (string) $c->id,
-                'label'         => $c->title,
-                'subcategories' => $c->children
-                    ->map(fn($sub) => [
-                        'value' => (string) $sub->id, // FIX: cast to string
-                        'label' => $sub->title,
-                    ])
-                    ->values(),
-            ]);
+            ->map(fn($c) => ['value' => $c->slug, 'label' => $c->title]);
 
         return Inertia::render('frontend/products/category', [
             'products' => Inertia::scroll(
@@ -63,6 +48,7 @@ class ProductController extends Controller
                     'price'         => (float) $p->price,
                     'discount'      => (float) ($p->discount ?? 0),
                     'discount_type' => $p->discount_type?->value ?? 'percentage',
+                    // Always return exactly 4 image slots (pad with the first image)
                     'images'        => collect($p->images->take(4))
                         ->pipe(function ($imgs) use ($p) {
                             $list = $imgs->map(fn($img) => [
@@ -79,11 +65,10 @@ class ProductController extends Controller
                         }),
                 ])
             ),
-            'type'                 => $type->value,
-            'type_label'           => $type->label(),
-            'categories'           => $categories,
-            'selected_category'    => $categoryId,    // already a string from query()
-            'selected_subcategory' => $subcategoryId, // already a string from query()
+            'type'              => $type->value,
+            'type_label'        => $type->label(),
+            'categories'        => $categories,
+            'selected_category' => $categorySlug,
         ]);
     }
 
