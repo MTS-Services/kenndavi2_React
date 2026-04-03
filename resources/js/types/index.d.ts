@@ -39,11 +39,13 @@ export type NavItem = NavItem;
 
 export interface FrontendNavCategoryChild {
     id: number;
+    slug: string;
     title: string;
 }
 
 export interface FrontendNavCategory {
     id: number;
+    slug: string;
     title: string;
     children: FrontendNavCategoryChild[];
 }

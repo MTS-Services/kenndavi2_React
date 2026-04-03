@@ -1,8 +1,9 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
+import { SharedData } from '@/types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -100,7 +101,6 @@ function resolveUrl(url: string | null | undefined): string {
     return url.startsWith('/') ? url : `/${url}`;
 }
 
-
 function StarRow({ rating }: { rating: number }) {
     return (
         <span>
@@ -123,7 +123,9 @@ function StarRow({ rating }: { rating: number }) {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ProductDetails({ product }: { product: Product }) {
-    console.log(product);
+    const { auth } = usePage<SharedData>().props;
+    console.log(auth);
+
     const [selectedImage, setSelectedImage] = useState<ProductImage>(
         product.images.find((i) => i.is_primary) ?? product.images[0],
     );
@@ -344,7 +346,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                         className={cn(
                                                             'relative h-7 w-7 rounded-full border-2 transition',
                                                             isSelected
-                                                                ? `scale-110 border-white  ring-2 ring-primary`
+                                                                ? `scale-110 border-white ring-2 ring-primary`
                                                                 : 'border-transparent hover:border-gray-300',
                                                             unavailable
                                                                 ? 'cursor-not-allowed opacity-30'
@@ -599,8 +601,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                 <div className="flex items-center gap-3">
                                                     <img
                                                         src={resolveUrl(
-                                                            review.user
-                                                                .avatar,
+                                                            review.user.avatar,
                                                         )}
                                                         className="h-10 w-10 rounded-full object-cover"
                                                         alt={review.user.name}

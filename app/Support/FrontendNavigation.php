@@ -33,17 +33,19 @@ class FrontendNavigation
                 ->with([
                     'children' => fn($q) => $q
                         ->forType($case)
-                        ->select(['categories.id', 'categories.title'])
+                        ->select(['categories.id', 'categories.title', 'categories.slug'])
                         ->orderByPivot('sort_order'),
                 ])
                 ->orderBy('sort_order')
-                ->get(['id', 'title']);
+                ->get(['id', 'title', 'slug']);
 
             $categories = $topLevel->map(fn(Category $parent) => [
                 'id' => (int) $parent->id,
+                'slug' => (string) $parent->slug,
                 'title' => $parent->title,
                 'children' => $parent->children->map(fn(Category $child) => [
                     'id' => (int) $child->id,
+                    'slug' => (string) $child->slug,
                     'title' => $child->title,
                 ])->values()->all(),
             ])->values()->all();

@@ -31,19 +31,18 @@ function pathOnly(href: string): string {
 
 function catalogFilterHref(
     listingHref: string,
-    parentId: number,
-    subId?: number,
+    parentSlug: string,
+    subSlug?: string,
 ): string {
     const params = new URLSearchParams();
-    params.set('category', String(parentId));
-    if (subId != null) {
-        params.set('subcategory', String(subId));
+    params.set('category', parentSlug);
+    if (subSlug != null) {
+        params.set('subcategory', subSlug);
     }
     const qs = params.toString();
     const sep = listingHref.includes('?') ? '&' : '?';
     return qs ? `${listingHref}${sep}${qs}` : listingHref;
 }
-
 function DesktopTypeNavItem({
     label,
     landingHref,
@@ -104,6 +103,7 @@ function DesktopTypeNavItem({
                             {categories.map((cat) => {
                                 const open = expandedParentId === cat.id;
                                 const hasChildren = cat.children.length > 0;
+                                console.log(cat);
 
                                 return (
                                     <li
@@ -114,7 +114,7 @@ function DesktopTypeNavItem({
                                             <Link
                                                 href={catalogFilterHref(
                                                     listingHref,
-                                                    cat.id,
+                                                    cat.slug,
                                                 )}
                                                 className="min-w-0 flex-1 px-4 py-2.5 text-sm text-gray-100 transition hover:bg-white/10"
                                             >
@@ -149,8 +149,8 @@ function DesktopTypeNavItem({
                                                         <Link
                                                             href={catalogFilterHref(
                                                                 listingHref,
-                                                                cat.id,
-                                                                child.id,
+                                                                cat.slug,
+                                                                child.slug,
                                                             )}
                                                             className="block py-2 pr-4 pl-8 text-sm text-gray-200 transition hover:bg-white/10"
                                                         >
@@ -432,7 +432,7 @@ export function FrontendHeader() {
                                                                         <Link
                                                                             href={catalogFilterHref(
                                                                                 entry.listingHref,
-                                                                                cat.id,
+                                                                                cat.slug,
                                                                             )}
                                                                             className="flex-1 text-xs text-gray-200 hover:text-white"
                                                                             onClick={() =>
@@ -483,8 +483,8 @@ export function FrontendHeader() {
                                                                                             <Link
                                                                                                 href={catalogFilterHref(
                                                                                                     entry.listingHref,
-                                                                                                    cat.id,
-                                                                                                    child.id,
+                                                                                                    cat.slug,
+                                                                                                    child.slug,
                                                                                                 )}
                                                                                                 className="block text-xs text-gray-300 hover:text-white"
                                                                                                 onClick={() =>
