@@ -1,9 +1,9 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
-
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
+import { login } from '@/routes';
 import { SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -209,6 +209,12 @@ export default function ProductDetails({ product }: { product: Product }) {
     }
 
     function handleAddToCart(buyNow = false) {
+        // First check is user is logged in or not if not then redirect to login page
+        if (!auth.user) {
+            router.visit(login().url);
+            return;
+        }
+
         if (!selectedColor || !selectedSize) {
             alert('Please select a color and size.');
             return;

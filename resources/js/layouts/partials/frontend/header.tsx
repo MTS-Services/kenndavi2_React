@@ -103,7 +103,6 @@ function DesktopTypeNavItem({
                             {categories.map((cat) => {
                                 const open = expandedParentId === cat.id;
                                 const hasChildren = cat.children.length > 0;
-                                console.log(cat);
 
                                 return (
                                     <li
