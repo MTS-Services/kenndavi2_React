@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Backend\User\OrderController;
 use App\Http\Controllers\Backend\User\UserDashboardController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
@@ -20,5 +21,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profile Routes
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::post('/profile', [UserProfileController::class, 'update'])->name('user-profile.update');
+
+
+    Route::controller(OrderController::class)->group(function() {
+        Route::get('/cart', 'cart')->name('cart');
+    });
 
 });

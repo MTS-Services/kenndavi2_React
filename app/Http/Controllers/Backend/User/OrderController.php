@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class OrderManagement extends Controller
+class OrderController extends Controller
 {
     //
 }
