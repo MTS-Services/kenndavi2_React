@@ -1,13 +1,13 @@
 <?php
 
+use App\Mail\UserOtpCodeMail;
 use App\Models\User;
 use App\Models\UserOtpChallenge;
-use App\Notifications\UserOtpCodeNotification;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
-use Illuminate\Support\Facades\Notification;
 
 test('signed user otp challenge page can be rendered', function () {
-    Notification::fake();
+    Mail::fake();
 
     $email = fake()->safeEmail();
 
@@ -18,11 +18,11 @@ test('signed user otp challenge page can be rendered', function () {
     $user = User::where('email', $email)->firstOrFail();
     $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
 
-    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $notification) use ($user, $challenge) {
-        expect($notification->challengeUrl)->toContain($challenge->challenge_token);
-        expect($notification->verifyUrl)->toContain($challenge->challenge_token);
+    Mail::assertSent(UserOtpCodeMail::class, function (UserOtpCodeMail $mail) use ($user, $challenge) {
+        expect($mail->challengeUrl)->toContain($challenge->challenge_token);
+        expect($mail->verifyUrl)->toContain($challenge->challenge_token);
 
-        $this->get($notification->challengeUrl)
+        $this->get($mail->challengeUrl)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('auth/two-factor-challenge')
@@ -34,7 +34,7 @@ test('signed user otp challenge page can be rendered', function () {
 });
 
 test('tampered user otp challenge signatures are rejected', function () {
-    Notification::fake();
+    Mail::fake();
 
     $email = fake()->safeEmail();
 
@@ -45,15 +45,15 @@ test('tampered user otp challenge signatures are rejected', function () {
     $user = User::where('email', $email)->firstOrFail();
     $challenge = UserOtpChallenge::where('user_id', $user->id)->firstOrFail();
 
-    $notification = null;
+    $mailable = null;
 
-    Notification::assertSentTo($user, UserOtpCodeNotification::class, function (UserOtpCodeNotification $sent) use (&$notification) {
-        $notification = $sent;
+    Mail::assertSent(UserOtpCodeMail::class, function (UserOtpCodeMail $sent) use (&$mailable) {
+        $mailable = $sent;
 
         return true;
     });
 
-    $tamperedUrl = str_replace($challenge->challenge_token, 'tampered-token', $notification->challengeUrl);
+    $tamperedUrl = str_replace($challenge->challenge_token, 'tampered-token', $mailable->challengeUrl);
 
     $this->get($tamperedUrl)->assertForbidden();
 });

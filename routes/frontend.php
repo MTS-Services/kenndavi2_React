@@ -5,8 +5,10 @@ use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
 use App\Mail\TestMailtrapMail;
+use App\Mail\UserOtpCodeMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 
 // Route::get('/', [FrontendController::class, 'index'])->name('home');
 // Route::get('/men', [FrontendController::class, 'men'])->name('men');
@@ -48,11 +50,43 @@ Route::get('/shippings', [FrontendController::class, 'shippings'])->name('shippi
 Route::get('/privacy-policy', [FrontendController::class, 'privacyPolicy'])->name('privacy.policy');
 Route::get('/terms-and-conditions', [FrontendController::class, 'termsAndConditions'])->name('terms.and.conditions');
 
-Route::get('/test-mailtrap', function () {
-    Mail::to('test@example.com')->send(new TestMailtrapMail);
+if (app()->environment('local')) {
+    Route::get('/test-mailtrap', function () {
+        Mail::to('test@example.com')->send(new TestMailtrapMail);
 
-    return 'Mailtrap test email dispatched.';
-})->name('test-mailtrap');
+        return 'Mailtrap test email dispatched.';
+    })->name('test-mailtrap');
+
+    Route::get('/dev/mail/preview/otp', function () {
+        $mailable = new UserOtpCodeMail(
+            code: '123456',
+            challengeUrl: url('/user/otp/example-challenge'),
+            verifyUrl: url('/user/otp/example-verify'),
+            expiresAt: now()->addMinutes(2),
+        );
+
+        return response($mailable->render());
+    })->name('dev.mail.preview.otp');
+
+    Route::get('/dev/mail/preview/otp.txt', function () {
+        $mailable = new UserOtpCodeMail(
+            code: '123456',
+            challengeUrl: url('/user/otp/example-challenge'),
+            verifyUrl: url('/user/otp/example-verify'),
+            expiresAt: now()->addMinutes(2),
+        );
+
+        $body = View::make('emails.auth.otp-code-text', [
+            'code' => $mailable->code,
+            'challengeUrl' => $mailable->challengeUrl,
+            'verifyUrl' => $mailable->verifyUrl,
+            'expiresAt' => $mailable->expiresAt,
+            'expiryLabel' => $mailable->expiresAt?->diffForHumans() ?? 'shortly',
+        ])->render();
+
+        return response($body)->header('Content-Type', 'text/plain; charset=UTF-8');
+    })->name('dev.mail.preview.otp.text');
+}
 
 // //////////////////////////////
 

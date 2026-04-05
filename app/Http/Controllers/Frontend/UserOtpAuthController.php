@@ -39,9 +39,9 @@ class UserOtpAuthController extends Controller
                 ['email' => $email],
                 [
                     'first_name' => $this->deriveFirstName($email),
-                    'last_name'  => 'User',
-                    'password'   => Hash::make(Str::random(64)),
-                    'status'     => 'active',
+                    'last_name' => '',
+                    'password' => Hash::make(Str::random(64)),
+                    'status' => 'active',
                 ],
             );
 
@@ -69,9 +69,9 @@ class UserOtpAuthController extends Controller
         }
 
         return Inertia::render('auth/two-factor-challenge', [
-            'mode'      => 'otp',
-            'email'     => $otp->user->email,
-            'status'    => $request->session()->get('status'),
+            'mode' => 'otp',
+            'email' => $otp->user->email,
+            'status' => $request->session()->get('status'),
             'expiresAt' => $otp->expires_at?->toIso8601String(),
             'isExpired' => $otp->expires_at?->isPast() ?? true,
             'verifyUrl' => $this->signedVerifyUrl($otp),
@@ -135,7 +135,7 @@ class UserOtpAuthController extends Controller
 
         $user = $otp->user;
 
-        $newChallenge = DB::transaction(fn() => $this->issueChallenge($user, $request));
+        $newChallenge = DB::transaction(fn () => $this->issueChallenge($user, $request));
 
         $this->dispatchOtpMail($user, $newChallenge);
 
@@ -188,11 +188,11 @@ class UserOtpAuthController extends Controller
 
         $challenge = $user->otpChallenges()->create([
             'challenge_token' => (string) Str::uuid(),
-            'code_hash'       => $this->hashCode($code),
-            'attempts'        => 0,
-            'expires_at'      => now()->addMinutes(2),
-            'ip_address'      => $request->ip(),
-            'user_agent'      => $request->userAgent(),
+            'code_hash' => $this->hashCode($code),
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(2),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         $challenge->setAttribute('plain_code', $code);

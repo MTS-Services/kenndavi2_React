@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -23,10 +24,10 @@ use Illuminate\Support\Facades\Mail;
  * in one queue never delays authentication emails.
  *
  * Retry policy:
- *   - 3 attempts with exponential back-off (3 s, 9 s)
- *   - After all retries fail the job moves to the failed_jobs table for review.
- *   - OTPs expire in 2 minutes, so retrying beyond that window is pointless;
- *     $retryUntil() enforces this hard ceiling.
+ *   - At most 3 attempts (see $tries); exponential back-off (3 s, 9 s).
+ *   - Do not use retryUntil() here — Laravel defers the $tries cap while retryUntil
+ *     is set, which caused unbounded retries until OTP expiry.
+ *   - If the OTP is already expired when the job runs, handle() exits without sending.
  *
  * Usage:
  *   SendUserOtpMailJob::dispatch(
@@ -75,20 +76,14 @@ class SendUserOtpMailJob implements ShouldQueue
     }
 
     /**
-     * Stop retrying once the OTP itself has expired — a delivered email after
-     * expiry is useless and confusing for the user.
-     */
-    public function retryUntil(): \DateTimeInterface
-    {
-        // Give a 30-second grace window beyond the OTP expiry for in-flight retries.
-        return $this->expiresAt?->copy()->addSeconds(30) ?? now()->addMinutes(3);
-    }
-
-    /**
      * Execute the job.
      */
     public function handle(): void
     {
+        if ($this->expiresAt !== null && $this->expiresAt->isPast()) {
+            return;
+        }
+
         $mailable = new UserOtpCodeMail(
             code: $this->code,
             challengeUrl: $this->challengeUrl,
@@ -108,8 +103,8 @@ class SendUserOtpMailJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        \Illuminate\Support\Facades\Log::error('OTP email delivery failed permanently', [
-            'to'        => $this->toEmail,
+        Log::error('OTP email delivery failed permanently', [
+            'to' => $this->toEmail,
             'exception' => $exception->getMessage(),
         ]);
     }

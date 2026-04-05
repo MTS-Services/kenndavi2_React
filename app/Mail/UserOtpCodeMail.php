@@ -15,13 +15,7 @@ use Illuminate\Queue\SerializesModels;
  * Kept as a plain Mailable (not ShouldQueue) — queuing is the Job's
  * responsibility. This class owns only what the email looks like.
  *
- * Preview in the browser during development:
- *   Route::get('/mail-preview/otp', fn () => new UserOtpCodeMail(
- *       code: '123456',
- *       challengeUrl: 'https://example.com',
- *       verifyUrl: 'https://example.com/verify',
- *       expiresAt: now()->addMinutes(2),
- *   ));
+ * Local preview: GET /dev/mail/preview/otp (see routes/frontend.php).
  */
 class UserOtpCodeMail extends Mailable
 {
@@ -43,17 +37,20 @@ class UserOtpCodeMail extends Mailable
 
     public function content(): Content
     {
+        $with = [
+            'code' => $this->code,
+            'challengeUrl' => $this->challengeUrl,
+            'verifyUrl' => $this->verifyUrl,
+            'expiresAt' => $this->expiresAt,
+            'expiryLabel' => $this->expiresAt
+                ? $this->expiresAt->diffForHumans()
+                : 'shortly',
+        ];
+
         return new Content(
-            markdown: 'emails.auth.otp-code',
-            with: [
-                'code'         => $this->code,
-                'challengeUrl' => $this->challengeUrl,
-                'verifyUrl'    => $this->verifyUrl,
-                'expiresAt'    => $this->expiresAt,
-                'expiryLabel'  => $this->expiresAt
-                    ? $this->expiresAt->diffForHumans()
-                    : 'shortly',
-            ],
+            view: 'emails.auth.otp-code',
+            text: 'emails.auth.otp-code-text',
+            with: $with,
         );
     }
 }
