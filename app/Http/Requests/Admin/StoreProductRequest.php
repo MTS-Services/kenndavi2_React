@@ -29,7 +29,7 @@ class StoreProductRequest extends FormRequest
              *  - must be globally unique across the products table
              */
             'slug' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9_-]+$/',

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Enums\ProductStatus;
+use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,6 +13,80 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
+    public function category(Request $request, ProductType $type): Response
+    {
+        $categorySlug    = $request->query('category', 'all');
+        $subcategorySlug = $request->query('subcategory', 'all');
+
+        $query = Product::with([
+            'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('sort_order'),
+        ])
+            ->where('type', $type)
+            ->where('status', ProductStatus::ACTIVE)
+            ->when(
+                $categorySlug !== 'all',
+                // FIX: filter by id, not slug
+                fn($q) => $q->whereHas('category', fn($c) => $c->where('slug', $categorySlug))
+            )
+            ->when(
+                $subcategorySlug !== 'all',
+                // FIX: filter by id, not slug
+                fn($q) => $q->whereHas('subcategory', fn($c) => $c->where('slug', $subcategorySlug))
+            )
+            ->latest();
+
+        $categories = Category::query()
+            ->forType($type)
+            ->whereDoesntHave('parents')
+            ->with('children')
+            ->get()
+            ->map(fn($c) => [
+                // FIX: cast to string so frontend === comparison works
+                // (URL query params are always strings)
+                'value'         => (string) $c->slug,
+                'label'         => $c->title,
+                'subcategories' => $c->children
+                    ->map(fn($sub) => [
+                        'value' => (string) $sub->slug, // FIX: cast to string
+                        'label' => $sub->title,
+                    ])
+                    ->values(),
+            ]);
+
+        return Inertia::render('frontend/products/category', [
+            'products' => Inertia::scroll(
+                fn() =>
+                $query->paginate(3)->through(fn($p) => [
+                    'id'            => $p->id,
+                    'title'         => $p->title,
+                    'slug'          => $p->slug,
+                    'price'         => (float) $p->price,
+                    'discount'      => (float) ($p->discount ?? 0),
+                    'discount_type' => $p->discount_type?->value ?? 'percentage',
+                    'images'        => collect($p->images->take(4))
+                        ->pipe(function ($imgs) use ($p) {
+                            $list = $imgs->map(fn($img) => [
+                                'url' => $img->http_url,
+                                'alt' => $img->alt_text ?? $p->title,
+                            ])->values()->toArray();
+
+                            $fallback = $list[0] ?? ['url' => null, 'alt' => $p->title];
+                            while (count($list) < 4) {
+                                $list[] = $fallback;
+                            }
+
+                            return $list;
+                        }),
+                ])
+            ),
+            'type'                 => $type->value,
+            'type_label'           => $type->label(),
+            'categories'           => $categories,
+            'selected_category'    => $categorySlug,    // already a string from query()
+            'selected_subcategory' => $subcategorySlug, // already a string from query()
+        ]);
+    }
+
     public function details(int $id): Response
     {
         $product = Product::findOrFail($id);
@@ -21,16 +98,13 @@ class ProductController extends Controller
             'reviews.user',
         ]);
 
-        // Compute aggregates server-side so the component stays clean
         $approvedReviews = $product->reviews->where('status.value', 'approved');
+        $avgRating       = $approvedReviews->avg('rating') ?? 0;
+        $reviewCount     = $approvedReviews->count();
 
-        $avgRating = $approvedReviews->avg('rating') ?? 0;
-        $reviewCount = $approvedReviews->count();
-
-        // Rating distribution (1-5 stars)
         $distribution = [];
         for ($star = 5; $star >= 1; $star--) {
-            $count = $approvedReviews->where('rating', $star)->count();
+            $count          = $approvedReviews->where('rating', $star)->count();
             $distribution[] = [
                 'star'    => $star,
                 'count'   => $count,
@@ -38,59 +112,45 @@ class ProductController extends Controller
             ];
         }
 
-        // Total stock across all variants
-        $totalStock = $product->variants->sum('quantity');
-
         return Inertia::render('frontend/products/details', [
             'product' => [
-                'id'            => $product->id,
-                'title'         => $product->title,
-                'description'   => $product->description,
-                'price'         => (float) $product->price,
-                'discount'      => (float) ($product->discount ?? 0),
-                'discount_type' => $product->discount_type?->value ?? 'percentage',
-                'stock'         => $totalStock,
-                'avg_rating'    => round($avgRating, 1),
-                'review_count'  => $reviewCount,
+                'id'                  => $product->id,
+                'title'               => $product->title,
+                'description'         => $product->description,
+                'price'               => (float) $product->price,
+                'discount'            => (float) ($product->discount ?? 0),
+                'discount_type'       => $product->discount_type?->value ?? 'percentage',
+                'stock'               => $product->variants->sum('quantity'),
+                'avg_rating'          => round($avgRating, 1),
+                'review_count'        => $reviewCount,
                 'rating_distribution' => $distribution,
 
-                // Images: sorted by sort_order, primary first
                 'images' => $product->images
-                    ->sortByDesc('is_primary')
-                    ->sortBy('sort_order')
-                    ->values()
+                    ->sortByDesc('is_primary')->sortBy('sort_order')->values()
                     ->map(fn($img) => [
                         'id'         => $img->id,
-                        'url'        => $img->url,
+                        'url'        => $img->http_url,
                         'alt'        => $img->alt_text ?? $product->title,
                         'is_primary' => $img->is_primary,
                         'color_id'   => $img->color_id,
                     ]),
 
-                // Unique colors derived from active variants
                 'colors' => $product->variants
                     ->where('quantity', '>', 0)
                     ->filter(fn($v) => $v->color !== null)
-                    ->unique('color_id')
-                    ->values()
+                    ->unique('color_id')->values()
                     ->map(fn($v) => [
                         'id'    => $v->color->id,
                         'name'  => $v->color->name,
                         'value' => $v->color->hex,
                     ]),
 
-                // Unique sizes derived from active variants
                 'sizes' => $product->variants
                     ->where('quantity', '>', 0)
                     ->filter(fn($v) => $v->size !== null)
-                    ->unique('size_id')
-                    ->values()
-                    ->map(fn($v) => [
-                        'id'   => $v->size->id,
-                        'name' => $v->size->name, // e.g. "38", "M", "L"
-                    ]),
+                    ->unique('size_id')->values()
+                    ->map(fn($v) => ['id' => $v->size->id, 'name' => $v->size->name]),
 
-                // Full variant map so the front-end can look up stock & id
                 'variants' => $product->variants->map(fn($v) => [
                     'id'       => $v->id,
                     'color_id' => $v->color_id,
@@ -98,11 +158,8 @@ class ProductController extends Controller
                     'quantity' => $v->quantity,
                 ]),
 
-                // Latest approved reviews (paginate on a separate endpoint if needed)
                 'reviews' => $approvedReviews
-                    ->sortByDesc('created_at')
-                    ->take(10)
-                    ->values()
+                    ->sortByDesc('created_at')->take(10)->values()
                     ->map(fn($r) => [
                         'id'         => $r->id,
                         'rating'     => $r->rating,
@@ -116,5 +173,10 @@ class ProductController extends Controller
                     ]),
             ],
         ]);
+    }
+
+    public function cart(): Response
+    {
+        return Inertia::render('frontend/products/cart');
     }
 }

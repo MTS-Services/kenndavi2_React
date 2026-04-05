@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('subcategory_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
 
             $table->string('title', 255)->index();
-            $table->string('slug', 300)->unique();
+            $table->string('slug', 300)->unique()->nullable();
             $table->text('description')->nullable();
             $table->decimal('price', 15, 2)->default(0)->index();
             $table->string('discount')->nullable();
