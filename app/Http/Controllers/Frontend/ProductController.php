@@ -174,9 +174,4 @@ class ProductController extends Controller
             ],
         ]);
     }
-
-    public function cart(): Response
-    {
-        return Inertia::render('frontend/products/cart');
-    }
 }

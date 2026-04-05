@@ -4,7 +4,9 @@ namespace App\Enums;
 
 enum OrderStatus: string
 {
+    case INITIALIZED = 'initialized';
     case PENDING = 'pending';
+    case FAILED = 'failed';
     case CONFIRMED = 'confirmed';
     case PROCESSING = 'processing';
     case SHIPPED = 'shipped';
@@ -17,7 +19,9 @@ enum OrderStatus: string
     public function label(): string
     {
         return match ($this) {
+            self::INITIALIZED => __('Initialized'),
             self::PENDING => __('Pending'),
+            self::FAILED => __('Failed'),
             self::CONFIRMED => __('Confirmed'),
             self::PROCESSING => __('Processing'),
             self::SHIPPED => __('Shipped'),
@@ -32,7 +36,9 @@ enum OrderStatus: string
     public function color(): string
     {
         return match ($this) {
+            self::INITIALIZED => 'badge-secondary',
             self::PENDING => 'badge-warning',
+            self::FAILED => 'badge-danger',
             self::CONFIRMED => 'badge-info',
             self::PROCESSING => 'badge-info',
             self::SHIPPED => 'badge-primary',
@@ -50,7 +56,7 @@ enum OrderStatus: string
     public static function options(): array
     {
         return array_map(
-            fn (self $case) => [
+            fn(self $case) => [
                 'value' => $case->value,
                 'label' => $case->label(),
             ],

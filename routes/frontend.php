@@ -60,6 +60,5 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::controller(ProductController::class)->name('products.')->group(function () {
     Route::get('/details/{id}', 'details')->name('details');
-    Route::get('/cart', 'cart')->name('cart');
     Route::get('/{type}', 'category')->name('category');
 });
