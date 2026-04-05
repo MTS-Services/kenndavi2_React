@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
 import { login } from '@/routes';
+import { store as cartItemsStore } from '@/routes/cart/items';
 import { SharedData } from '@/types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -126,7 +127,6 @@ function StarRow({ rating }: { rating: number }) {
 
 export default function ProductDetails({ product }: { product: Product }) {
     const { auth } = usePage<SharedData>().props;
-    console.log(auth);
 
     const [selectedImage, setSelectedImage] = useState<ProductImage>(
         product.images.find((i) => i.is_primary) ?? product.images[0],
@@ -240,8 +240,7 @@ export default function ProductDetails({ product }: { product: Product }) {
     }
 
     function handleAddToCart(buyNow = false) {
-        // First check is user is logged in or not if not then redirect to login page
-        if (!auth.user) {
+        if (buyNow && !auth.user) {
             router.visit(login().url);
             return;
         }
@@ -254,12 +253,10 @@ export default function ProductDetails({ product }: { product: Product }) {
             alert('This combination is out of stock.');
             return;
         }
-        const destination = buyNow ? '/checkout' : '/cartpage';
-        router.post(destination, {
+
+        router.post(cartItemsStore.url(), {
             variant_id: selectedVariant.id,
-            product_id: product.id,
             quantity,
-            price: finalPrice,
         });
     }
 

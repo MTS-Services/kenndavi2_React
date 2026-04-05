@@ -1,3 +1,7 @@
+import { Link, router, usePage } from '@inertiajs/react';
+import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,15 +12,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { home, login, logout } from '@/routes';
+import { index as cartIndex } from '@/routes/cart';
 import type {
     FrontendNav,
     FrontendNavByTypeEntry,
     FrontendNavCategory,
     SharedData,
 } from '@/types';
-import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function pathOnly(href: string): string {
     if (href.startsWith('http://') || href.startsWith('https://')) {
@@ -276,7 +278,7 @@ export function FrontendHeader() {
 
                     <button
                         type="button"
-                        onClick={() => router.get('/cartpage')}
+                        onClick={() => router.visit(cartIndex.url())}
                         className="text-lg text-gray-900 transition hover:text-white"
                     >
                         <ShoppingCart size={20} />

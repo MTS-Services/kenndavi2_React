@@ -2,7 +2,6 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { Menu, X, Search, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -13,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { logout } from '@/routes';
+import { index as cartIndex } from '@/routes/cart';
 
 const navigationItems = [
     { name: 'Order', href: '/dashboard' },
@@ -71,7 +71,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                     </div>
 
                     {/* Cart */}
-                    <button onClick={() => router.visit('/cartpage')} className="text-lg text-red-600 transition">
+                    <button onClick={() => router.visit(cartIndex.url())} className="text-lg text-red-600 transition">
                         <ShoppingCart size={20} />
                     </button>
 
@@ -131,7 +131,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <button onClick={() => router.visit('/cartpage')} className="text-lg text-red-600 transition">
+                        <button onClick={() => router.visit(cartIndex.url())} className="text-lg text-red-600 transition">
                             <User size={20} />
                         </button>
                     )}

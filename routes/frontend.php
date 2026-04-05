@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Backend\User\CartController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
@@ -18,8 +19,17 @@ use Illuminate\Support\Facades\View;
 // Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
 Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
 Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
-Route::get('/cartpage', [FrontendController::class, 'cartpage'])->name('cartpage');
-Route::post('/cartpage', [FrontendController::class, 'addToCart'])->name('cartpage.add');
+Route::redirect('/cartpage', '/cart', 301)->name('cartpage');
+
+Route::controller(CartController::class)->name('cart.')->group(function () {
+    Route::get('/cart', 'index')->name('index');
+});
+
+Route::middleware('throttle:cart-mutations')->group(function () {
+    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+    Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+});
 
 // Temporary login overrides kept here for reference while Fortify owns /login.
 // Route::redirect('/userlogin', '/login', 301)->name('userlogin');

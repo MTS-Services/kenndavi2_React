@@ -30,6 +30,9 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'flash' => [
+                'toast' => fn (): mixed => $request->session()->get('toast'),
+            ],
             'name' => config('app.name'),
             'frontendNav' => FrontendNavigation::build(),
             'auth' => [

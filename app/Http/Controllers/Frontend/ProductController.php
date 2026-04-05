@@ -53,6 +53,7 @@ class ProductController extends Controller
                     ->values(),
             ]);
 
+
         return Inertia::render('frontend/products/category', [
             'products' => Inertia::scroll(
                 fn() =>
@@ -66,7 +67,7 @@ class ProductController extends Controller
                     'images'        => collect($p->images->take(4))
                         ->pipe(function ($imgs) use ($p) {
                             $list = $imgs->map(fn($img) => [
-                                'url' => $img->http_url,
+                                'url' => $img->url,
                                 'alt' => $img->alt_text ?? $p->title,
                             ])->values()->toArray();
 
@@ -129,7 +130,7 @@ class ProductController extends Controller
                     ->sortByDesc('is_primary')->sortBy('sort_order')->values()
                     ->map(fn($img) => [
                         'id'         => $img->id,
-                        'url'        => $img->http_url,
+                        'url'        => $img->url,
                         'alt'        => $img->alt_text ?? $product->title,
                         'is_primary' => $img->is_primary,
                         'color_id'   => $img->color_id,
