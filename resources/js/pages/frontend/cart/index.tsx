@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { home, login } from '@/routes';
 import { destroy, update } from '@/routes/cart/items';
 import type { SharedData } from '@/types';
+import { shipping } from '@/routes/order';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ function OrderSummary({ subtotal, isAuthenticated }: OrderSummaryProps) {
                 <Button
                     type="button"
                     className="mb-3 w-full rounded-sm bg-[var(--bg-red)] py-6 text-white hover:bg-red-800"
-                    onClick={() => router.visit('/productdetails2')}
+                    onClick={() => router.visit(shipping().url)}
                 >
                     Proceed to checkout
                 </Button>

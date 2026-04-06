@@ -1,3 +1,4 @@
+import { shipping } from '@/routes/order';
 import { router } from '@inertiajs/react';
 
 import FrontendLayout from '@/layouts/frontend-layout';
@@ -5,7 +6,7 @@ import FrontendLayout from '@/layouts/frontend-layout';
 export default function Cart() {
     return (
         <FrontendLayout>
-            <section className="container max-w-6xl mx-auto p-4 font-sans md:p-10">
+            <section className="container mx-auto max-w-6xl p-4 font-sans md:p-10">
                 <div className="flex flex-col gap-6 lg:flex-row">
                     <div className="flex-grow rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8">
                         <h1 className="mb-8 font-[Alumni_Sans] text-xl font-semibold text-gray-900">
@@ -205,7 +206,7 @@ export default function Cart() {
                             </div>
                         </div>
                         <button
-                            onClick={() => router.get('/productdetails2')}
+                            onClick={() => router.get(shipping().url)}
                             className="mb-4 flex w-full items-center justify-center space-x-2 rounded-sm bg-[var(--bg-red)] py-3 text-white transition-colors hover:bg-red-800"
                         >
                             <span>Proceed To Checkout</span>

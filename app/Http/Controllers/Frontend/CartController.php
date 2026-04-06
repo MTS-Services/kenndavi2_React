@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Backend\User;
+namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cart\StoreCartItemRequest;
@@ -54,7 +54,7 @@ class CartController extends Controller
 
         $subtotal = round($items->sum('line_total'), 2);
 
-        return Inertia::render('backend/User/cart/index', [
+        return Inertia::render('frontend/cart/index', [
             'items' => $items,
             'subtotal' => $subtotal,
             'item_count' => $items->sum('quantity'),
