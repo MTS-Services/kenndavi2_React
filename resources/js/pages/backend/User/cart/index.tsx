@@ -1,20 +1,27 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { ShoppingCart, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
-import { login } from '@/routes';
+import { home, login } from '@/routes';
 import { destroy, update } from '@/routes/cart/items';
 import type { SharedData } from '@/types';
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const FALLBACK_IMG = '/assets/images/no-image.png';
+const TOAST_ID = 'inertia-session-flash' as const;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CartLine {
     id: number;
     product_id: number | null;
+    variant_id: number | null;
     title: string;
     image_url: string | null;
     image_alt: string | null;
@@ -24,7 +31,6 @@ export interface CartLine {
     quantity: number;
     max_quantity: number;
     line_total: number;
-    variant_id: number | null;
 }
 
 interface CartPageProps {
@@ -35,38 +41,155 @@ interface CartPageProps {
     is_authenticated: boolean;
 }
 
-function resolveImg(url: string | null | undefined): string {
+type FlashToast = { type: 'success' | 'error' | string; message: string };
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+
+function resolveImageSrc(url: string | null | undefined): string {
     if (!url) return FALLBACK_IMG;
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     return url.startsWith('/') ? url : `/${url}`;
 }
 
+function formatPrice(amount: number): string {
+    return `$${amount.toFixed(2)}`;
+}
+
+function pluralise(count: number, word: string): string {
+    return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
+// ─── QuantityStepper ──────────────────────────────────────────────────────────
+
+interface QuantityStepperProps {
+    value: number;
+    min?: number;
+    max: number;
+    disabled?: boolean;
+    onChange: (next: number) => void;
+}
+
+function QuantityStepper({
+    value,
+    min = 1,
+    max,
+    disabled = false,
+    onChange,
+}: QuantityStepperProps) {
+    const [draft, setDraft] = useState(String(value));
+
+    // Keep draft in sync when the authoritative value changes (e.g. after server response)
+    const prevValue = useRef(value);
+    useEffect(() => {
+        if (prevValue.current !== value) {
+            prevValue.current = value;
+            setDraft(String(value));
+        }
+    }, [value]);
+
+    const commit = useCallback(() => {
+        const trimmed = draft.trim();
+        if (trimmed === '') {
+            setDraft(String(value));
+            return;
+        }
+        const parsed = parseInt(trimmed, 10);
+        if (!Number.isFinite(parsed)) {
+            setDraft(String(value));
+            return;
+        }
+        const clamped = Math.min(max, Math.max(min, Math.floor(parsed)));
+        if (clamped !== value) onChange(clamped);
+        else setDraft(String(value)); // reset if same
+    }, [draft, max, min, onChange, value]);
+
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Escape') {
+                setDraft(String(value));
+                e.currentTarget.blur();
+            }
+        },
+        [value],
+    );
+
+    return (
+        <div
+            className={cn(
+                'inline-flex items-center rounded-md border border-gray-200 bg-[var(--bg-animation)]',
+                disabled && 'pointer-events-none opacity-50',
+            )}
+        >
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label="Decrease quantity"
+                disabled={value <= min || disabled}
+                onClick={() => onChange(value - 1)}
+                className="h-9 w-9 rounded-r-none p-0 text-base"
+            >
+                −
+            </Button>
+
+            <span className="h-5 w-px bg-gray-200" aria-hidden />
+
+            <Input
+                type="number"
+                inputMode="numeric"
+                min={min}
+                max={max}
+                value={draft}
+                disabled={disabled}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={commit}
+                onKeyDown={handleKeyDown}
+                aria-label="Quantity"
+                className={cn(
+                    'h-9 w-12 rounded-none border-0 bg-transparent px-0 text-center text-sm',
+                    'font-medium tabular-nums shadow-none focus-visible:ring-0',
+                    '[appearance:textfield]',
+                    '[&::-webkit-inner-spin-button]:appearance-none',
+                    '[&::-webkit-outer-spin-button]:appearance-none',
+                )}
+            />
+
+            <span className="h-5 w-px bg-gray-200" aria-hidden />
+
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label="Increase quantity"
+                disabled={value >= max || disabled}
+                onClick={() => onChange(value + 1)}
+                className="h-9 w-9 rounded-l-none p-0 text-base"
+            >
+                +
+            </Button>
+        </div>
+    );
+}
+
+// ─── CartLineRow ──────────────────────────────────────────────────────────────
+
 function CartLineRow({ line }: { line: CartLine }) {
     const [busy, setBusy] = useState(false);
 
-    const patchQty = useCallback(
+    const handleQuantityChange = useCallback(
         (next: number) => {
-            const clamped = Math.min(
-                line.max_quantity,
-                Math.max(1, Math.floor(next)),
-            );
-            if (clamped === line.quantity) {
-                return;
-            }
             setBusy(true);
             router.patch(
                 update.url({ cartItem: line.id }),
-                { quantity: clamped },
-                {
-                    preserveScroll: true,
-                    onFinish: () => setBusy(false),
-                },
+                { quantity: next },
+                { preserveScroll: true, onFinish: () => setBusy(false) },
             );
         },
-        [line.id, line.max_quantity, line.quantity],
+        [line.id],
     );
 
-    const remove = useCallback(() => {
+    const handleRemove = useCallback(() => {
         if (!confirm('Remove this item from your cart?')) return;
         setBusy(true);
         router.delete(destroy.url({ cartItem: line.id }), {
@@ -80,75 +203,164 @@ function CartLineRow({ line }: { line: CartLine }) {
     return (
         <div
             className={cn(
-                'grid grid-cols-1 items-center gap-4 border-b border-gray-200 py-6 last:border-b-0 md:grid-cols-12',
-                busy && 'pointer-events-none opacity-60',
+                'grid grid-cols-1 items-center gap-4 border-b border-gray-100 py-6',
+                'last:border-b-0 md:grid-cols-12',
+                busy && 'pointer-events-none opacity-50',
             )}
         >
+            {/* Product info */}
             <div className="col-span-6 flex items-center gap-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-white">
+                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-sm bg-gray-50">
                     <img
-                        src={resolveImg(line.image_url)}
+                        src={resolveImageSrc(line.image_url)}
                         alt={line.image_alt ?? line.title}
                         className="h-full w-full object-cover"
+                        loading="lazy"
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-medium text-gray-900">{line.title}</p>
-                    {subtitle ? (
-                        <p className="text-sm text-gray-500">{subtitle}</p>
-                    ) : null}
+                    <p className="truncate font-medium text-gray-900">
+                        {line.title}
+                    </p>
+                    {subtitle && (
+                        <p className="mt-0.5 text-sm text-gray-500">
+                            {subtitle}
+                        </p>
+                    )}
                 </div>
             </div>
-            <div className="col-span-2 text-center font-[Libre_Franklin] text-lg font-semibold text-gray-900 md:text-left">
-                ${line.unit_price.toFixed(2)}
+
+            {/* Unit price */}
+            <div className="col-span-2 font-[Libre_Franklin] text-base font-semibold text-gray-900 md:text-center">
+                {formatPrice(line.unit_price)}
             </div>
-            <div className="col-span-3 flex justify-center md:justify-center">
-                <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-[var(--bg-animation)] px-1 py-1">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 cursor-pointer p-0"
-                        disabled={line.quantity <= 1 || busy}
-                        onClick={() => patchQty(line.quantity - 1)}
-                    >
-                        −
-                    </Button>
-                    <span className="min-w-[2rem] text-center text-sm font-medium tabular-nums text-gray-900">
-                        {line.quantity}
-                    </span>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 cursor-pointer p-0"
-                        disabled={
-                            line.quantity >= line.max_quantity || busy
-                        }
-                        onClick={() => patchQty(line.quantity + 1)}
-                    >
-                        +
-                    </Button>
-                </div>
+
+            {/* Quantity */}
+            <div className="col-span-2 flex justify-start md:justify-center">
+                <QuantityStepper
+                    value={line.quantity}
+                    max={line.max_quantity}
+                    disabled={busy}
+                    onChange={handleQuantityChange}
+                />
             </div>
-            <div className="col-span-1 flex justify-between gap-4 md:flex-col md:items-end">
-                <span className="font-[Libre_Franklin] text-sm font-semibold text-gray-900 md:text-base">
-                    ${line.line_total.toFixed(2)}
-                </span>
+
+            {/* Line total */}
+            <div className="col-span-1 font-[Libre_Franklin] text-base font-semibold text-gray-900 md:text-right">
+                {formatPrice(line.line_total)}
+            </div>
+
+            {/* Remove */}
+            <div className="col-span-1 flex justify-end">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="cursor-pointer text-gray-400 hover:text-red-600"
-                    onClick={remove}
-                    aria-label="Remove item"
+                    aria-label={`Remove ${line.title} from cart`}
+                    disabled={busy}
+                    onClick={handleRemove}
+                    className="text-gray-400 transition-colors hover:text-red-600"
                 >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
         </div>
     );
 }
+
+// ─── OrderSummary ─────────────────────────────────────────────────────────────
+
+interface OrderSummaryProps {
+    subtotal: number;
+    isAuthenticated: boolean;
+}
+
+function OrderSummary({ subtotal, isAuthenticated }: OrderSummaryProps) {
+    return (
+        <aside className="w-full shrink-0 self-start rounded-sm bg-[var(--bg-gray0)] p-8 lg:sticky lg:top-6 lg:w-80">
+            <h2 className="mb-6 font-[Alumni_Sans] text-xl font-bold text-gray-900">
+                Order summary
+            </h2>
+
+            <dl className="mb-6 space-y-4 text-sm">
+                <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
+                <SummaryRow label="Shipping" value="—" />
+                <div className="flex justify-between border-t border-gray-200 pt-4 text-base font-bold text-gray-900">
+                    <span>Total</span>
+                    <span>{formatPrice(subtotal)}</span>
+                </div>
+            </dl>
+
+            {isAuthenticated ? (
+                <Button
+                    type="button"
+                    className="mb-3 w-full rounded-sm bg-[var(--bg-red)] py-6 text-white hover:bg-red-800"
+                    onClick={() => router.visit('/productdetails2')}
+                >
+                    Proceed to checkout
+                </Button>
+            ) : (
+                <Button
+                    type="button"
+                    className="mb-3 w-full rounded-sm bg-[var(--bg-red)] py-6 text-white hover:bg-red-800"
+                    onClick={() => router.visit(login().url)}
+                >
+                    Sign in to checkout
+                </Button>
+            )}
+
+            <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-sm border-primary py-6 text-primary hover:bg-red-50"
+                onClick={() => window.history.back()}
+            >
+                Back
+            </Button>
+        </aside>
+    );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex justify-between border-b border-gray-100 pb-3">
+            <dt className="font-[Libre_Franklin] text-gray-600">{label}</dt>
+            <dd className="font-[Libre_Franklin] font-semibold text-gray-900">
+                {value}
+            </dd>
+        </div>
+    );
+}
+
+// ─── EmptyCart ────────────────────────────────────────────────────────────────
+
+function EmptyCart() {
+    return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+            <ShoppingCart className="mb-4 h-12 w-12 text-gray-300" />
+            <p className="text-base text-gray-500">Your cart is empty.</p>
+            <Button asChild className="mt-6" variant="default">
+                <Link href={home().url}>Continue shopping</Link>
+            </Button>
+        </div>
+    );
+}
+
+// ─── CartTable Header ─────────────────────────────────────────────────────────
+
+function CartTableHeader() {
+    return (
+        <div className="mb-2 hidden grid-cols-12 border-b border-gray-200 pb-3 text-xs font-semibold tracking-wider text-gray-400 uppercase md:grid">
+            <div className="col-span-6">Product</div>
+            <div className="col-span-2 text-center">Price</div>
+            <div className="col-span-2 text-center">Quantity</div>
+            <div className="col-span-1 text-right">Total</div>
+            <div className="col-span-1" />
+        </div>
+    );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Cart({
     items,
@@ -158,16 +370,13 @@ export default function Cart({
     is_authenticated,
 }: CartPageProps) {
     const { flash } = usePage<
-        SharedData & {
-            flash?: { toast?: { type: string; message: string } | null };
-        }
+        SharedData & { flash?: { toast?: FlashToast | null } }
     >().props;
 
     useEffect(() => {
         const t = flash?.toast;
         if (!t?.message) return;
-        // Stable id: React Strict Mode runs effects twice in dev; Sonner merges updates by id.
-        const opts = { id: 'inertia-session-flash' } as const;
+        const opts = { id: TOAST_ID };
         if (t.type === 'success') toast.success(t.message, opts);
         else if (t.type === 'error') toast.error(t.message, opts);
         else toast.message(t.message, opts);
@@ -177,111 +386,47 @@ export default function Cart({
         <FrontendLayout>
             <Head title="Shopping cart" />
 
-            <section className="container mx-auto max-w-6xl p-4 font-sans md:p-10">
-                <div className="flex flex-col gap-6 lg:flex-row">
-                    <div className="min-w-0 flex-grow rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8">
-                        <h1 className="mb-2 font-[Alumni_Sans] text-xl font-semibold text-gray-900">
-                            Shopping cart
-                        </h1>
-                        {item_count > 0 ? (
-                            <p className="mb-6 text-sm text-gray-600">
-                                {item_count}{' '}
-                                {item_count === 1 ? 'item' : 'items'}
-                            </p>
-                        ) : null}
+            <section className="flex flex-1 items-center justify-center">
+                <div className="container mx-auto max-w-7xl px-4 py-8">
+                    <div className="flex flex-col gap-6 lg:flex-row">
+                        {/* Cart items panel */}
+                        <div className="min-w-0 flex-1 rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8">
+                            <div className="mb-6 flex items-baseline gap-3">
+                                <h1 className="font-[Alumni_Sans] text-2xl font-semibold text-gray-900">
+                                    Shopping cart
+                                </h1>
+                                {item_count > 0 && (
+                                    <span className="text-sm text-gray-500">
+                                        {pluralise(item_count, 'item')}
+                                    </span>
+                                )}
+                            </div>
 
-                        {!is_empty ? (
-                            <>
-                                <div className="mb-4 hidden grid-cols-12 border-b border-gray-200 pb-2 text-xs font-medium tracking-wider text-gray-500 uppercase md:grid">
-                                    <div className="col-span-6">
-                                        Products
+                            {is_empty ? (
+                                <EmptyCart />
+                            ) : (
+                                <>
+                                    <CartTableHeader />
+                                    <div>
+                                        {items.map((line) => (
+                                            <CartLineRow
+                                                key={line.id}
+                                                line={line}
+                                            />
+                                        ))}
                                     </div>
-                                    <div className="col-span-2 text-center">
-                                        Price
-                                    </div>
-                                    <div className="col-span-3 text-center">
-                                        Quantity
-                                    </div>
-                                    <div className="col-span-1" />
-                                </div>
-                                <div>
-                                    {items.map((line) => (
-                                        <CartLineRow key={line.id} line={line} />
-                                    ))}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="py-16 text-center">
-                                <p className="text-gray-600">
-                                    Your cart is empty.
-                                </p>
-                                <Button asChild className="mt-6" variant="default">
-                                    <Link href="/">Continue shopping</Link>
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    <aside className="w-full shrink-0 self-start rounded-sm bg-[var(--bg-gray0)] p-8 lg:w-80">
-                        <h2 className="mb-6 font-[Alumni_Sans] text-xl font-bold text-gray-900">
-                            Order summary
-                        </h2>
-                        <div className="mb-6 space-y-4 text-sm">
-                            <div className="flex justify-between border-b border-gray-200 pb-2">
-                                <span className="font-[Libre_Franklin] text-gray-600">
-                                    Subtotal
-                                </span>
-                                <span className="font-bold text-gray-900">
-                                    ${subtotal.toFixed(2)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between border-b border-gray-300 pb-2">
-                                <span className="font-[Libre_Franklin] text-gray-600">
-                                    Shipping
-                                </span>
-                                <span className="font-[Libre_Franklin] font-bold text-gray-900">
-                                    —
-                                </span>
-                            </div>
-                            <div className="flex justify-between pt-2">
-                                <span className="font-[Libre_Franklin] font-bold text-gray-900">
-                                    Total
-                                </span>
-                                <span className="font-[Libre_Franklin] font-bold text-gray-900">
-                                    ${subtotal.toFixed(2)}
-                                </span>
-                            </div>
+                                </>
+                            )}
                         </div>
 
-                        {is_authenticated ? (
-                            <Button
-                                type="button"
-                                className="mb-4 w-full cursor-pointer rounded-sm bg-[var(--bg-red)] py-6 text-white hover:bg-red-800"
-                                onClick={() =>
-                                    router.visit('/productdetails2')
-                                }
-                            >
-                                Proceed to checkout
-                            </Button>
-                        ) : (
-                            <Button
-                                type="button"
-                                className="mb-4 w-full cursor-pointer rounded-sm bg-[var(--bg-red)] py-6 text-white hover:bg-red-800"
-                                onClick={() => router.visit(login().url)}
-                            >
-                                Sign in to checkout
-                            </Button>
+                        {/* Order summary sidebar */}
+                        {!is_empty && (
+                            <OrderSummary
+                                subtotal={subtotal}
+                                isAuthenticated={is_authenticated}
+                            />
                         )}
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full cursor-pointer rounded-sm border-primary py-6 text-primary hover:bg-red-50"
-                            onClick={() => window.history.back()}
-                        >
-                            Back
-                        </Button>
-                    </aside>
+                    </div>
                 </div>
             </section>
         </FrontendLayout>
