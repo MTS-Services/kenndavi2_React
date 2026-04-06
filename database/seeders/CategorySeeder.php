@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use App\Enums\ProductType;
+use App\Models\Admin;
 use App\Models\Category;
 use App\Models\CategoryRelation;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class CategorySeeder extends Seeder
 {
@@ -15,11 +17,17 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $attachTypes = function (Category $category, array $types): void {
+            if (!Schema::hasTable('category_types')) {
+                return;
+            }
+
             $category->types()->delete();
             foreach ($types as $type) {
                 $category->types()->create(['type' => $type]);
             }
         };
+
+        $adminId = Admin::query()->value('id');
 
         $tree = [
             [
@@ -53,29 +61,43 @@ class CategorySeeder extends Seeder
 
         foreach ($tree as $parentIndex => $parentRow) {
             $parentTitle = $parentRow['title'];
-            $parent = Category::factory()->create([
-                'title' => $parentTitle,
-                'slug' => str($parentTitle)->slug(),
-                'sort_order' => $parentIndex + 1,
-                'image' => 'https://placehold.co/400x400?text=' . urlencode($parentTitle),
-            ]);
+            $parent = Category::updateOrCreate(
+                ['slug' => str($parentTitle)->slug()],
+                [
+                    'title' => $parentTitle,
+                    'slug' => str($parentTitle)->slug(),
+                    'sort_order' => $parentIndex + 1,
+                    'image' => "https://picsum.photos/seed/category-" . str($parentTitle)->slug() . "/600/600",
+                    'description' => "Shop {$parentTitle} collection: curated essentials, seasonal trends, and everyday staples.",
+                    'status' => 'active',
+                    'created_by' => $adminId,
+                    'updated_by' => $adminId,
+                ]
+            );
             $attachTypes($parent, $parentRow['types']);
 
             foreach ($parentRow['children'] as $subIndex => $childRow) {
                 $subTitle = $childRow['title'];
-                $sub = Category::factory()->create([
-                    'title' => $subTitle,
-                    'slug' => str($parentTitle . ' ' . $subTitle)->slug(),
-                    'sort_order' => $subIndex + 1,
-                    'image' => 'https://placehold.co/400x400?text=' . urlencode($subTitle),
-                ]);
+                $childSlug = str($parentTitle . ' ' . $subTitle)->slug();
+                $sub = Category::updateOrCreate(
+                    ['slug' => $childSlug],
+                    [
+                        'title' => $subTitle,
+                        'slug' => $childSlug,
+                        'sort_order' => $subIndex + 1,
+                        'image' => "https://picsum.photos/seed/category-" . $childSlug . "/600/600",
+                        'description' => "Browse {$subTitle} in {$parentTitle}: quality fits, fresh colors, and reliable comfort.",
+                        'status' => 'active',
+                        'created_by' => $adminId,
+                        'updated_by' => $adminId,
+                    ]
+                );
                 $attachTypes($sub, $childRow['types']);
 
-                CategoryRelation::create([
-                    'category_id' => $parent->id,
-                    'sub_category_id' => $sub->id,
-                    'sort_order' => $subIndex + 1,
-                ]);
+                CategoryRelation::updateOrCreate(
+                    ['category_id' => $parent->id, 'sub_category_id' => $sub->id],
+                    ['sort_order' => $subIndex + 1]
+                );
             }
         }
     }
