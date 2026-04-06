@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::controller(OrderController::class)->name('order.')->group(function () {
         Route::get('/shipping', 'shipping')->name('shipping');
+        Route::post('/shipping', 'storeShipping')->name('shipping.store');
         Route::get('/order-management', 'index')->name('index');
         Route::get('/order-management/payment', 'payment')->name('payment');
         Route::get('/order-management/confirmation', 'confirmation')->name('confirmation');

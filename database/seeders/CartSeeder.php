@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\ProductVariant;
+use App\Models\ShippingAddress;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -39,6 +40,23 @@ class CartSeeder extends Seeder
                         'quantity' => rand(1, 2),
                         'unit_price' => $variant->product->price ?? 0,
                     ]
+                );
+            }
+
+            // Seed a shipping address for some carts so the shipping step can prefill.
+            if (rand(1, 100) <= 60) {
+                ShippingAddress::updateOrCreate(
+                    ['cart_id' => $cart->id, 'user_id' => $user->id],
+                    [
+                        'first_name' => $user->first_name ?? 'John',
+                        'last_name' => $user->last_name,
+                        'email' => $user->email,
+                        'phone' => $user->phone ?? '0000000000',
+                        'state' => $user->state ?? 'State',
+                        'city' => $user->city ?? 'City',
+                        'zip_code' => $user->zip_code ?? '00000',
+                        'address' => $user->address_line ?? 'Street address',
+                    ],
                 );
             }
         });
