@@ -4,6 +4,7 @@ use App\Http\Controllers\Backend\User\OrderController;
 use App\Http\Controllers\Backend\User\CheckoutController;
 use App\Http\Controllers\Backend\User\UserDashboardController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,4 +40,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/payment/{order}/success', [\App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('payment.success');
     Route::get('/payment/{order}/cancel', [\App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('payment.cancel');
+    Route::post('/payment/{order}/restore-cart', [PaymentController::class, 'restoreCart'])->name('payment.restore-cart');
 });

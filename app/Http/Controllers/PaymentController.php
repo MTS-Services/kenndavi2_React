@@ -5,20 +5,74 @@ namespace App\Http\Controllers;
 use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Http\Payment\PaymentManager;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
+use App\Models\ProductVariant;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Webhook;
 use Symfony\Component\HttpFoundation\Response;
 
 class PaymentController extends Controller
 {
+    public function restoreCart(Request $request, string $order, CartService $cartService)
+    {
+        $orderModel = Order::query()
+            ->where('order_number', $order)
+            ->where('user_id', $request->user()->id)
+            ->with('items')
+            ->firstOrFail();
+
+        if ($orderModel->status !== OrderStatus::FAILED) {
+            return redirect()
+                ->route('cart.index')
+                ->with('toast', [
+                    'type' => 'error',
+                    'message' => 'This order is not eligible to restore.',
+                ]);
+        }
+
+        $cart = $cartService->resolveCart($request);
+
+        DB::transaction(function () use ($orderModel, $cart, $cartService): void {
+            foreach ($orderModel->items as $item) {
+                if (! $item->variant_id) {
+                    continue;
+                }
+
+                $variant = ProductVariant::query()->lockForUpdate()->find($item->variant_id);
+                if (! $variant) {
+                    continue;
+                }
+
+                $qty = (int) $item->quantity;
+                if ($qty < 1) {
+                    continue;
+                }
+
+                $targetQty = min($qty, (int) $variant->quantity);
+                if ($targetQty < 1) {
+                    continue;
+                }
+
+                $cartService->addOrMergeLine($cart, $variant, $targetQty);
+            }
+        });
+
+        return redirect()
+            ->route('cart.index')
+            ->with('toast', [
+                'type' => 'success',
+                'message' => 'Items restored to your cart.',
+            ]);
+    }
+
     public function paymentSuccess(Request $request, string $order)
     {
         $orderModel = Order::query()
@@ -35,12 +89,12 @@ class PaymentController extends Controller
 
             $result = $gateway->paymentMethod()->confirmPayment((string) $stripeSessionId);
 
-            return redirect()
-                ->route('cart.index')
-                ->with('toast', [
-                    'type' => ($result['success'] ?? false) ? 'success' : 'error',
-                    'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
-                ]);
+            return Inertia::render('frontend/payment/success', [
+                'orderNumber' => $orderModel->order_number,
+                'paymentGateway' => 'stripe',
+                'success' => (bool) ($result['success'] ?? false),
+                'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
+            ]);
         }
 
         if ($paypalToken) {
@@ -49,12 +103,12 @@ class PaymentController extends Controller
 
             $result = $gateway->paymentMethod()->confirmPayment((string) $paypalToken);
 
-            return redirect()
-                ->route('cart.index')
-                ->with('toast', [
-                    'type' => ($result['success'] ?? false) ? 'success' : 'error',
-                    'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
-                ]);
+            return Inertia::render('frontend/payment/success', [
+                'orderNumber' => $orderModel->order_number,
+                'paymentGateway' => 'paypal',
+                'success' => (bool) ($result['success'] ?? false),
+                'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
+            ]);
         }
 
         return redirect()
@@ -96,12 +150,10 @@ class PaymentController extends Controller
             ]);
         });
 
-        return redirect()
-            ->route('checkout.gateway', ['order' => $orderModel->order_number])
-            ->with('toast', [
-                'type' => 'error',
-                'message' => 'Payment was cancelled.',
-            ]);
+        return Inertia::render('frontend/payment/failed', [
+            'orderNumber' => $orderModel->order_number,
+            'message' => 'Payment was cancelled.',
+        ]);
     }
 
     public function stripeWebhook(Request $request): Response

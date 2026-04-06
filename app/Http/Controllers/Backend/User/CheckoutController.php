@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
 class CheckoutController extends Controller
 {
@@ -24,7 +25,7 @@ class CheckoutController extends Controller
         StoreShippingAddressRequest $request,
         CartService $cartService,
         PaymentService $paymentService,
-    ): RedirectResponse {
+    ): BaseResponse {
         $cart = $cartService->resolveCart($request);
         $cart->load([
             'items.variant.product.images',
@@ -43,6 +44,28 @@ class CheckoutController extends Controller
 
         if ((int) $cart->user_id !== (int) $request->user()->id) {
             abort(403);
+        }
+
+        foreach ($cart->items as $item) {
+            $variant = $item->variant;
+            if (! $variant) {
+                return redirect()
+                    ->route('cart.index')
+                    ->with('toast', [
+                        'type' => 'error',
+                        'message' => 'A cart item is missing its variant. Please update your cart.',
+                    ]);
+            }
+
+            $variant->refresh();
+            if ((int) $variant->quantity < (int) $item->quantity) {
+                return redirect()
+                    ->route('cart.index')
+                    ->with('toast', [
+                        'type' => 'error',
+                        'message' => 'One or more items are out of stock. Please update your cart.',
+                    ]);
+            }
         }
 
         /** @var Order $order */
@@ -77,15 +100,6 @@ class CheckoutController extends Controller
             $subtotal = 0;
             foreach ($cart->items as $item) {
                 $variant = $item->variant;
-                if (! $variant) {
-                    abort(422, 'A cart item is missing its variant.');
-                }
-
-                $variant->refresh();
-                if ((int) $variant->quantity < (int) $item->quantity) {
-                    abort(422, 'One or more items are out of stock. Please update your cart.');
-                }
-
                 $subtotal += (float) $item->unit_price * (int) $item->quantity;
             }
 
@@ -130,6 +144,8 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            $cart->items()->delete();
+
             return $order;
         });
 
@@ -154,7 +170,7 @@ class CheckoutController extends Controller
                     ]);
             }
 
-            return redirect()->away($result['checkout_url']);
+            return Inertia::location($result['checkout_url']);
         }
 
         return redirect()->route('checkout.gateway', ['order' => $order->order_number]);
@@ -184,7 +200,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function start(Request $request, PaymentService $paymentService): RedirectResponse
+    public function start(Request $request, PaymentService $paymentService): BaseResponse
     {
         $validated = $request->validate([
             'order_number' => ['required', 'string', 'max:32'],
@@ -214,7 +230,7 @@ class CheckoutController extends Controller
                 ]);
         }
 
-        return redirect()->away($result['checkout_url']);
+        return Inertia::location($result['checkout_url']);
     }
 
     protected function generateOrderNumber(): string

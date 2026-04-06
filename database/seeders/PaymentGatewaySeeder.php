@@ -46,7 +46,7 @@ class PaymentGatewaySeeder extends Seeder
                     'secret_key' => 'EJgLUV9PihD1ZcWMpVywf-8csZiyO2UKww_9DxRpbweop31co8ujf8_0UjHAyEtLGNEBG5UhtFIRFMMv',
                     'webhook_id' => null,
                 ],
-                'is_active' => true,
+                'is_active' => false,
                 'mode' => 'sandbox',
             ],
         ];

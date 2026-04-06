@@ -5,6 +5,7 @@ namespace App\Enums;
 enum PaymentMethod: string
 {
     case STRIPE = 'stripe';
+    case PAYPAL = 'paypal';
     case BKASH = 'bkash';
     case COD = 'cod';
     case CARD = 'card';
@@ -13,6 +14,7 @@ enum PaymentMethod: string
     {
         return match ($this) {
             self::STRIPE => __('Stripe'),
+            self::PAYPAL => __('PayPal'),
             self::BKASH => __('bKash'),
             self::COD => __('Cash on delivery'),
             self::CARD => __('Card'),
@@ -23,6 +25,7 @@ enum PaymentMethod: string
     {
         return match ($this) {
             self::STRIPE => 'badge-primary',
+            self::PAYPAL => 'badge-primary',
             self::BKASH => 'badge-pink',
             self::COD => 'badge-secondary',
             self::CARD => 'badge-primary',

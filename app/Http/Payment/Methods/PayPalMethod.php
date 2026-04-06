@@ -82,6 +82,11 @@ class PayPalMethod extends PaymentMethod
             $token = $this->getAccessToken();
 
             $res = Http::withToken($token)
+                ->acceptJson()
+                ->withHeaders([
+                    // PayPal idempotency header (recommended by docs)
+                    'PayPal-Request-Id' => 'order-'.$order->order_number.'-payment-'.$payment->id,
+                ])
                 ->post($this->baseUrl().'/v2/checkout/orders', [
                     'intent' => 'CAPTURE',
                     'purchase_units' => [
@@ -101,7 +106,13 @@ class PayPalMethod extends PaymentMethod
                     ],
                 ]);
 
-            if (! $res->ok()) {
+            if (! $res->successful()) {
+                Log::warning('PayPal order create request failed', [
+                    'order_number' => $order->order_number,
+                    'status' => $res->status(),
+                    'body' => $res->json() ?: $res->body(),
+                ]);
+
                 throw new Exception('PayPal order create failed.');
             }
 
@@ -155,7 +166,7 @@ class PayPalMethod extends PaymentMethod
             $token = $this->getAccessToken();
             $res = Http::withToken($token)->post($this->baseUrl()."/v2/checkout/orders/{$transactionId}/capture");
 
-            if (! $res->ok()) {
+            if (! $res->successful()) {
                 throw new Exception('PayPal capture failed.');
             }
 
