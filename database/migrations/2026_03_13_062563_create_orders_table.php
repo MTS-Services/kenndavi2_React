@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
+use App\Enums\OrderPaymentStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 32)->unique();
+            $table->char('idempotency_key', 64)->nullable()->unique();
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
             $table->unsignedBigInteger('shipping_address_id')->index();
@@ -26,7 +27,7 @@ return new class extends Migration
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('grand_total', 10, 2);
             $table->string('status', 30)->default(OrderStatus::PENDING->value);
-            $table->string('payment_status', 30)->default(PaymentStatus::PENDING->value);
+            $table->string('payment_status', 30)->default(OrderPaymentStatus::UNPAID->value);
             $table->text('notes')->nullable();
             $table->timestamps();
         });

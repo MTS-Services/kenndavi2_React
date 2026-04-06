@@ -5,6 +5,7 @@ use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
+use App\Http\Controllers\PaymentController;
 use App\Mail\TestMailtrapMail;
 use App\Mail\UserOtpCodeMail;
 use Illuminate\Support\Facades\Mail;
@@ -29,6 +30,9 @@ Route::controller(CartController::class)->name('cart.')->group(function () {
         Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('items.destroy');
     });
 });
+
+Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook'])->name('webhooks.stripe');
+Route::post('/webhooks/paypal', [PaymentController::class, 'paypalWebhook'])->name('webhooks.paypal');
 
 // Route::middleware('throttle:cart-mutations')->group(function () {
 //     Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');

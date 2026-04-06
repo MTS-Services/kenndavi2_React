@@ -20,6 +20,7 @@ class Order extends Model
      */
     protected $fillable = [
         'order_number',
+        'idempotency_key',
         'user_id',
         'shipping_address_id',
         'subtotal',

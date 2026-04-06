@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
-import { store as storeShipping } from '@/routes/order/shipping';
 
 type ShippingAddress = {
     first_name: string;
@@ -88,7 +87,7 @@ export default function ShippingInformation({
 
             <section className="container mx-auto max-w-7xl p-4 py-10">
                 <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row">
-                    <div className="flex-grow self-start rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8 lg:sticky lg:top-10">
+                    <div className="flex-grow self-start rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8">
                         <div className="mb-8 flex items-start justify-between gap-4">
                             <div>
                                 <h1 className="font-[Alumni_Sans] text-2xl font-bold">
@@ -106,7 +105,7 @@ export default function ShippingInformation({
                             className="space-y-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                post(storeShipping.url(), {
+                                post('/checkout/place-order', {
                                     preserveScroll: true,
                                 });
                             }}
@@ -328,7 +327,7 @@ export default function ShippingInformation({
                         </form>
                     </div>
 
-                    <div className="w-full self-start rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8 lg:w-[380px] lg:sticky lg:top-10">
+                    <div className="w-full self-start rounded-sm bg-[var(--bg-gray0)] p-6 md:p-8 lg:w-[380px]">
                         <h2 className="mb-6 font-['Libre_Franklin'] text-lg font-bold text-gray-900">
                             Order summary
                         </h2>

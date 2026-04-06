@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Backend\User\OrderController;
+use App\Http\Controllers\Backend\User\CheckoutController;
 use App\Http\Controllers\Backend\User\UserDashboardController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
@@ -29,4 +30,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/order-management/payment', 'payment')->name('payment');
         Route::get('/order-management/confirmation', 'confirmation')->name('confirmation');
     });
+
+    Route::controller(CheckoutController::class)->middleware('throttle:checkout')->name('checkout.')->group(function () {
+        Route::post('/checkout/place-order', 'placeOrder')->name('place-order');
+        Route::get('/checkout/gateway/{order}', 'gateway')->name('gateway');
+        Route::post('/checkout/start', 'start')->name('start');
+    });
+
+    Route::get('/payment/{order}/success', [\App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('payment.success');
+    Route::get('/payment/{order}/cancel', [\App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('payment.cancel');
 });

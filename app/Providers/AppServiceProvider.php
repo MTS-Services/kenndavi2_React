@@ -44,6 +44,12 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($key);
         });
 
+        RateLimiter::for('checkout', function (Request $request) {
+            $key = ($request->user()?->id ?? 'guest').':'.$request->session()->getId();
+
+            return Limit::perMinute(30)->by($key);
+        });
+
         Route::bind('cartItem', function (string $value) {
             $item = CartItem::query()->find($value);
             if ($item === null) {

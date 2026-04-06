@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Payment\PaymentManager;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\PaymentGateway;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
 
 class PaymentService
 {
@@ -17,7 +19,7 @@ class PaymentService
     ) {}
 
     /**
-     * Process a regular payment (original flow - unchanged)
+     * Start a direct checkout payment for an order.
      */
     public function processPayment(Order $order, string $gateway, array $paymentData = []): array
     {
@@ -44,10 +46,37 @@ class PaymentService
 
             $paymentMethod = $paymentGateway->paymentMethod();
 
-            return $paymentMethod->startPayment($order, $paymentData);
+            return DB::transaction(function () use ($order, $gateway, $paymentData, $paymentMethod) {
+                /** @var Order $lockedOrder */
+                $lockedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+                $payment = Payment::query()
+                    ->where('order_id', $lockedOrder->id)
+                    ->where('method', $gateway)
+                    ->where('status', PaymentStatus::PENDING->value)
+                    ->latest('id')
+                    ->first();
+
+                if (! $payment) {
+                    $payment = Payment::create([
+                        'order_id' => $lockedOrder->id,
+                        'method' => $gateway,
+                        'gateway_txn_id' => null,
+                        'amount' => $lockedOrder->grand_total,
+                        'currency' => 'USD',
+                        'status' => PaymentStatus::PENDING->value,
+                        'paid_at' => null,
+                        'gateway_response' => null,
+                    ]);
+                }
+
+                return $paymentMethod->startPayment($lockedOrder, array_merge($paymentData, [
+                    'payment' => $payment,
+                ]));
+            });
         } catch (Exception $e) {
             Log::error('Payment processing failed', [
-                'order_id' => $order->order_id,
+                'order_number' => $order->order_number,
                 'gateway' => $gateway,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -61,104 +90,16 @@ class PaymentService
         }
     }
 
-    /**
-     * Process top-up and then payment (for insufficient wallet balance)
-     * This stores order info in session and redirects to payment gateway
-     */
-    public function processTopUpAndPayment(Order $order, string $topUpGateway, float $topUpAmount, array $paymentData = []): array
-    {
-        try {
-            if (! $this->canProcessPayment($order)) {
-                return [
-                    'success' => false,
-                    'message' => 'Order cannot accept payment at this time.',
-                ];
-            }
-
-            $paymentGateway = PaymentGateway::where('slug', $topUpGateway)
-                ->where('is_active', true)
-                ->first();
-
-            if (! $paymentGateway || ! $paymentGateway->isSupported()) {
-                return [
-                    'success' => false,
-                    'message' => 'Selected payment gateway is not available.',
-                ];
-            }
-
-            $paymentMethod = $paymentGateway->paymentMethod();
-
-            // Store top-up information in session for later processing
-            $topUpData = [
-                'order_id' => $order->id,
-                'order_number' => $order->order_id,
-                'top_up_amount' => $topUpAmount,
-                'order_total' => $paymentData['grand_total'] ?? $order->grand_total,
-                'order_total_default' => $paymentData['grand_total_default'] ?? $order->default_grand_total,
-                'top_up_gateway' => $topUpGateway,
-                'created_at' => now()->timestamp,
-                'expires_at' => now()->addMinutes(30)->timestamp,
-            ];
-
-            // Store in session with order-specific key
-            Session::put("topup_order_{$order->order_id}", $topUpData);
-
-            Log::info('Top-up session created', [
-                'order_id' => $order->order_id,
-                'top_up_amount' => $topUpAmount,
-                'gateway' => $topUpGateway,
-            ]);
-
-            // Start payment with the payment gateway
-            // Pass flag to indicate this is a top-up payment
-            $result = $paymentMethod->startPayment($order, array_merge($paymentData, [
-                'is_topup' => true,
-                'top_up_amount' => $topUpAmount,
-            ]));
-
-            if ($result['success']) {
-                Log::info('Top-up payment initiated', [
-                    'order_id' => $order->order_id,
-                    'top_up_amount' => $topUpAmount,
-                    'gateway' => $topUpGateway,
-                ]);
-            }
-
-            return $result;
-        } catch (Exception $e) {
-            Log::error('Top-up payment processing failed', [
-                'order_id' => $order->order_id,
-                'top_up_amount' => $topUpAmount,
-                'gateway' => $topUpGateway,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'Top-up payment failed: ' . $e->getMessage(),
-            ];
-        }
-    }
-
     protected function canProcessPayment(Order $order): bool
     {
-        if (! in_array($order->status, [
-            OrderStatus::INITIALIZED,
-            OrderStatus::PENDING,
-            OrderStatus::FAILED,
-        ])) {
+        if (! in_array($order->status?->value, [
+            OrderStatus::INITIALIZED->value,
+            OrderStatus::PENDING->value,
+            OrderStatus::FAILED->value,
+        ], true)) {
             Log::warning('Order cannot accept payment', [
-                'order_id' => $order->order_id,
-                'status' => $order->status->value,
-            ]);
-
-            return false;
-        }
-
-        if (method_exists($order, 'isFullyPaid') && $order->isFullyPaid()) {
-            Log::warning('Order already fully paid', [
-                'order_id' => $order->order_id,
+                'order_number' => $order->order_number,
+                'status' => $order->status?->value,
             ]);
 
             return false;
