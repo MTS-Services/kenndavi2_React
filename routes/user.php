@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Backend\User\OrderController;
+use App\Http\Controllers\Backend\User\CheckoutController;
 use App\Http\Controllers\Backend\User\UserDashboardController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,4 +23,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profile Routes
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::post('/profile', [UserProfileController::class, 'update'])->name('user-profile.update');
+
+    Route::controller(OrderController::class)->name('order.')->group(function () {
+        Route::get('/shipping', 'shipping')->name('shipping');
+        Route::post('/shipping', 'storeShipping')->name('shipping.store');
+        Route::get('/order-management', 'index')->name('index');
+        Route::get('/order-management/payment', 'payment')->name('payment');
+        Route::get('/order-management/confirmation', 'confirmation')->name('confirmation');
+    });
+
+    Route::controller(CheckoutController::class)->middleware('throttle:checkout')->name('checkout.')->group(function () {
+        Route::post('/checkout/place-order', 'placeOrder')->name('place-order');
+        Route::get('/checkout/gateway/{order}', 'gateway')->name('gateway');
+        Route::post('/checkout/start', 'start')->name('start');
+    });
+
+    Route::get('/payment/{order}/success', [\App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('payment.success');
+    Route::get('/payment/{order}/cancel', [\App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('payment.cancel');
+    Route::post('/payment/{order}/restore-cart', [PaymentController::class, 'restoreCart'])->name('payment.restore-cart');
 });

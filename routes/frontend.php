@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\Backend\User\CartController;
+use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
+use App\Http\Controllers\PaymentController;
 use App\Mail\TestMailtrapMail;
 use App\Mail\UserOtpCodeMail;
 use Illuminate\Support\Facades\Mail;
@@ -23,13 +24,21 @@ Route::redirect('/cartpage', '/cart', 301)->name('cartpage');
 
 Route::controller(CartController::class)->name('cart.')->group(function () {
     Route::get('/cart', 'index')->name('index');
+    Route::middleware('throttle:cart-mutations')->group(function () {
+        Route::post('/cart/items', [CartController::class, 'store'])->name('items.store');
+        Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('items.update');
+        Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('items.destroy');
+    });
 });
 
-Route::middleware('throttle:cart-mutations')->group(function () {
-    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
-    Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
-    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
-});
+Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook'])->name('webhooks.stripe');
+Route::post('/webhooks/paypal', [PaymentController::class, 'paypalWebhook'])->name('webhooks.paypal');
+
+// Route::middleware('throttle:cart-mutations')->group(function () {
+//     Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+//     Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
+//     Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+// });
 
 // Temporary login overrides kept here for reference while Fortify owns /login.
 // Route::redirect('/userlogin', '/login', 301)->name('userlogin');
@@ -50,15 +59,15 @@ Route::prefix('user/otp')->name('user.otp.')->controller(UserOtpAuthController::
         ->name('resend');
 });
 
-Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
-Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
-Route::get('/hoodies-women', [FrontendController::class, 'hoodiesWomen'])->name('hoodies.women');
-Route::get('/sweatsuitsmen', [FrontendController::class, 'sweatsuitsMen'])->name('sweatsuitsmen');
-Route::get('/orders', [FrontendController::class, 'orders'])->name('orders');
-Route::get('/orders2', [FrontendController::class, 'orders2'])->name('orders2');
-Route::get('/shippings', [FrontendController::class, 'shippings'])->name('shippings');
-Route::get('/privacy-policy', [FrontendController::class, 'privacyPolicy'])->name('privacy.policy');
-Route::get('/terms-and-conditions', [FrontendController::class, 'termsAndConditions'])->name('terms.and.conditions');
+// Route::get('/productdetails2', [FrontendController::class, 'productdetails2'])->name('productdetails2');
+// Route::get('/orderconfirmed', [FrontendController::class, 'orderconfirmed'])->name('orderconfirmed');
+// Route::get('/hoodies-women', [FrontendController::class, 'hoodiesWomen'])->name('hoodies.women');
+// Route::get('/sweatsuitsmen', [FrontendController::class, 'sweatsuitsMen'])->name('sweatsuitsmen');
+// Route::get('/orders', [FrontendController::class, 'orders'])->name('orders');
+// Route::get('/orders2', [FrontendController::class, 'orders2'])->name('orders2');
+// Route::get('/shippings', [FrontendController::class, 'shippings'])->name('shippings');
+// Route::get('/privacy-policy', [FrontendController::class, 'privacyPolicy'])->name('privacy.policy');
+// Route::get('/terms-and-conditions', [FrontendController::class, 'termsAndConditions'])->name('terms.and.conditions');
 
 if (app()->environment('local')) {
     Route::get('/test-mailtrap', function () {
@@ -98,7 +107,7 @@ if (app()->environment('local')) {
     })->name('dev.mail.preview.otp.text');
 }
 
-// //////////////////////////////
+
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 

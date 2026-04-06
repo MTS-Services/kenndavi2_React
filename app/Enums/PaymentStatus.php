@@ -7,6 +7,7 @@ enum PaymentStatus: string
     case PENDING = 'pending';
     case COMPLETED = 'completed';
     case FAILED = 'failed';
+    case CANCELLED = 'cancelled';
     case REFUNDED = 'refunded';
 
     public function label(): string
@@ -15,6 +16,7 @@ enum PaymentStatus: string
             self::PENDING => __('Pending'),
             self::COMPLETED => __('Completed'),
             self::FAILED => __('Failed'),
+            self::CANCELLED => __('Cancelled'),
             self::REFUNDED => __('Refunded'),
         };
     }
@@ -25,6 +27,7 @@ enum PaymentStatus: string
             self::PENDING => 'badge-warning',
             self::COMPLETED => 'badge-success',
             self::FAILED => 'badge-danger',
+            self::CANCELLED => 'badge-secondary',
             self::REFUNDED => 'badge-purple',
         };
     }
