@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Frontend;
 use App\Enums\ProductStatus;
 use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -46,28 +45,6 @@ class FrontendController extends Controller
     public function homeWomen(): Response
     {
         return Inertia::render('frontend/home-women');
-    }
-
-    public function cartpage(): Response
-    {
-        return Inertia::render('frontend/cartpage');
-    }
-
-    public function addToCart(): RedirectResponse
-    {
-        $cart = session()->get('cart', []);
-
-        $cart[] = [
-            'product_id' => request('product_id'),
-            'quantity' => request('quantity'),
-            'color' => request('color'),
-            'size' => request('size'),
-            'price' => request('price'),
-        ];
-
-        session()->put('cart', $cart);
-
-        return to_route('cartpage');
     }
 
     public function userlogin(): Response

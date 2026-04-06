@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use App\Models\Banner;
 use App\Models\BannerImage;
 use Illuminate\Database\Seeder;
@@ -13,27 +14,48 @@ class BannerSeeder extends Seeder
      */
     public function run(): void
     {
+        $adminId = Admin::query()->value('id');
+
         $banners = [
             [
                 'content' => 'Discover our latest collection of premium cotton t-shirts.',
                 'action_url' => '/products',
-                'action_title' => 'Shop Now'
+                'action_title' => 'Shop Now',
+                'images' => [
+                    ['url' => 'https://picsum.photos/seed/banner-new-arrivals/1920/600', 'alt_text' => 'New arrivals banner'],
+                    ['url' => 'https://picsum.photos/seed/banner-cotton/1920/600', 'alt_text' => 'Premium cotton banner'],
+                ],
             ],
             [
                 'content' => 'Seasonal sale is here! Get up to 50% off on selected items.',
                 'action_url' => '/sale',
-                'action_title' => 'View Sale'
+                'action_title' => 'View Sale',
+                'images' => [
+                    ['url' => 'https://picsum.photos/seed/banner-sale/1920/600', 'alt_text' => 'Seasonal sale banner'],
+                    ['url' => 'https://picsum.photos/seed/banner-clearance/1920/600', 'alt_text' => 'Clearance banner'],
+                ],
             ],
         ];
 
         foreach ($banners as $bannerData) {
-            $banner = Banner::create($bannerData);
+            $images = $bannerData['images'] ?? [];
+            unset($bannerData['images']);
 
-            BannerImage::factory(2)->create([
-                'banner_id' => $banner->id,
-                'url' => "https://placehold.co/1920x600?text=Banner+Image",
-                'alt_text' => 'Promotion Banner',
-            ]);
+            $banner = Banner::updateOrCreate(
+                ['action_url' => $bannerData['action_url']],
+                array_merge($bannerData, ['created_by' => $adminId, 'updated_by' => $adminId])
+            );
+
+            foreach ($images as $image) {
+                BannerImage::updateOrCreate(
+                    ['banner_id' => $banner->id, 'url' => $image['url']],
+                    [
+                        'banner_id' => $banner->id,
+                        'url' => $image['url'],
+                        'alt_text' => $image['alt_text'] ?? 'Promotion banner',
+                    ]
+                );
+            }
         }
     }
 }

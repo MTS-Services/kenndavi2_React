@@ -20,5 +20,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profile Routes
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::post('/profile', [UserProfileController::class, 'update'])->name('user-profile.update');
-
 });

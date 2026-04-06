@@ -12,6 +12,7 @@ use App\Enums\RefundReason;
 use App\Enums\RefundStatus;
 use App\Enums\ReviewStatus;
 use App\Models\Admin;
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
@@ -52,12 +53,72 @@ class OrderSeeder extends Seeder
         }
 
         $users->each(function ($user) use ($admins, $variants) {
-            $shippingAddress = ShippingAddress::factory()->create(['user_id' => $user->id]);
+            $cart = Cart::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'session_id' => 'seed-' . substr(md5((string) $user->email), 0, 12),
+                    'expires_at' => now()->addDays(30),
+                ]
+            );
 
-            Order::factory(rand(1, 3))->create([
-                'user_id' => $user->id,
-                'shipping_address_id' => $shippingAddress->id,
-            ])->each(function ($order) use ($user, $admins, $variants) {
+            $shippingAddress = ShippingAddress::updateOrCreate(
+                ['cart_id' => $cart->id, 'user_id' => $user->id],
+                [
+                    'cart_id' => $cart->id,
+                    'user_id' => $user->id,
+                    'first_name' => $user->first_name ?? 'Customer',
+                    'last_name' => $user->last_name ?? null,
+                    'email' => $user->email,
+                    'phone' => $user->phone ?? '+1 555 0100',
+                    'state' => $user->state ?? 'California',
+                    'city' => $user->city ?? 'Los Angeles',
+                    'zip_code' => $user->zip_code ?? '90001',
+                    'address' => $user->address_line ?? '100 Market Street',
+                ]
+            );
+
+            $orderCount = min(2, max(1, ($user->id % 2) + 1));
+            for ($orderIndex = 0; $orderIndex < $orderCount; $orderIndex++) {
+                $status = match (($user->id + $orderIndex) % 4) {
+                    0 => OrderStatus::PENDING->value,
+                    1 => OrderStatus::PROCESSING->value,
+                    2 => OrderStatus::COMPLETED->value,
+                    default => OrderStatus::CANCELLED->value,
+                };
+
+                $paymentStatus = in_array($status, [OrderStatus::COMPLETED->value, OrderStatus::PROCESSING->value], true)
+                    ? OrderPaymentStatus::PAID
+                    : OrderPaymentStatus::UNPAID;
+
+                $orderNumber = 'ORD-' . strtoupper(substr(md5($user->email . '-' . $orderIndex), 0, 8));
+                $order = Order::updateOrCreate(
+                    ['order_number' => $orderNumber],
+                    [
+                        'order_number' => $orderNumber,
+                        'user_id' => $user->id,
+                        'shipping_address_id' => $shippingAddress->id,
+                        'subtotal' => 0,
+                        'discount_amount' => 0,
+                        'shipping_cost' => 10,
+                        'tax_amount' => 5,
+                        'grand_total' => 0,
+                        'status' => $status,
+                        'payment_status' => $paymentStatus->value,
+                        'notes' => $status === OrderStatus::CANCELLED->value ? 'Cancelled by customer request.' : null,
+                    ]
+                );
+
+                // Make this seeder re-runnable: clear existing dependent rows for this order.
+                $existingItemIds = OrderItem::query()->where('order_id', $order->id)->pluck('id');
+                if ($existingItemIds->isNotEmpty()) {
+                    ProductReview::query()->whereIn('order_item_id', $existingItemIds)->delete();
+                }
+                Refund::query()->where('order_id', $order->id)->delete();
+                PaymentTransaction::query()->where('order_id', $order->id)->delete();
+                Payment::query()->where('order_id', $order->id)->delete();
+                OrderStatusHistory::query()->where('order_id', $order->id)->delete();
+                OrderItem::query()->where('order_id', $order->id)->delete();
+
                 $orderVariants = $variants->random(rand(1, 4));
                 $subtotal = 0;
                 $items = [];
@@ -75,7 +136,7 @@ class OrderSeeder extends Seeder
                         'sku' => Str::limit($variant->product->slug, 50).'-'.$variant->color->name.'-'.$variant->size->name,
                         'color_name' => $variant->color->name,
                         'size_name' => $variant->size->name,
-                        'image_url' => 'https://placehold.co/100x125?text='.urlencode($variant->product->title),
+                        'image_url' => 'https://picsum.photos/seed/order-item-' . urlencode($variant->product->slug) . '/100/125',
                         'unit_price' => $price,
                         'quantity' => $quantity,
                         'total_price' => $total,
@@ -83,7 +144,6 @@ class OrderSeeder extends Seeder
                 }
 
                 $order->update([
-                    'order_number' => 'ORD-'.strtoupper(Str::random(8)),
                     'subtotal' => $subtotal,
                     'grand_total' => $subtotal + $order->shipping_cost + $order->tax_amount - $order->discount_amount,
                 ]);
@@ -103,7 +163,7 @@ class OrderSeeder extends Seeder
                     $payment = Payment::create([
                         'order_id' => $order->id,
                         'method' => PaymentMethod::CARD,
-                        'gateway_txn_id' => 'txn_'.Str::random(10),
+                        'gateway_txn_id' => 'txn_' . substr(md5($order->order_number), 0, 10),
                         'amount' => $order->grand_total,
                         'currency' => CurrencyCode::USD,
                         'status' => PaymentStatus::COMPLETED,
@@ -125,14 +185,14 @@ class OrderSeeder extends Seeder
                     // Reviews for paid orders
                     if ($order->status === OrderStatus::COMPLETED) {
                         foreach ($items as $item) {
-                            if (rand(0, 1)) {
+                            if (($item->id % 2) === 0) {
                                 ProductReview::create([
                                     'product_id' => $item->variant->product_id,
                                     'user_id' => $user->id,
                                     'order_item_id' => $item->id,
-                                    'rating' => rand(3, 5),
-                                    'title' => 'Great product!',
-                                    'comment' => 'I really liked this product, it works as expected.',
+                                    'rating' => 5,
+                                    'title' => 'Exactly as described',
+                                    'comment' => 'Good quality and arrived on time. Sizing and color matched the photos.',
                                     'is_verified' => true,
                                     'status' => ReviewStatus::PUBLISHED,
                                 ]);
@@ -141,7 +201,7 @@ class OrderSeeder extends Seeder
                     }
 
                     // Refunds for some orders
-                    if ($order->status === OrderStatus::CANCELLED && rand(0, 1)) {
+                    if ($order->status === OrderStatus::CANCELLED->value && (($order->id % 2) === 1)) {
                         Refund::create([
                             'order_id' => $order->id,
                             'order_item_id' => $items[0]->id,
@@ -154,7 +214,7 @@ class OrderSeeder extends Seeder
                         ]);
                     }
                 }
-            });
+            }
         });
     }
 }

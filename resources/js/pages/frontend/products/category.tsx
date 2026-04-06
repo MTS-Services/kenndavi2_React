@@ -292,6 +292,7 @@ export default function ProductCategory({
     selected_category,
     selected_subcategory,
 }: Props) {
+    console.log(products);  
     // ── Local filter state ────────────────────────────────────────────────────
     const [category, setCategory] = useState(selected_category);
     const [subcategory, setSubcategory] = useState(selected_subcategory);

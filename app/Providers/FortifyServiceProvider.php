@@ -17,9 +17,7 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     /**
      * Bootstrap any application services.
@@ -84,7 +82,10 @@ class FortifyServiceProvider extends ServiceProvider
             $identifier = (string) ($request->input('email') ?: $request->route('challenge', ''));
             $throttleKey = Str::transliterate(Str::lower($identifier).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(5)->by($throttleKey),
+                Limit::perHour(30)->by($throttleKey),
+            ];
         });
 
         RateLimiter::for('two-factor', function (Request $request) {

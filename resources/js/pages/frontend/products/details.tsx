@@ -1,9 +1,12 @@
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { Input } from '@/components/ui/input';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
 import { login } from '@/routes';
+import { store as cartItemsStore } from '@/routes/cart/items';
 import { SharedData } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,7 +127,6 @@ function StarRow({ rating }: { rating: number }) {
 
 export default function ProductDetails({ product }: { product: Product }) {
     const { auth } = usePage<SharedData>().props;
-    console.log(auth);
 
     const [selectedImage, setSelectedImage] = useState<ProductImage>(
         product.images.find((i) => i.is_primary) ?? product.images[0],
@@ -143,6 +145,7 @@ export default function ProductDetails({ product }: { product: Product }) {
     );
 
     const [quantity, setQuantity] = useState(1);
+    const [quantityDraft, setQuantityDraft] = useState('1');
 
     const finalPrice = computeFinalPrice(
         product.price,
@@ -190,6 +193,34 @@ export default function ProductDetails({ product }: { product: Product }) {
     const isInStock = selectedVariant ? variantStock > 0 : product.stock > 0;
     const maxQty = selectedVariant ? variantStock : product.stock;
 
+    useEffect(() => {
+        if (maxQty <= 0) {
+            setQuantity(0);
+            return;
+        }
+        setQuantity((q) => Math.min(maxQty, Math.max(1, q)));
+    }, [maxQty]);
+
+    useEffect(() => {
+        setQuantityDraft(String(quantity));
+    }, [quantity]);
+
+    function commitQuantityFromDraft() {
+        const n = parseInt(quantityDraft.trim(), 10);
+        if (maxQty <= 0) {
+            setQuantity(0);
+            setQuantityDraft('0');
+            return;
+        }
+        if (!Number.isFinite(n) || n < 1) {
+            setQuantityDraft(String(quantity));
+            return;
+        }
+        const clamped = Math.min(maxQty, Math.max(1, Math.floor(n)));
+        setQuantity(clamped);
+        setQuantityDraft(String(clamped));
+    }
+
     function handleColorSelect(color: ProductColor) {
         setSelectedColor(color);
         // If selected size is no longer available for this color, clear it
@@ -209,8 +240,7 @@ export default function ProductDetails({ product }: { product: Product }) {
     }
 
     function handleAddToCart(buyNow = false) {
-        // First check is user is logged in or not if not then redirect to login page
-        if (!auth.user) {
+        if (buyNow && !auth.user) {
             router.visit(login().url);
             return;
         }
@@ -223,12 +253,10 @@ export default function ProductDetails({ product }: { product: Product }) {
             alert('This combination is out of stock.');
             return;
         }
-        const destination = buyNow ? '/checkout' : '/cartpage';
-        router.post(destination, {
+
+        router.post(cartItemsStore.url(), {
             variant_id: selectedVariant.id,
-            product_id: product.id,
             quantity,
-            price: finalPrice,
         });
     }
 
@@ -416,10 +444,10 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                         }
                                                         className={`relative rounded-md px-5 py-2 transition ${
                                                             isSelected
-                                                                ? 'bg-primary text-white'
+                                                                ? 'cursor-pointer bg-primary text-white'
                                                                 : unavailable
                                                                   ? 'cursor-not-allowed bg-gray-800 text-gray-500 line-through'
-                                                                  : 'bg-gray-900 hover:bg-gray-700'
+                                                                  : 'cursor-pointer bg-gray-900 hover:bg-gray-700'
                                                         }`}
                                                     >
                                                         {size.name}
@@ -476,24 +504,47 @@ export default function ProductDetails({ product }: { product: Product }) {
                                 <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                                     <div className="flex w-fit items-center rounded-md border border-gray-600">
                                         <button
+                                            type="button"
                                             onClick={() =>
                                                 setQuantity((p) =>
                                                     Math.max(1, p - 1),
                                                 )
                                             }
-                                            className="px-3 py-2 transition hover:text-primary"
+                                            disabled={
+                                                !isInStock ||
+                                                maxQty < 1 ||
+                                                quantity <= 1
+                                            }
+                                            className="cursor-pointer px-3 py-2 transition hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                         >
                                             −
                                         </button>
-                                        <span className="px-4">{quantity}</span>
+                                        <Input
+                                            type="number"
+                                            min={maxQty > 0 ? 1 : 0}
+                                            max={maxQty > 0 ? maxQty : 0}
+                                            inputMode="numeric"
+                                            value={quantityDraft}
+                                            onChange={(e) =>
+                                                setQuantityDraft(e.target.value)
+                                            }
+                                            onBlur={commitQuantityFromDraft}
+                                            disabled={!isInStock || maxQty < 1}
+                                            className="h-auto w-16 min-w-0 shrink-0 rounded-none border-0 border-x border-gray-600 bg-transparent px-2 py-2 text-center text-base text-white shadow-none [appearance:textfield] focus-visible:ring-0 md:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                        />
                                         <button
+                                            type="button"
                                             onClick={() =>
                                                 setQuantity((p) =>
                                                     Math.min(maxQty, p + 1),
                                                 )
                                             }
-                                            disabled={quantity >= maxQty}
-                                            className="px-3 py-2 transition hover:text-primary disabled:opacity-40"
+                                            disabled={
+                                                !isInStock ||
+                                                maxQty < 1 ||
+                                                quantity >= maxQty
+                                            }
+                                            className="cursor-pointer px-3 py-2 transition hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                         >
                                             +
                                         </button>
@@ -501,8 +552,8 @@ export default function ProductDetails({ product }: { product: Product }) {
 
                                     <button
                                         onClick={() => handleAddToCart(false)}
-                                        disabled={!isInStock}
-                                        className="flex-1 rounded-md bg-primary px-6 py-3 text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial"
+                                        disabled={!isInStock || quantity < 1}
+                                        className="flex-1 cursor-pointer rounded-md bg-primary px-6 py-3 text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial"
                                     >
                                         Add To Cart
                                         <i className="fa-solid fa-cart-plus ml-2" />
@@ -510,8 +561,8 @@ export default function ProductDetails({ product }: { product: Product }) {
 
                                     <button
                                         onClick={() => handleAddToCart(true)}
-                                        disabled={!isInStock}
-                                        className="flex-1 rounded-md border border-red-600 px-6 py-3 text-red-500 transition hover:bg-red-50/10 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial"
+                                        disabled={!isInStock || quantity < 1}
+                                        className="flex-1 cursor-pointer rounded-md border border-red-600 px-6 py-3 text-red-500 transition hover:bg-red-50/10 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial"
                                     >
                                         <i className="fa-solid fa-bag-shopping mr-2" />
                                         Buy Now
@@ -520,7 +571,7 @@ export default function ProductDetails({ product }: { product: Product }) {
 
                                 <button
                                     onClick={() => router.get('/ai-suggestion')}
-                                    className="mt-4 w-full rounded-md border border-gray-600 bg-gray-900 px-6 py-3 text-white transition hover:bg-gray-800 sm:w-auto"
+                                    className="mt-4 w-full cursor-pointer rounded-md border border-gray-600 bg-gray-900 px-6 py-3 text-white transition hover:bg-gray-800 sm:w-auto"
                                 >
                                     <i className="fa-solid fa-robot mr-2" />
                                     AI Suggest
