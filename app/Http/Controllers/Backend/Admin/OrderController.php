@@ -99,7 +99,7 @@ class OrderController extends Controller
         });
 
         return redirect()
-            ->route('admin.orders.index', ['tab' => AdminOrderTab::SHIPPED])
+            ->back()
             ->with('success', __('Order marked as shipped.'));
     }
 
@@ -303,7 +303,7 @@ class OrderController extends Controller
         });
 
         return redirect()
-            ->route('admin.orders.index', ['tab' => AdminOrderTab::DELIVERED])
+            ->back()
             ->with('success', $successMessage);
     }
 
