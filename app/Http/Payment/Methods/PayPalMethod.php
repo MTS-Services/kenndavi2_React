@@ -202,7 +202,7 @@ class PayPalMethod extends PaymentMethod
                 ]);
 
                 $order->update([
-                    'status' => OrderStatus::CONFIRMED->value,
+                    'status' => OrderStatus::PENDING->value,
                     'payment_status' => OrderPaymentStatus::PAID->value,
                 ]);
 
