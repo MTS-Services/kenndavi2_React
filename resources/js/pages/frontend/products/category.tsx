@@ -126,18 +126,22 @@ function ImageSlot({
 }) {
     return (
         <div
-            className={`group relative cursor-pointer overflow-hidden rounded ${gridClass}`}
+            className={`group relative cursor-default overflow-hidden rounded ${gridClass}`}
         >
-            <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
-                style={{ backgroundImage: `url('${url}')` }}
-            >
-                <div className="absolute inset-0 bg-gray-900/5 transition-all duration-700 group-hover:bg-gray-900/55" />
-                <div className="absolute inset-0 backdrop-brightness-100 transition-colors duration-500 group-hover:backdrop-brightness-90" />
+            <div className="absolute inset-0 overflow-hidden bg-gray-50/5 backdrop-blur-xs">
+                <img
+                    src={url}
+                    alt={productTitle}
+                    className="h-full w-full object-contain object-center transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
+                    loading="lazy"
+                    decoding="async"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gray-900/5 transition-all duration-700 group-hover:bg-gray-900/55" />
+                <div className="pointer-events-none absolute inset-0 backdrop-brightness-100 transition-colors duration-500 group-hover:backdrop-brightness-90" />
             </div>
 
             <div className="relative z-10 flex h-full translate-y-6 flex-col items-center justify-center gap-3 px-3 opacity-0 transition-all duration-700 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="text-center">
+                <div className="pointer-events-none text-center">
                     <h3 className="text-center font-['Alumni_Sans'] text-base font-semibold tracking-wide text-white uppercase drop-shadow-lg md:text-xl">
                         {productTitle}
                     </h3>
@@ -145,15 +149,16 @@ function ImageSlot({
                         ${productPrice.toFixed(2)}
                     </span>
                 </div>
-                <div className="h-8 w-px origin-top scale-y-0 bg-white/50 transition-all delay-75 duration-700 group-hover:scale-y-100 lg:h-12" />
+                <div className="pointer-events-none h-8 w-px origin-top scale-y-0 bg-white/50 transition-all delay-75 duration-700 group-hover:scale-y-100 lg:h-12" />
                 <button
+                    type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         router.get(`/details/${productId}`);
                     }}
-                    className="relative scale-75 overflow-hidden rounded bg-primary px-6 py-2.5 font-['Libre_Franklin'] text-sm font-medium text-white opacity-0 shadow-lg transition-all delay-150 duration-700 group-hover:scale-100 group-hover:opacity-100"
+                    className="relative scale-75 cursor-pointer overflow-hidden rounded bg-primary px-6 py-2.5 font-['Libre_Franklin'] text-sm font-medium text-white opacity-0 shadow-lg transition-all delay-150 duration-700 group-hover:scale-100 group-hover:opacity-100"
                 >
-                    <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+                    <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
                     <span className="relative z-10">View Details</span>
                 </button>
             </div>
@@ -191,7 +196,7 @@ function ProductCard({ product }: { product: Product }) {
                 )}
             </div> */}
 
-            <div className="grid h-[260px] max-h-[500px] min-h-[200px] grid-cols-4 grid-rows-2 gap-2 sm:h-[340px] lg:h-[440px]">
+            <div className="grid h-[260px] max-h-[600px] min-h-[200px] grid-cols-4 grid-rows-2 gap-2 sm:h-[340px] lg:h-[550px]">
                 {product.images.map((img, i) => (
                     <ImageSlot
                         key={i}
@@ -292,7 +297,7 @@ export default function ProductCategory({
     selected_category,
     selected_subcategory,
 }: Props) {
-    console.log(products);  
+    console.log(products);
     // ── Local filter state ────────────────────────────────────────────────────
     const [category, setCategory] = useState(selected_category);
     const [subcategory, setSubcategory] = useState(selected_subcategory);
@@ -452,7 +457,7 @@ export default function ProductCategory({
                             <Button
                                 type="button"
                                 onClick={handleClear}
-                                className="inline-flex items-center justify-center rounded bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-red-800 focus:ring-2 focus:ring-red-500/50 focus:outline-none cursor-pointer"
+                                className="inline-flex cursor-pointer items-center justify-center rounded bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-red-800 focus:ring-2 focus:ring-red-500/50 focus:outline-none"
                             >
                                 Clear Filters
                             </Button>

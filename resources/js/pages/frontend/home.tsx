@@ -105,30 +105,32 @@ export default function Home({
 
                         <div className="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
                             <button
+                                type="button"
                                 onClick={() => router.get('/sweatsuitsmen')}
-                                className="w-full rounded bg-[var(--bg-red)] px-10 py-3.5 font-['Libre_Franklin'] text-sm font-medium text-white transition hover:bg-black sm:w-auto"
+                                className="w-full cursor-pointer rounded bg-[var(--bg-red)] px-10 py-3.5 font-['Libre_Franklin'] text-sm font-medium text-white transition hover:bg-black sm:w-auto"
                             >
                                 {heroSlides[currentHeroIndex].primaryCta}
                             </button>
                             {heroSlides[currentHeroIndex].secondaryCta && (
-                                <button className="w-full rounded-md border border-[var(--bg-red)] px-10 py-3.5 font-['Libre_Franklin'] text-sm font-medium text-[var(--bg-red)] transition hover:bg-[var(--bg-red)] hover:text-white sm:w-auto">
+                                <button
+                                    type="button"
+                                    className="w-full cursor-pointer rounded-md border border-[var(--bg-red)] px-10 py-3.5 font-['Libre_Franklin'] text-sm font-medium text-[var(--bg-red)] transition hover:bg-[var(--bg-red)] hover:text-white sm:w-auto"
+                                >
                                     {heroSlides[currentHeroIndex].secondaryCta}
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    <div
-                        className="relative top-0 right-0 mt-0 flex h-[50vh] w-full items-center justify-center lg:absolute lg:right-[-10%] lg:mt-12 lg:h-full lg:w-2/3"
-                        style={{
-                            backgroundImage:
-                                'url("/assets/images/Group 1.png")',
-                            backgroundSize: 'contain',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
-                        }}
-                    >
-                        <div className="absolute inset-0 translate-x-20 scale-75 transform rounded-full opacity-10 blur-[120px]"></div>
+                    <div className="relative top-0 right-0 mt-0 flex h-[50vh] w-full items-center justify-center lg:absolute lg:right-[-10%] lg:mt-12 lg:h-full lg:w-2/3">
+                        <img
+                            src="/assets/images/Group 1.png"
+                            alt=""
+                            className="pointer-events-none absolute inset-0 z-0 h-full w-full object-contain object-center"
+                            decoding="async"
+                            aria-hidden
+                        />
+                        <div className="absolute inset-0 z-1 translate-x-20 scale-75 transform rounded-full opacity-10 blur-[120px]"></div>
                         <img
                             src={heroSlides[currentHeroIndex].image}
                             alt="Hero"
@@ -137,15 +139,17 @@ export default function Home({
                     </div>
 
                     <button
+                        type="button"
                         onClick={showPreviousHero}
-                        className="absolute top-1/2 left-4 z-30 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-md bg-[var(--bg-red)] text-white"
+                        className="absolute top-1/2 left-4 z-30 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md bg-[var(--bg-red)] text-white"
                     >
                         <i className="fa-solid fa-chevron-left"></i>
                     </button>
 
                     <button
+                        type="button"
                         onClick={showNextHero}
-                        className="absolute top-1/2 right-4 z-30 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-md bg-[var(--bg-red)] text-white"
+                        className="absolute top-1/2 right-4 z-30 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md bg-[var(--bg-red)] text-white"
                     >
                         <i className="fa-solid fa-chevron-right"></i>
                     </button>
@@ -183,41 +187,41 @@ export default function Home({
                                     const alt =
                                         product.primary_image?.alt_text ??
                                         product.title;
-                                    const bg = `url("${imageSrc.replace(/"/g, '\\"')}")`;
 
                                     return (
                                         <div
                                             key={product.id}
-                                            className="group relative h-[174px] w-full cursor-pointer overflow-hidden rounded-md lg:h-[820px]"
+                                            className="group relative h-[174px] w-full cursor-default overflow-hidden rounded-md lg:h-[820px]"
                                         >
-                                            <div
-                                                className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
-                                                style={{
-                                                    backgroundImage: bg,
-                                                }}
-                                            >
-                                                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-transparent transition-all duration-700 group-hover:from-black/40 group-hover:via-black/20 group-hover:to-transparent"></div>
-                                                <div className="absolute inset-0 backdrop-brightness-100 transition-colors duration-500 group-hover:backdrop-brightness-90"></div>
+                                            <div className="absolute inset-0 overflow-hidden bg-gray-50/5 backdrop-blur-xs">
+                                                <img
+                                                    src={imageSrc}
+                                                    alt={alt}
+                                                    className="h-full w-full object-contain object-center transition-all duration-1000 ease-out group-hover:scale-110 group-hover:rotate-1"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
+                                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-transparent transition-all duration-700 group-hover:from-black/40 group-hover:via-black/20 group-hover:to-transparent"></div>
+                                                <div className="pointer-events-none absolute inset-0 backdrop-brightness-100 transition-colors duration-500 group-hover:backdrop-brightness-90"></div>
                                             </div>
 
                                             <div className="relative z-10 flex h-full translate-y-4 flex-col items-center justify-center px-4 text-white opacity-90 transition-all duration-700 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-                                                <h3 className="mb-2 translate-y-4 text-center font-[Alumni_Sans] text-xl tracking-wide opacity-0 transition-all delay-100 duration-700 group-hover:translate-y-0 group-hover:opacity-100 md:mb-4 md:text-2xl lg:text-3xl">
+                                                <h3 className="pointer-events-none mb-2 translate-y-4 text-center font-[Alumni_Sans] text-xl tracking-wide opacity-0 transition-all delay-100 duration-700 group-hover:translate-y-0 group-hover:opacity-100 md:mb-4 md:text-2xl lg:text-3xl">
                                                     {product.title}
                                                 </h3>
-                                                <p className="mb-4 translate-y-4 font-['Libre_Franklin'] text-sm font-medium opacity-0 transition-all delay-150 duration-700 group-hover:translate-y-0 group-hover:opacity-100 md:text-base">
+                                                <p className="pointer-events-none mb-4 translate-y-4 font-['Libre_Franklin'] text-sm font-medium opacity-0 transition-all delay-150 duration-700 group-hover:translate-y-0 group-hover:opacity-100 md:text-base">
                                                     {formatUsd(product.price)}
                                                 </p>
 
-                                                <div className="mb-4 h-10 w-px origin-top scale-y-0 bg-white/50 transition-all delay-200 duration-700 group-hover:scale-y-100 lg:mb-8 lg:h-24"></div>
+                                                <div className="pointer-events-none mb-4 h-10 w-px origin-top scale-y-0 bg-white/50 transition-all delay-200 duration-700 group-hover:scale-y-100 lg:mb-8 lg:h-24"></div>
 
                                                 <Link
-                                                    type="button"
                                                     href={productDetailsRoute(
                                                         product.id,
                                                     )}
-                                                    className="ease-elastic pointer-events-none relative max-w-[200px] scale-75 rotate-[-5deg] overflow-hidden bg-[var(--bg-red)] px-10 py-3 text-base font-medium opacity-0 shadow-lg transition-all delay-300 duration-700 group-hover:pointer-events-auto group-hover:scale-100 group-hover:rotate-0 group-hover:opacity-100 hover:bg-[var(--bg-red-dark)] hover:shadow-xl active:scale-95 sm:w-auto md:py-4 md:text-lg lg:w-full"
+                                                    className="ease-elastic pointer-events-none relative max-w-[200px] scale-75 rotate-[-5deg] cursor-pointer overflow-hidden bg-[var(--bg-red)] px-10 py-3 text-base font-medium opacity-0 shadow-lg transition-all delay-300 duration-700 group-hover:pointer-events-auto group-hover:scale-100 group-hover:rotate-0 group-hover:opacity-100 hover:bg-[var(--bg-red)]/50 hover:shadow-xl active:scale-95 sm:w-auto md:py-4 md:text-lg lg:w-full"
                                                 >
-                                                    <span className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]"></span>
+                                                    <span className="pointer-events-none absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]"></span>
                                                     <span className="relative z-10">
                                                         View Details
                                                     </span>
@@ -225,9 +229,6 @@ export default function Home({
                                             </div>
 
                                             <div className="pointer-events-none absolute inset-0 rounded-md border-2 border-transparent transition-all duration-500 group-hover:border-white/20"></div>
-                                            <span className="sr-only">
-                                                {alt}
-                                            </span>
                                         </div>
                                     );
                                 })
