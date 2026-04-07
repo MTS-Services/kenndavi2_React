@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { cn } from '@/lib/utils';
+import { placeOrder } from '@/routes/checkout';
 
 type ShippingAddress = {
     first_name: string;
@@ -105,7 +106,7 @@ export default function ShippingInformation({
                             className="space-y-6"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                post('/checkout/place-order', {
+                                post(placeOrder().url, {
                                     preserveScroll: true,
                                 });
                             }}
@@ -119,7 +120,7 @@ export default function ShippingInformation({
                                         First name
                                     </Label>
                                     <Input
-                                    className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         id="first_name"
                                         value={data.first_name}
                                         onChange={(e) =>
@@ -147,7 +148,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="last_name"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         value={data.last_name}
                                         onChange={(e) =>
                                             setData('last_name', e.target.value)
@@ -173,7 +174,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="email"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         type="email"
                                         value={data.email}
                                         onChange={(e) =>
@@ -198,7 +199,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="phone"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         type="tel"
                                         value={data.phone}
                                         onChange={(e) =>
@@ -226,7 +227,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="state"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         value={data.state}
                                         onChange={(e) =>
                                             setData('state', e.target.value)
@@ -249,7 +250,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="city"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         value={data.city}
                                         onChange={(e) =>
                                             setData('city', e.target.value)
@@ -272,7 +273,7 @@ export default function ShippingInformation({
                                     </Label>
                                     <Input
                                         id="zip_code"
-                                        className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         value={data.zip_code}
                                         onChange={(e) =>
                                             setData('zip_code', e.target.value)
@@ -297,7 +298,7 @@ export default function ShippingInformation({
                                 </Label>
                                 <Input
                                     id="address"
-                                    className='border border-[#110304B8] rounded focus:outline-none focus:ring-1 focus:ring-red-800'
+                                    className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
                                     value={data.address}
                                     onChange={(e) =>
                                         setData('address', e.target.value)
@@ -346,8 +347,7 @@ export default function ShippingInformation({
                                             <img
                                                 src={resolveImg(item.image_url)}
                                                 alt={
-                                                    item.image_alt ??
-                                                    item.title
+                                                    item.image_alt ?? item.title
                                                 }
                                                 className="h-full w-full object-cover"
                                             />
@@ -376,9 +376,7 @@ export default function ShippingInformation({
 
                         <div className="mb-8 space-y-3 border-t border-gray-300 pt-6 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-900">
-                                    Sub-total
-                                </span>
+                                <span className="text-gray-900">Sub-total</span>
                                 <span className="font-bold text-gray-900">
                                     ${subtotal.toFixed(2)}
                                 </span>

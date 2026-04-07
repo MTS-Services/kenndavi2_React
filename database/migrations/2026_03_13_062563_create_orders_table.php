@@ -26,7 +26,7 @@ return new class extends Migration
             $table->decimal('shipping_cost', 10, 2)->default(0);
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('grand_total', 10, 2);
-            $table->string('status', 30)->default(OrderStatus::PENDING->value);
+            $table->string('status', 30)->default(OrderStatus::INITIALIZED->value);
             $table->string('payment_status', 30)->default(OrderPaymentStatus::UNPAID->value);
             $table->text('notes')->nullable();
             $table->timestamps();

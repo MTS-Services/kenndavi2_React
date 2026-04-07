@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Backend\Admin\AdminAuthController;
 use App\Http\Controllers\Backend\Admin\AdminDashboardController;
+use App\Http\Controllers\Backend\Admin\OrderController;
 use App\Http\Controllers\UserSelectionController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,22 +36,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
-        // Orders
-        Route::get('/orders', [AdminDashboardController::class, 'OrderManagement'])->name('orders.index');
-        Route::get('/orders/details', [AdminDashboardController::class, 'DashboarOrdersdetails'])->name('orders.details');
-        Route::get('/orders/shipped', [AdminDashboardController::class, 'DashboarShipped'])->name('orders.shipped');
-        Route::get('/orders/delivered', [AdminDashboardController::class, 'DashboarDelivered'])->name('orders.delivered');
-        Route::get('/orders/cancelled', [AdminDashboardController::class, 'DashboarCancelled'])->name('orders.cancelled');
-
         // Products
         Route::get('products/check-slug', [ProductController::class, 'checkSlug'])
             ->name('products.checkSlug');
         Route::resource('products', ProductController::class)->names([
-            'index'   => 'products.index',
-            'create'  => 'products.create',
-            'store'   => 'products.store',
-            'edit'    => 'products.edit',
-            'update'  => 'products.update',
+            'index' => 'products.index',
+            'create' => 'products.create',
+            'store' => 'products.store',
+            'edit' => 'products.edit',
+            'update' => 'products.update',
             'destroy' => 'products.destroy',
         ]);
 
@@ -59,7 +53,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Other admin utilities
         Route::get('/users/list', [UserSelectionController::class, 'getUsers'])->name('users.list');
-
 
         Route::controller(CategoryController::class)->group(function () {
             Route::get('/categories', 'index')->name('categories.index');
@@ -72,6 +65,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(AnnouncementController::class)->name('announcement.')->prefix('announcement')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/publish/{id}', 'publish')->name('publish');
+        });
+
+        Route::controller(OrderController::class)->name('orders.')->prefix('orders')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/{order}/ship', 'ship')->name('ship');
+            Route::post('/{order}/deliver', 'deliver')->name('deliver');
+            Route::get('/{order}', 'show')->name('show');
         });
     });
 });
