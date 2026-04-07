@@ -14,7 +14,6 @@ use App\Support\AdminOrderTab;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,7 +51,6 @@ class OrderController extends Controller
             'orders' => $orders,
             'counts' => $counts,
             'activeTab' => $activeTab,
-            'success' => $request->session()->get('success'),
         ]);
     }
 
@@ -68,8 +66,9 @@ class OrderController extends Controller
     public function ship(ShipOrderRequest $request, Order $order): RedirectResponse
     {
         if (! $this->orderCanBeMarkedShipped($order)) {
-            throw ValidationException::withMessages([
-                'order' => [__('This order cannot be marked as shipped.')],
+            return redirect()->back()->with('toast', [
+                'type' => 'error',
+                'message' => __('This order cannot be marked as shipped.'),
             ]);
         }
 
@@ -100,7 +99,10 @@ class OrderController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', __('Order marked as shipped.'));
+            ->with('toast', [
+                'type' => 'success',
+                'message' => __('Order marked as shipped.'),
+            ]);
     }
 
     public function deliver(FinalizeShippedOrderRequest $request, Order $order): RedirectResponse
@@ -143,7 +145,6 @@ class OrderController extends Controller
             'status' => AdminOrderTab::uiBucketForStatus($status),
             'can_mark_shipped' => $this->orderCanBeMarkedShipped($order),
             'can_mark_delivered' => $this->orderCanBeMarkedDeliveredOrCompleted($order),
-            'can_mark_completed' => $this->orderCanBeMarkedDeliveredOrCompleted($order),
         ];
     }
 
@@ -262,8 +263,9 @@ class OrderController extends Controller
         string $successMessage,
     ): RedirectResponse {
         if (! $this->orderCanBeMarkedDeliveredOrCompleted($order)) {
-            throw ValidationException::withMessages([
-                'order' => [__('This order cannot be updated from its current status.')],
+            return redirect()->back()->with('toast', [
+                'type' => 'error',
+                'message' => __('This order cannot be updated from its current status.'),
             ]);
         }
 
@@ -272,7 +274,9 @@ class OrderController extends Controller
             abort(403);
         }
 
-        DB::transaction(function () use ($order, $admin, $request, $toStatus): void {
+        $updated = false;
+
+        DB::transaction(function () use ($order, $admin, $request, $toStatus, &$updated): void {
             /** @var Order $locked */
             $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
 
@@ -281,9 +285,7 @@ class OrderController extends Controller
                 : OrderStatus::tryFrom((string) $locked->status);
 
             if ($current !== OrderStatus::SHIPPED) {
-                throw ValidationException::withMessages([
-                    'order' => [__('This order cannot be updated from its current status.')],
-                ]);
+                return;
             }
 
             $from = $current->value;
@@ -300,11 +302,23 @@ class OrderController extends Controller
                 'to_status' => $toStatus->value,
                 'note' => $request->validated('note'),
             ]);
+
+            $updated = true;
         });
+
+        if (! $updated) {
+            return redirect()->back()->with('toast', [
+                'type' => 'error',
+                'message' => __('This order cannot be updated from its current status.'),
+            ]);
+        }
 
         return redirect()
             ->back()
-            ->with('success', $successMessage);
+            ->with('toast', [
+                'type' => 'success',
+                'message' => $successMessage,
+            ]);
     }
 
     private function resolveBuyerName(Order $order): string

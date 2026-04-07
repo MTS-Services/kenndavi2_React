@@ -122,7 +122,7 @@ test('admin can mark paid confirmed order as shipped', function () {
         ->from(route('admin.orders.index', ['tab' => 'pending']))
         ->post(route('admin.orders.ship', $order))
         ->assertRedirect(route('admin.orders.index', ['tab' => 'pending']))
-        ->assertSessionHas('success');
+        ->assertSessionHas('toast');
 
     $order->refresh();
     expect($order->status)->toBe(OrderStatus::SHIPPED);
@@ -139,7 +139,7 @@ test('admin cannot mark initialized unpaid order as shipped', function () {
     $this->actingAs($this->admin, 'admin')
         ->from(route('admin.orders.index'))
         ->post(route('admin.orders.ship', $order))
-        ->assertSessionHasErrors('order');
+        ->assertSessionHas('toast');
 });
 
 test('admin can mark shipped order as delivered', function () {
@@ -152,7 +152,7 @@ test('admin can mark shipped order as delivered', function () {
         ->from(route('admin.orders.index', ['tab' => 'shipped']))
         ->post(route('admin.orders.deliver', $order))
         ->assertRedirect(route('admin.orders.index', ['tab' => 'shipped']))
-        ->assertSessionHas('success');
+        ->assertSessionHas('toast');
 
     $order->refresh();
     expect($order->status)->toBe(OrderStatus::DELIVERED);
@@ -169,5 +169,5 @@ test('admin cannot mark confirmed order as delivered', function () {
     $this->actingAs($this->admin, 'admin')
         ->from(route('admin.orders.index', ['tab' => 'shipped']))
         ->post(route('admin.orders.deliver', $order))
-        ->assertSessionHasErrors('order');
+        ->assertSessionHas('toast');
 });

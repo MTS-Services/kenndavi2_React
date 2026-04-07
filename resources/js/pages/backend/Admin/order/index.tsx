@@ -1,4 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 import {
     OrderStatusFilter,
@@ -11,6 +13,11 @@ import {
     ship as ordersShip,
     show as ordersShow,
 } from '@/routes/admin/orders';
+import type { SharedData } from '@/types';
+
+type FlashToast = { type: 'success' | 'error' | string; message: string };
+
+const TOAST_ID = 'admin-orders-toast';
 
 interface OrderRow {
     id: number;
@@ -45,7 +52,6 @@ interface OrderIndexProps {
     orders: PaginatedOrders;
     counts: Record<OrderStatus, number>;
     activeTab: OrderStatus;
-    success?: string | null;
     [key: string]: unknown;
 }
 
@@ -77,10 +83,27 @@ function paginationLabel(label: string): string {
 }
 
 export default function OrderManagement() {
-    const { orders, counts, activeTab, success } =
-        usePage<OrderIndexProps>().props;
+    const { orders, counts, activeTab, flash } = usePage<
+        SharedData & OrderIndexProps & { flash?: { toast?: FlashToast | null } }
+    >().props;
 
     const rows = orders.data;
+
+    useEffect(() => {
+        const t = flash?.toast;
+        if (!t?.message) {
+            return;
+        }
+
+        const opts = { id: TOAST_ID };
+        if (t.type === 'success') {
+            toast.success(t.message, opts);
+        } else if (t.type === 'error') {
+            toast.error(t.message, opts);
+        } else {
+            toast.message(t.message, opts);
+        }
+    }, [flash?.toast]);
 
     function changeTab(tab: OrderStatus) {
         router.get(
@@ -111,15 +134,6 @@ export default function OrderManagement() {
             description="Track, manage, and process all customer orders effectively."
         >
             <div className="rounded-lg bg-[var(--bg-animation)] p-4 font-sans text-slate-700 shadow-sm md:p-8">
-                {success ? (
-                    <div
-                        className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
-                        role="status"
-                    >
-                        {success}
-                    </div>
-                ) : null}
-
                 <OrderStatusFilter
                     activeFilter={activeTab}
                     onFilterChange={changeTab}
