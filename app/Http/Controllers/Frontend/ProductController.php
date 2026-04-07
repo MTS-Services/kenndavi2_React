@@ -33,7 +33,7 @@ class ProductController extends Controller
                 // FIX: filter by id, not slug
                 fn($q) => $q->whereHas('subcategory', fn($c) => $c->where('slug', $subcategorySlug))
             )
-            ->latest();
+            ->inRandomOrder();
 
         $categories = Category::query()
             ->forType($type)

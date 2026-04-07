@@ -286,7 +286,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
                             {/* LEFT: IMAGES */}
                             <div>
-                                <div className="aspect-[4/5] max-h-[600px] overflow-hidden rounded-sm bg-white shadow-xl shadow-black/20">
+                                <div className="aspect-4/5 max-h-[600px] overflow-hidden rounded-sm bg-gray-50/5 shadow-xl shadow-black/20 backdrop-blur-xs">
                                     <img
                                         src={resolveUrl(selectedImage?.url)}
                                         className="h-full w-full object-contain"
@@ -305,15 +305,15 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                 onClick={() =>
                                                     setSelectedImage(img)
                                                 }
-                                                className={`transitionshrink-0 h-20 w-20 cursor-pointer overflow-hidden rounded-lg border-2 bg-white shadow-sm ${
+                                                className={`transitionshrink-0 h-20 w-20 cursor-pointer overflow-hidden rounded-lg border-2 bg-gray-50/5 shadow-sm backdrop-blur-xs ${
                                                     selectedImage?.id === img.id
-                                                        ? 'border-gray-100 ring-2 ring-primary'
-                                                        : 'border-gray-300 hover:border-gray-100'
+                                                        ? 'border-gray-100/50 ring-2 ring-primary'
+                                                        : 'border-gray-300/50 hover:border-gray-100/50'
                                                 }`}
                                             >
                                                 <img
                                                     src={resolveUrl(img.url)}
-                                                    className="h-full w-full object-cover"
+                                                    className="h-full w-full object-contain"
                                                     alt={img.alt}
                                                 />
                                             </div>
@@ -530,7 +530,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                                             }
                                             onBlur={commitQuantityFromDraft}
                                             disabled={!isInStock || maxQty < 1}
-                                            className="h-auto w-16 min-w-0 shrink-0 rounded-none border-0 border-x border-gray-600 bg-transparent px-2 py-2 text-center text-base text-white shadow-none [appearance:textfield] focus-visible:ring-0 md:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                            className="h-auto w-16 min-w-0 shrink-0 [appearance:textfield] rounded-none border-0 border-x border-gray-600 bg-transparent px-2 py-2 text-center text-base text-white shadow-none focus-visible:ring-0 md:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
                                         <button
                                             type="button"
@@ -660,7 +660,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                                                         src={resolveUrl(
                                                             review.user.avatar,
                                                         )}
-                                                        className="h-10 w-10 rounded-full object-cover"
+                                                        className="h-10 w-10 rounded-full object-contain"
                                                         alt={review.user.name}
                                                     />
                                                     <div>

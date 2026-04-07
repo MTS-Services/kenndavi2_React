@@ -22,7 +22,7 @@ class HomeController extends Controller
             ->with('primaryImage')
             ->forType($type)
             ->featured()
-            ->latest()
+            ->inRandomOrder()
             ->take(4)
             ->get();
 
