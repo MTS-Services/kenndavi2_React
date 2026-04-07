@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Admin;
 use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\FinalizeShippedOrderRequest;
 use App\Http\Requests\Admin\ShipOrderRequest;
 use App\Models\Admin;
 use App\Models\Order;
@@ -102,6 +103,16 @@ class OrderController extends Controller
             ->with('success', __('Order marked as shipped.'));
     }
 
+    public function deliver(FinalizeShippedOrderRequest $request, Order $order): RedirectResponse
+    {
+        return $this->transitionFromShipped(
+            $request,
+            $order,
+            OrderStatus::DELIVERED,
+            __('Order marked as delivered.'),
+        );
+    }
+
     private function countForTab(string $tab): int
     {
         return Order::query()
@@ -131,6 +142,8 @@ class OrderController extends Controller
             'date' => $order->created_at?->format('n/j/y') ?? '',
             'status' => AdminOrderTab::uiBucketForStatus($status),
             'can_mark_shipped' => $this->orderCanBeMarkedShipped($order),
+            'can_mark_delivered' => $this->orderCanBeMarkedDeliveredOrCompleted($order),
+            'can_mark_completed' => $this->orderCanBeMarkedDeliveredOrCompleted($order),
         ];
     }
 
@@ -228,8 +241,70 @@ class OrderController extends Controller
 
         return in_array($status, [
             OrderStatus::CONFIRMED,
+            OrderStatus::PROCESSING,
             OrderStatus::PENDING,
         ], true);
+    }
+
+    private function orderCanBeMarkedDeliveredOrCompleted(Order $order): bool
+    {
+        $status = $order->status instanceof OrderStatus
+            ? $order->status
+            : OrderStatus::tryFrom((string) $order->status);
+
+        return $status === OrderStatus::SHIPPED;
+    }
+
+    private function transitionFromShipped(
+        FinalizeShippedOrderRequest $request,
+        Order $order,
+        OrderStatus $toStatus,
+        string $successMessage,
+    ): RedirectResponse {
+        if (! $this->orderCanBeMarkedDeliveredOrCompleted($order)) {
+            throw ValidationException::withMessages([
+                'order' => [__('This order cannot be updated from its current status.')],
+            ]);
+        }
+
+        $admin = $request->user('admin');
+        if (! $admin instanceof Admin) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($order, $admin, $request, $toStatus): void {
+            /** @var Order $locked */
+            $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            $current = $locked->status instanceof OrderStatus
+                ? $locked->status
+                : OrderStatus::tryFrom((string) $locked->status);
+
+            if ($current !== OrderStatus::SHIPPED) {
+                throw ValidationException::withMessages([
+                    'order' => [__('This order cannot be updated from its current status.')],
+                ]);
+            }
+
+            $from = $current->value;
+
+            $locked->update([
+                'status' => $toStatus->value,
+            ]);
+
+            OrderStatusHistory::query()->create([
+                'order_id' => $locked->id,
+                'changer_id' => $admin->id,
+                'changer_type' => Admin::class,
+                'from_status' => $from,
+                'to_status' => $toStatus->value,
+                'note' => $request->validated('note'),
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.orders.index', ['tab' => AdminOrderTab::DELIVERED])
+            ->with('success', $successMessage);
     }
 
     private function resolveBuyerName(Order $order): string

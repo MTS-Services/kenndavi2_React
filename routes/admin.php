@@ -36,13 +36,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
-        // Orders
-        // Route::get('/orders', [AdminDashboardController::class, 'OrderManagement'])->name('orders.index');
-        // Route::get('/orders/details', [AdminDashboardController::class, 'DashboarOrdersdetails'])->name('orders.details');
-        // Route::get('/orders/shipped', [AdminDashboardController::class, 'DashboarShipped'])->name('orders.shipped');
-        // Route::get('/orders/delivered', [AdminDashboardController::class, 'DashboarDelivered'])->name('orders.delivered');
-        // Route::get('/orders/cancelled', [AdminDashboardController::class, 'DashboarCancelled'])->name('orders.cancelled');
-
         // Products
         Route::get('products/check-slug', [ProductController::class, 'checkSlug'])
             ->name('products.checkSlug');
@@ -77,6 +70,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(OrderController::class)->name('orders.')->prefix('orders')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/{order}/ship', 'ship')->name('ship');
+            Route::post('/{order}/deliver', 'deliver')->name('deliver');
             Route::get('/{order}', 'show')->name('show');
         });
     });

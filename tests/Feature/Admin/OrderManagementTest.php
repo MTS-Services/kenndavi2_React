@@ -30,6 +30,22 @@ test('guests cannot ship an order', function () {
     $this->post(route('admin.orders.ship', $order))->assertRedirect(route('admin.login'));
 });
 
+test('guests cannot mark a shipped order as delivered', function () {
+    $order = Order::factory()->create([
+        'status' => OrderStatus::SHIPPED->value,
+    ]);
+
+    $this->post(route('admin.orders.deliver', $order))->assertRedirect(route('admin.login'));
+});
+
+test('guests cannot mark a shipped order as completed', function () {
+    $order = Order::factory()->create([
+        'status' => OrderStatus::SHIPPED->value,
+    ]);
+
+    $this->post(route('admin.orders.complete', $order))->assertRedirect(route('admin.login'));
+});
+
 test('admin can view orders index with inertia props', function () {
     $response = $this->actingAs($this->admin, 'admin')
         ->get(route('admin.orders.index'));
@@ -130,5 +146,51 @@ test('admin cannot mark initialized unpaid order as shipped', function () {
     $this->actingAs($this->admin, 'admin')
         ->from(route('admin.orders.index'))
         ->post(route('admin.orders.ship', $order))
+        ->assertSessionHasErrors('order');
+});
+
+test('admin can mark shipped order as delivered', function () {
+    $order = Order::factory()->create([
+        'status' => OrderStatus::SHIPPED->value,
+        'payment_status' => OrderPaymentStatus::PAID->value,
+    ]);
+
+    $this->actingAs($this->admin, 'admin')
+        ->post(route('admin.orders.deliver', $order))
+        ->assertRedirect(route('admin.orders.index', ['tab' => 'delivered']))
+        ->assertSessionHas('success');
+
+    $order->refresh();
+    expect($order->status)->toBe(OrderStatus::DELIVERED);
+
+    expect(OrderStatusHistory::query()->where('order_id', $order->id)->count())->toBe(1);
+});
+
+test('admin can mark shipped order as completed', function () {
+    $order = Order::factory()->create([
+        'status' => OrderStatus::SHIPPED->value,
+        'payment_status' => OrderPaymentStatus::PAID->value,
+    ]);
+
+    $this->actingAs($this->admin, 'admin')
+        ->post(route('admin.orders.complete', $order))
+        ->assertRedirect(route('admin.orders.index', ['tab' => 'delivered']))
+        ->assertSessionHas('success');
+
+    $order->refresh();
+    expect($order->status)->toBe(OrderStatus::COMPLETED);
+
+    expect(OrderStatusHistory::query()->where('order_id', $order->id)->count())->toBe(1);
+});
+
+test('admin cannot mark confirmed order as delivered', function () {
+    $order = Order::factory()->create([
+        'status' => OrderStatus::CONFIRMED->value,
+        'payment_status' => OrderPaymentStatus::PAID->value,
+    ]);
+
+    $this->actingAs($this->admin, 'admin')
+        ->from(route('admin.orders.index', ['tab' => 'shipped']))
+        ->post(route('admin.orders.deliver', $order))
         ->assertSessionHasErrors('order');
 });

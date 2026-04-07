@@ -5,7 +5,12 @@ import {
     type OrderStatus,
 } from '@/components/backend/OrderStatusFilter';
 import AdminLayout from '@/layouts/admin-layout';
-import { index as ordersIndex, ship as ordersShip, show as ordersShow } from '@/routes/admin/orders';
+import {
+    deliver as ordersDeliver,
+    index as ordersIndex,
+    ship as ordersShip,
+    show as ordersShow,
+} from '@/routes/admin/orders';
 
 interface OrderRow {
     id: number;
@@ -17,6 +22,7 @@ interface OrderRow {
     date: string;
     status: OrderStatus;
     can_mark_shipped: boolean;
+    can_mark_delivered: boolean;
 }
 
 interface PaginatorLink {
@@ -86,6 +92,10 @@ export default function OrderManagement() {
 
     function markAsShipped(orderId: number) {
         router.post(ordersShip.url(orderId), {}, { preserveScroll: true });
+    }
+
+    function markAsDelivered(orderId: number) {
+        router.post(ordersDeliver.url(orderId), {}, { preserveScroll: true });
     }
 
     function viewDetails(orderId: number) {
@@ -175,6 +185,17 @@ export default function OrderManagement() {
                                                 Mark As Shipped
                                             </button>
                                         ) : null}
+                                        {order.can_mark_delivered ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    markAsDelivered(order.id)
+                                                }
+                                                className="rounded bg-emerald-700 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-800"
+                                            >
+                                                Mark Delivered
+                                            </button>
+                                        ) : null}
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -250,6 +271,17 @@ export default function OrderManagement() {
                                         className="w-full rounded bg-red-700 py-2 text-xs font-medium text-white"
                                     >
                                         Mark As Shipped
+                                    </button>
+                                ) : null}
+                                {order.can_mark_delivered ? (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            markAsDelivered(order.id)
+                                        }
+                                        className="w-full rounded bg-emerald-700 py-2 text-xs font-medium text-white"
+                                    >
+                                        Mark Delivered
                                     </button>
                                 ) : null}
                                 <button
