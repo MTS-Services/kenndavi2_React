@@ -1,29 +1,37 @@
 import { Form, Head } from '@inertiajs/react';
 
-import FrontendLayout from '@/layouts/frontend-layout';
 import InputError from '@/components/input-error';
+import FrontendLayout from '@/layouts/frontend-layout';
 
 export default function Login({ status }: { status?: string }) {
     return (
         <FrontendLayout>
             <Head title="User Login" />
 
-            <div className="font-sans text-white overflow-x-hidden relative min-h-screen">
-                <div className="container mx-auto mt-20 mb-20 flex items-center justify-center font-sans relative z-10">
-                    <div className="bg-[var(--bg-gray0)] w-full max-w-md p-10 md:p-14 rounded-sm shadow-sm text-sidebar">
-                        <div className="flex flex-col items-center mb-10">
-                            <img src="assets/images/Layer_1.png" alt="Logo" className="h-16 w-auto" />
+            <section className="flex flex-1 items-center justify-center">
+                <div className="container mx-auto max-w-md">
+                    <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-10 text-sidebar shadow-sm md:p-14">
+                        <div className="mb-10 flex flex-col items-center">
+                            <img
+                                src="assets/images/Layer_1.png"
+                                alt="Logo"
+                                className="h-16 w-auto"
+                            />
                         </div>
 
                         <div className="mb-8">
-                            <h2 className="text-xl font-bold font-['Alumni_Sans']">Sign in</h2>
-                            <p className="text-sm text-sidebar mt-1 font-['Libre_Franklin']">
-                                Sign in or create an account
+                            <h2 className="font-['Alumni_Sans'] text-xl font-bold">
+                                Sign in
+                            </h2>
+                            <p className="mt-1 font-['Libre_Franklin'] text-sm text-sidebar">
+                                Sign in or create an accounts
                             </p>
                         </div>
 
                         {status && (
-                            <p className="mb-4 text-sm text-emerald-400 font-['Libre_Franklin']">{status}</p>
+                            <p className="mb-4 font-['Libre_Franklin'] text-sm text-emerald-400">
+                                {status}
+                            </p>
                         )}
 
                         <Form
@@ -35,7 +43,7 @@ export default function Login({ status }: { status?: string }) {
                             {({ errors, processing }) => (
                                 <>
                                     <div>
-                                        <label className="block text-xl font-bold mb-2 font-['Alumni_Sans']">
+                                        <label className="mb-2 block font-['Alumni_Sans'] text-xl font-bold">
                                             Email
                                         </label>
 
@@ -44,7 +52,7 @@ export default function Login({ status }: { status?: string }) {
                                             name="email"
                                             required
                                             placeholder="Email"
-                                            className="w-full p-3 bg-transparent border border-gray-400 rounded-sm focus:outline-none focus:ring-1 focus:ring-red-800 transition-all placeholder:text-gray-500"
+                                            className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all placeholder:text-gray-500 focus:ring-1 focus:ring-red-800 focus:outline-none"
                                         />
 
                                         <InputError message={errors.email} />
@@ -53,16 +61,18 @@ export default function Login({ status }: { status?: string }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="text-md font-bold w-full bg-[var(--bg-red)] text-white py-3 rounded-sm font-['Libre_Franklin'] transition-colors disabled:opacity-50"
+                                        className="text-md w-full rounded-sm bg-[var(--bg-red)] py-3 font-['Libre_Franklin'] font-bold text-white transition-colors disabled:opacity-50"
                                     >
-                                        {processing ? 'Processing...' : 'Continue'}
+                                        {processing
+                                            ? 'Processing...'
+                                            : 'Continue'}
                                     </button>
                                 </>
                             )}
                         </Form>
                     </div>
                 </div>
-            </div>
+            </section>
         </FrontendLayout>
     );
 }
