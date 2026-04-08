@@ -6,9 +6,9 @@ export default function AddressForm() {
     return (
         <FrontendLayout>
             <Head title="Dashboard" />
-            <div className="overflow-x-hidden font-sans text-gray-900">
-                <div className="relative z-10 flex items-center justify-center p-6 font-sans text-gray-900">
-                    <div className="w-full max-w-4xl rounded-sm bg-[var(--bg-gray0)] p-10 shadow-sm md:p-16">
+            <section className="flex flex-1 items-center justify-center py-10">
+                <div className="container mx-auto max-w-4xl">
+                    <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-10 shadow-sm md:p-16">
                         <h1 className="mb-10 font-['Alumni_Sans'] text-2xl font-bold">
                             Edit address
                         </h1>
@@ -80,7 +80,7 @@ export default function AddressForm() {
                         </form>
                     </div>
                 </div>
-            </div>
+            </section>
         </FrontendLayout>
     );
 }

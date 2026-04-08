@@ -1,84 +1,148 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
+import { Star } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import FrontendLayout from '@/layouts/frontend-layout';
 
-export default function ReviewForm() {
+interface ReviewOrder {
+    id: number;
+    order_number: string;
+}
+
+interface ReviewItem {
+    id: number;
+    title: string;
+    sku: string | null;
+    image_url: string;
+    quantity: number;
+    color: string | null;
+    size: string | null;
+}
+
+interface ReviewFormPageProps {
+    order: ReviewOrder;
+    item: ReviewItem;
+}
+
+export default function ReviewForm({ order, item }: ReviewFormPageProps) {
+    const { data, setData, post, errors, processing } = useForm({
+        rating: 0,
+        title: '',
+        comment: '',
+    });
+
+    const submit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        post(
+            route('order.review.store', {
+                order: order.id,
+                item: item.id,
+            }),
+        );
+    };
+
     return (
         <FrontendLayout>
-            <Head title="Write a review for - Product Name" />
-            <section className="flex flex-1 items-center justify-center py-10">
-                <div className="container mx-auto max-w-4xl">
-                    <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-8 text-gray-900 shadow-sm md:p-12">
-                        <div className="mb-8">
-                            <h2 className="font-['Alumni_Sans'] text-xl font-bold">
-                                How was your experience?
-                            </h2>
-                            <p className="mt-1 font-['Alumni_Sans'] text-sm text-gray-500">
-                                Your review helps other customers
+            <Head title={`Review ${item.title}`} />
+
+            <section className="py-8 md:py-12">
+                <div className="container mx-auto grid max-w-4xl gap-6 px-4 md:grid-cols-3">
+                    <Card className="md:col-span-1 h-fit sticky top-4">
+                        <CardHeader>
+                            <CardTitle className="text-base">Product</CardTitle>
+                            <CardDescription>Order #{order.order_number}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm">
+                            <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="h-40 w-full rounded-md object-cover"
+                            />
+                            <p className="font-medium">{item.title}</p>
+                            <p className="text-muted-foreground">SKU: {item.sku ?? '—'}</p>
+                            <p className="text-muted-foreground">
+                                Qty: {item.quantity} • Color: {item.color ?? '—'} • Size:{' '}
+                                {item.size ?? '—'}
                             </p>
-                        </div>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault(); /* TODO: Implement review submission */
-                            }}
-                            className="space-y-8"
-                        >
-                            <div>
-                                <label className="mb-2 block font-['Alumni_Sans'] text-xs font-bold tracking-wider uppercase">
-                                    Rate Your Product
-                                </label>
-                                <div className="flex gap-2">
-                                    <svg
-                                        className="h-8 w-8 fill-current text-[var(--bg-yellows)]"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <svg
-                                        className="h-8 w-8 fill-current text-[var(--bg-yellows)]"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <svg
-                                        className="h-8 w-8 fill-current text-[var(--bg-yellows)]"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <svg
-                                        className="h-8 w-8 fill-current text-[var(--bg-yellows)]"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <svg
-                                        className="h-8 w-8 fill-current text-[var(--bg-yellows)]"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="md:col-span-2">
+                        <CardHeader>
+                            <CardTitle>Write your review</CardTitle>
+                            <CardDescription>
+                                You can submit one review for this delivered/completed item.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={submit} className="space-y-5">
+                                <div className="space-y-2">
+                                    <Label>Rating</Label>
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map((value) => (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() => setData('rating', value)}
+                                                className="cursor-pointer p-1"
+                                            >
+                                                <Star
+                                                    className={
+                                                        data.rating >= value
+                                                            ? 'h-6 w-6 fill-yellow-400 text-yellow-400'
+                                                            : 'h-6 w-6 text-muted-foreground'
+                                                    }
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {errors.rating ? (
+                                        <p className="text-sm text-destructive">{errors.rating}</p>
+                                    ) : null}
                                 </div>
-                            </div>
-                            <div>
-                                <label className="mb-2 block font-['Alumni_Sans'] text-xs font-bold tracking-wider uppercase">
-                                    Review
-                                </label>
-                                <textarea
-                                    placeholder="Write here"
-                                    rows={6}
-                                    className="w-full resize-none rounded-sm border border-gray-100 bg-white/50 p-4 transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-red-800 focus:outline-none"
-                                    defaultValue={''}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="rounded-md bg-bg-red px-10 py-3 font-['Alumni_Sans'] font-medium text-white transition-colors hover:bg-red-800"
-                            >
-                                Submit
-                            </button>
-                        </form>
-                    </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="title">Title (optional)</Label>
+                                    <Input
+                                        id="title"
+                                        value={data.title}
+                                        onChange={(event) =>
+                                            setData('title', event.target.value)
+                                        }
+                                        placeholder="Short review title"
+                                    />
+                                    {errors.title ? (
+                                        <p className="text-sm text-destructive">{errors.title}</p>
+                                    ) : null}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="comment">Comment</Label>
+                                    <Textarea
+                                        id="comment"
+                                        value={data.comment}
+                                        onChange={(event) =>
+                                            setData('comment', event.target.value)
+                                        }
+                                        rows={6}
+                                        placeholder="Tell other customers about your experience."
+                                    />
+                                    {errors.comment ? (
+                                        <p className="text-sm text-destructive">{errors.comment}</p>
+                                    ) : null}
+                                </div>
+
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Submitting...' : 'Submit Review'}
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
                 </div>
             </section>
         </FrontendLayout>

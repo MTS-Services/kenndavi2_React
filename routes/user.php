@@ -29,7 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/shipping', 'shipping')->name('shipping');
         Route::post('/shipping', 'storeShipping')->name('shipping.store');
         Route::get('/orders', 'index')->name('index');
-        Route::get('/review', 'review')->name('review');
+        Route::get('/orders/{order}', 'show')->name('show');
+        Route::get('/orders/{order}/items/{item}/review', 'reviewForm')->name('review.create');
+        Route::post('/orders/{order}/items/{item}/review', 'storeReview')->name('review.store');
         // Route::get('/order-management/payment', 'payment')->name('payment');
         // Route::get('/order-management/confirmation', 'confirmation')->name('confirmation');
     });
