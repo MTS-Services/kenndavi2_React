@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{order}/restore-cart', 'restoreCart')->name('restore-cart');
     });
 
-    Route::controller(AccountController::class)->group(function () {
+    Route::controller(AccountController::class)->name('user.')->group(function () {
         Route::prefix('profile')->name('profile.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/edit', 'edit')->name('edit');

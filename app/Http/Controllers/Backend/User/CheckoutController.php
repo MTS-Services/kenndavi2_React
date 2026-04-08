@@ -193,7 +193,7 @@ class CheckoutController extends Controller
             ])
             ->values();
 
-        return Inertia::render('backend/User/order-management/gateway', [
+        return Inertia::render('backend/user/order-management/gateway', [
             'orderNumber' => $orderModel->order_number,
             'gateways' => $gateways,
             'grandTotal' => (float) $orderModel->grand_total,

@@ -12,11 +12,32 @@ import {
 import { useLogout } from '@/hooks/use-logout';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
+import { index as orderIndex } from '@/routes/order';
+import { index as profileIndex } from '@/routes/user/profile';
+import { index as settingsIndex } from '@/routes/user/settings';
 import { User as UserType, type SharedData } from '@/types';
 
 interface UserMenuContentProps {
     user: UserType;
 }
+
+const menuItems = [
+    {
+        label: 'Orders',
+        href: orderIndex().url,
+        icon: Package2,
+    },
+    {
+        label: 'Profile',
+        href: profileIndex().url,
+        icon: User2,
+    },
+    {
+        label: 'Settings',
+        href: settingsIndex().url,
+        icon: Cog,
+    },
+];
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const { auth } = usePage<SharedData>().props;
@@ -41,7 +62,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className="text-lg text-gray-900 transition hover:text-white cursor-pointer"
+                    className="cursor-pointer text-lg text-gray-900 transition hover:text-white"
                     aria-label="Open user menu"
                 >
                     <User size={20} />
@@ -59,24 +80,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                        <Package2 className="mr-2 h-4 w-4" />
-                        Orders
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                        <User2 className="mr-2 h-4 w-4" />
-                        Profile
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                        <Cog className="mr-2 h-4 w-4" />
-                        Settings
-                    </Link>
-                </DropdownMenuItem>
+                {menuItems.map((item) => (
+                    <DropdownMenuItem asChild key={item.label}>
+                        <Link href={item.href} className="cursor-pointer">
+                            <item.icon className="mr-2 h-4 w-4" />
+                            {item.label}
+                        </Link>
+                    </DropdownMenuItem>
+                ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                     className="cursor-pointer"

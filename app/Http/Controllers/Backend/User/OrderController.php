@@ -16,12 +16,12 @@ class OrderController extends Controller
 
     public function index(): Response
     {
-        return Inertia::render('backend/User/order-management/orders');
+        return Inertia::render('backend/user/order-management/orders');
     }
 
     public function review(): Response
     {
-        return Inertia::render('backend/User/order-management/review-form');
+        return Inertia::render('backend/user/order-management/review-form');
     }
 
     public function shipping(Request $request, CartService $cartService): Response|RedirectResponse
@@ -73,7 +73,7 @@ class OrderController extends Controller
 
         $subtotal = round($items->sum('line_total'), 2);
 
-        return Inertia::render('backend/User/order-management/shipping', [
+        return Inertia::render('backend/user/order-management/shipping', [
             'shippingAddress' => $shippingAddress ? [
                 'first_name' => $shippingAddress->first_name,
                 'last_name' => $shippingAddress->last_name,
