@@ -12,6 +12,7 @@ use App\Models\ProductReview;
 use App\Http\Requests\Order\StoreShippingAddressRequest;
 use App\Models\ShippingAddress;
 use App\Services\CartService;
+use BackedEnum;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +20,7 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
-    private const ORDERS_PER_PAGE = 8;
+    private const ORDERS_PER_PAGE = 2;
 
     public function index(Request $request): Response
     {
@@ -335,7 +336,7 @@ class OrderController extends Controller
             'order_number' => $order->order_number,
             'status' => $status,
             'status_label' => OrderStatus::tryFrom($status)?->label() ?? $status,
-            'payment_status' => (string) $order->payment_status,
+            'payment_status' => $this->enumString($order->payment_status),
             'created_at' => $order->created_at?->toIso8601String(),
             'subtotal' => (float) $order->subtotal,
             'discount_amount' => (float) $order->discount_amount,
@@ -380,16 +381,16 @@ class OrderController extends Controller
                     ] : null,
                 ];
             })->values(),
-            'payments' => $order->payments->map(fn($payment): array => [
+            'payments' => $order->payments->map(fn ($payment): array => [
                 'id' => $payment->id,
-                'method' => (string) $payment->method,
+                'method' => $this->enumString($payment->method),
                 'gateway_txn_id' => $payment->gateway_txn_id,
                 'amount' => (float) $payment->amount,
-                'currency' => (string) $payment->currency,
-                'status' => (string) $payment->status,
+                'currency' => $this->enumString($payment->currency),
+                'status' => $this->enumString($payment->status),
                 'paid_at' => $payment->paid_at?->toIso8601String(),
             ])->values(),
-            'status_history' => $order->statusHistory->map(fn($entry): array => [
+            'status_history' => $order->statusHistory->map(fn ($entry): array => [
                 'id' => $entry->id,
                 'from_status' => $entry->from_status,
                 'to_status' => $entry->to_status,
@@ -410,5 +411,18 @@ class OrderController extends Controller
         }
 
         return asset('storage/' . $url);
+    }
+
+    private function enumString(mixed $value): string
+    {
+        if ($value instanceof BackedEnum) {
+            return (string) $value->value;
+        }
+
+        if (is_scalar($value) || $value === null) {
+            return (string) $value;
+        }
+
+        return '';
     }
 }

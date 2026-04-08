@@ -1,12 +1,17 @@
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import FrontendLayout from '@/layouts/frontend-layout';
+import { cn } from '@/lib/utils';
 
 interface OrderItemSummary {
     id: number;
     title: string;
     image_url: string;
     quantity: number;
+    unit_price?: number;
     can_review: boolean;
 }
 
@@ -74,6 +79,17 @@ function statusClass(status: string): string {
 }
 
 export default function Orders({ orders }: OrdersPageProps) {
+    const [expandedOrders, setExpandedOrders] = useState<
+        Record<number, boolean>
+    >({});
+
+    const toggleExpand = (orderId: number): void => {
+        setExpandedOrders((current) => ({
+            ...current,
+            [orderId]: !current[orderId],
+        }));
+    };
+
     return (
         <FrontendLayout>
             <Head title="Orders" />
@@ -85,117 +101,183 @@ export default function Orders({ orders }: OrdersPageProps) {
                         </div>
                     ) : (
                         orders.data.map((order) => {
-                            const firstItem = order.items[0];
-                            const reviewItem = order.items.find(
-                                (item) => item.can_review,
+                            const isExpanded = Boolean(
+                                expandedOrders[order.id],
                             );
+                            const visibleItems = isExpanded
+                                ? order.items
+                                : order.items.slice(0, 2);
+                            const hasMoreThanDefault = order.items.length > 2;
+                            const hasScrollableItems =
+                                isExpanded && order.items.length > 4;
 
                             return (
-                                <div
+                                <Card
                                     key={order.id}
-                                    className="flex flex-col gap-6 rounded-sm bg-[var(--bg-gray0)] p-2 md:flex-row"
+                                    className="border border-zinc-200 bg-[var(--bg-gray0)] shadow-xs"
                                 >
-                                    <div className="aspect-square w-full overflow-hidden rounded-sm bg-gray-200 md:w-48">
-                                        <img
-                                            src={
-                                                firstItem?.image_url ??
-                                                '/assets/images/Rectangle 4343.png'
-                                            }
-                                            alt={
-                                                firstItem?.title ?? 'Order item'
-                                            }
-                                            className="h-full w-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-grow">
-                                        <div className="mb-2 flex items-start justify-between">
-                                            <p className="text-sm text-gray-600">
-                                                Order ID:{' '}
-                                                <span className="font-bold text-black">
-                                                    #{order.order_number}
+                                    <CardContent className="">
+                                        <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-zinc-200 pb-4">
+                                            <div className="space-y-1">
+                                                <p className="text-sm text-gray-600">
+                                                    Order ID:{' '}
+                                                    <span className="font-bold text-black">
+                                                        #{order.order_number}
+                                                    </span>
+                                                </p>
+                                                <p className="font-[Libre_Franklin] text-sm leading-relaxed text-gray-600">
+                                                    Placed on{' '}
+                                                    {formatDate(
+                                                        order.created_at,
+                                                    )}
+                                                    . {order.items_count}{' '}
+                                                    item(s)
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <span
+                                                    className={`rounded-sm px-3 py-1 font-[Alumni_Sans] text-xs font-bold uppercase ${statusClass(order.status)}`}
+                                                >
+                                                    {order.status_label}
                                                 </span>
-                                            </p>
-                                            <span
-                                                className={`rounded-sm px-3 py-1 font-[Alumni_Sans] text-xs font-bold uppercase ${statusClass(order.status)}`}
-                                            >
-                                                {order.status_label}
-                                            </span>
+                                                <span className="font-[Libre_Franklin] text-xl font-bold text-zinc-900">
+                                                    {formatMoney(
+                                                        order.grand_total,
+                                                    )}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <h3 className="mb-2 font-[Alumni_Sans] text-xl font-bold">
-                                            {firstItem?.title ?? 'Product'}
-                                        </h3>
-                                        <p className="mb-4 max-w-lg font-[Libre_Franklin] text-sm leading-relaxed text-gray-600">
-                                            Placed on{' '}
-                                            {formatDate(order.created_at)}.{' '}
-                                            {order.items_count} item(s) in this
-                                            order.
-                                        </p>
-                                        <p className="mb-6 font-[Libre_Franklin] text-xl font-bold">
-                                            {formatMoney(order.grand_total)}
-                                        </p>
-                                        <div className="flex flex-wrap gap-3">
+
+                                        <div
+                                            className={`space-y-4 border-l-2 border-l-red-500 pr-1 pl-4 ${
+                                                hasScrollableItems
+                                                    ? 'max-h-[320px] overflow-y-auto'
+                                                    : ''
+                                            }`}
+                                        >
+                                            {visibleItems.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-start justify-between gap-4 rounded-md border border-zinc-100 bg-zinc-50/50 p-3"
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="h-20 w-20 overflow-hidden rounded-sm bg-gray-200">
+                                                            <img
+                                                                src={
+                                                                    item.image_url
+                                                                }
+                                                                alt={item.title}
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className="font-[Alumni_Sans] text-2xl leading-tight font-bold">
+                                                                {item.title}
+                                                            </h3>
+                                                            <p className="font-[Libre_Franklin] text-sm leading-relaxed text-gray-600">
+                                                                Quantity:{' '}
+                                                                {item.quantity}
+                                                            </p>
+                                                            <p className="font-[Libre_Franklin] text-xl font-bold text-zinc-900">
+                                                                {formatMoney(
+                                                                    item.unit_price ??
+                                                                        0,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    {item.can_review ? (
+                                                        <Link
+                                                            href={route(
+                                                                'order.review.create',
+                                                                {
+                                                                    order: order.id,
+                                                                    item: item.id,
+                                                                },
+                                                            )}
+                                                            className="rounded-sm bg-red-600 px-4 py-2 font-[Libre_Franklin] text-xs text-white transition-colors hover:bg-red-700"
+                                                        >
+                                                            Write A Review
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="text-xs text-zinc-400">
+                                                            Not eligible
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-4 flex flex-wrap gap-3">
+                                            {hasMoreThanDefault ? (
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        toggleExpand(order.id)
+                                                    }
+                                                    className="cursor-pointer"
+                                                >
+                                                    {isExpanded
+                                                        ? 'Load Less'
+                                                        : 'Load More'}
+                                                </Button>
+                                            ) : null}
                                             <Link
                                                 href={route(
                                                     'order.show',
                                                     order.id,
                                                 )}
-                                                className="rounded-sm border border-red-200 px-6 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                                                className="cursor-pointer rounded-sm border border-red-200 px-6 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
                                             >
                                                 View Details
                                             </Link>
-                                            {reviewItem ? (
-                                                <Link
-                                                    href={route(
-                                                        'order.review.create',
-                                                        {
-                                                            order: order.id,
-                                                            item: reviewItem.id,
-                                                        },
-                                                    )}
-                                                    className="rounded-sm bg-red-600 px-6 py-2 font-[Libre_Franklin] text-sm text-white transition-colors hover:bg-red-700"
-                                                >
-                                                    Write A Review
-                                                </Link>
-                                            ) : null}
                                         </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             );
                         })
                     )}
 
                     {orders.links.length > 3 ? (
-                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                        <div className="mt-2 flex items-center justify-center gap-2">
                             {orders.links.map((link, idx) => {
                                 const label = link.label
                                     .replace('&laquo; Previous', 'Previous')
-                                    .replace('Next &raquo;', 'Next');
+                                    .replace('Next &raquo;', 'Next')
+                                    .trim();
+                                const isNavButton =
+                                    label === 'Previous' || label === 'Next';
 
                                 if (!link.url) {
                                     return (
-                                        <span
+                                        <Button
                                             key={`disabled-${idx}`}
-                                            className="rounded-sm border border-gray-200 px-3 py-1 text-sm text-gray-400"
-                                            dangerouslySetInnerHTML={{
-                                                __html: label,
-                                            }}
-                                        />
+                                            variant="outline"
+                                            size="sm"
+                                            disabled
+                                            className="min-w-9 disabled:cursor-not-allowed bg-[var(--bg-gray0)]/30 backdrop-blur-lg"
+                                        >
+                                            {label}
+                                        </Button>
                                     );
                                 }
 
                                 return (
-                                    <Link
+                                    <Button
                                         key={`${label}-${idx}`}
-                                        href={link.url}
-                                        className={`rounded-sm border px-3 py-1 text-sm transition-colors ${
-                                            link.active
-                                                ? 'border-red-600 bg-red-600 text-white'
-                                                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                        dangerouslySetInnerHTML={{
-                                            __html: label,
-                                        }}
-                                    />
+                                        asChild
+                                        variant={
+                                            link.active ? 'default' : 'outline'
+                                        }
+                                        size="sm"
+                                        className={cn(
+                                            'cursor-pointer bg-[var(--bg-gray0)]/30 backdrop-blur-lg',
+                                            isNavButton ? 'px-4' : 'min-w-9',
+                                        )}
+                                    >
+                                        <Link href={link.url}>{label}</Link>
+                                    </Button>
                                 );
                             })}
                         </div>

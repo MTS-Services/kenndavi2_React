@@ -112,7 +112,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
             <section className="py-8 md:py-12">
                 <div className="container mx-auto grid max-w-6xl gap-6 px-4 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
-                        <Card>
+                        <Card className='bg-[var(--bg-gray0)]'>
                             <CardHeader>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -126,7 +126,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {order.items.map((item) => (
-                                    <div key={item.id} className="rounded-md border p-4">
+                                    <div key={item.id} className="rounded-md border border-gray-300 p-4">
                                         <div className="flex flex-col gap-4 md:flex-row">
                                             <img
                                                 src={item.image_url}

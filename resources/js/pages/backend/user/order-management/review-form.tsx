@@ -1,5 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Star } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +74,12 @@ export default function ReviewForm({ order, item }: ReviewFormPageProps) {
 
                     <Card className="md:col-span-2">
                         <CardHeader>
+                            <Button asChild variant="ghost" className="mb-1 w-fit px-0 text-sm">
+                                <Link href={route('order.show', order.id)}>
+                                    <ArrowLeft className="mr-1 h-4 w-4" />
+                                    Back to order details
+                                </Link>
+                            </Button>
                             <CardTitle>Write your review</CardTitle>
                             <CardDescription>
                                 You can submit one review for this delivered/completed item.
