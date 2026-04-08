@@ -120,7 +120,7 @@ class OrderController extends Controller
             'title' => $request->validated('title'),
             'comment' => $request->validated('comment'),
             'is_verified' => true,
-            'status' => ReviewStatus::PENDING->value,
+            'status' => ReviewStatus::PUBLISHED->value,
         ]);
 
         return redirect()

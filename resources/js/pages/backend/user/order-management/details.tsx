@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,17 @@ function stars(rating: number): string {
 }
 
 export default function OrderDetails({ order }: OrderDetailsPageProps) {
+    const [openReviews, setOpenReviews] = useState<Record<number, boolean>>({});
+
+    const toggleReview = (itemId: number): void => {
+        setOpenReviews((current) => ({
+            ...current,
+            [itemId]: !current[itemId],
+        }));
+    };
+
+    const shouldScrollItems = order.items.length > 5;
+
     return (
         <FrontendLayout>
             <Head title={`Order #${order.order_number}`} />
@@ -112,7 +124,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
             <section className="py-8 md:py-12">
                 <div className="container mx-auto grid max-w-6xl gap-6 px-4 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
-                        <Card className='bg-[var(--bg-gray0)]'>
+                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
                             <CardHeader>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -124,9 +136,19 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                     <Badge>{order.status_label}</Badge>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                {order.items.map((item) => (
-                                    <div key={item.id} className="rounded-md border border-gray-300 p-4">
+                            <CardContent
+                                className={`space-y-4 ${
+                                    shouldScrollItems ? 'max-h-[760px] overflow-y-auto pr-1' : ''
+                                }`}
+                            >
+                                {order.items.map((item) => {
+                                    const isReviewOpen = Boolean(openReviews[item.id]);
+
+                                    return (
+                                    <div
+                                        key={item.id}
+                                        className="rounded-md border border-[#e5d7d2] bg-[#f8f2f0] p-4"
+                                    >
                                         <div className="flex flex-col gap-4 md:flex-row">
                                             <img
                                                 src={item.image_url}
@@ -147,20 +169,15 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                                 <p className="text-sm text-muted-foreground">
                                                     Unit price: {formatMoney(item.unit_price)}
                                                 </p>
+
                                                 {item.review ? (
-                                                    <div className="rounded-md bg-muted p-3 text-sm">
-                                                        <p className="font-medium">
-                                                            Your review {stars(item.review.rating)}
-                                                        </p>
-                                                        {item.review.title ? (
-                                                            <p className="mt-1">{item.review.title}</p>
-                                                        ) : null}
-                                                        {item.review.comment ? (
-                                                            <p className="mt-1 text-muted-foreground">
-                                                                {item.review.comment}
-                                                            </p>
-                                                        ) : null}
-                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => toggleReview(item.id)}
+                                                    >
+                                                        {isReviewOpen ? 'Hide Review' : 'See Review'}
+                                                    </Button>
                                                 ) : item.can_review ? (
                                                     <Button asChild size="sm">
                                                         <Link
@@ -173,14 +190,30 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                                         </Link>
                                                     </Button>
                                                 ) : null}
+
+                                                {item.review && isReviewOpen ? (
+                                                    <div className="rounded-md border border-[#e5d7d2] bg-white/60 p-3 text-sm">
+                                                        <p className="font-medium">
+                                                            Your review {stars(item.review.rating)}
+                                                        </p>
+                                                        {item.review.title ? (
+                                                            <p className="mt-1">{item.review.title}</p>
+                                                        ) : null}
+                                                        {item.review.comment ? (
+                                                            <p className="mt-1 text-muted-foreground">
+                                                                {item.review.comment}
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                )})}
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
                             <CardHeader>
                                 <CardTitle>Payment Details</CardTitle>
                             </CardHeader>
@@ -191,10 +224,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                     </p>
                                 ) : (
                                     order.payments.map((payment) => (
-                                        <div
-                                            key={payment.id}
-                                            className="rounded-md border p-3 text-sm"
-                                        >
+                                        <div key={payment.id} className="rounded-md border border-[#e5d7d2] bg-[#f8f2f0] p-3 text-sm">
                                             <p>
                                                 <span className="font-medium">Method:</span>{' '}
                                                 {payment.method}
@@ -223,7 +253,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                     </div>
 
                     <div className="space-y-6">
-                        <Card>
+                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
                             <CardHeader>
                                 <CardTitle>Order Summary</CardTitle>
                             </CardHeader>
@@ -252,7 +282,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
                             <CardHeader>
                                 <CardTitle>Shipping Address</CardTitle>
                             </CardHeader>
@@ -277,7 +307,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
                             <CardHeader>
                                 <CardTitle>Status Timeline</CardTitle>
                             </CardHeader>
@@ -286,7 +316,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                     <p className="text-muted-foreground">No timeline events yet.</p>
                                 ) : (
                                     order.status_history.map((entry) => (
-                                        <div key={entry.id} className="rounded-md border p-3">
+                                        <div key={entry.id} className="rounded-md border border-[#e5d7d2] bg-[#f8f2f0] p-3">
                                             <p className="font-medium">
                                                 {entry.from_status ?? '—'} {'->'} {entry.to_status}
                                             </p>

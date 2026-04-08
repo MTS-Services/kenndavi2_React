@@ -13,6 +13,7 @@ interface OrderItemSummary {
     quantity: number;
     unit_price?: number;
     can_review: boolean;
+    has_review?: boolean;
 }
 
 interface OrderSummary {
@@ -186,7 +187,15 @@ export default function Orders({ orders }: OrdersPageProps) {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    {item.can_review ? (
+                                                    {item.has_review ? (
+                                                        <Button
+                                                            size="sm"
+                                                            disabled
+                                                            className="cursor-not-allowed rounded-sm px-4 py-2 font-[Libre_Franklin] text-xs"
+                                                        >
+                                                            Reviewed
+                                                        </Button>
+                                                    ) : item.can_review ? (
                                                         <Link
                                                             href={route(
                                                                 'order.review.create',
