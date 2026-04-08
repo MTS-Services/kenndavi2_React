@@ -13,6 +13,17 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
+
+    public function index(): Response
+    {
+        return Inertia::render('backend/User/order-management/orders');
+    }
+
+    public function review(): Response
+    {
+        return Inertia::render('backend/User/order-management/review-form');
+    }
+
     public function shipping(Request $request, CartService $cartService): Response|RedirectResponse
     {
         $cart = $cartService->resolveCart($request);

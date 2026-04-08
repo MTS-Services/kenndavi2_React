@@ -1,11 +1,11 @@
 import { Head, router } from '@inertiajs/react';
-import UserLayout from '@/layouts/user-layout';
+import FrontendLayout from '@/layouts/frontend-layout';
 
-export default function UserHome() {
+export default function Profile() {
     const bgImage = "https://plus.unsplash.com/premium_photo-1733760125442-efad43dd88c3?q=80&w=1171&auto=format&fit=crop";
 
     return (
-        <UserLayout>
+        <FrontendLayout>
             <Head title="Profile" />
 
             {/* Main content (inherits layout background) */}
@@ -70,6 +70,6 @@ export default function UserHome() {
                     </div>
                 </div>
             </div>
-        </UserLayout>
+        </FrontendLayout>
     );
 }
