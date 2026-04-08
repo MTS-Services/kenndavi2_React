@@ -87,7 +87,7 @@ export default function TwoFactorChallenge({
                                     <button
                                         type="submit"
                                         disabled={processing || isExpired}
-                                        className="w-full rounded-sm bg-[var(--bg-red)] py-3 font-['Libre_Franklin'] font-medium text-white transition-colors hover:bg-red-800 disabled:opacity-50"
+                                        className="w-full rounded-sm bg-[var(--bg-red)] py-3 font-['Libre_Franklin'] font-medium text-white transition-colors hover:bg-red-800 disabled:opacity-50 cursor-pointer"
                                     >
                                         {processing ? 'Verifying...' : 'Submit'}
                                     </button>
@@ -100,7 +100,7 @@ export default function TwoFactorChallenge({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="w-full text-center font-['Libre_Franklin'] text-sm text-gray-900 hover:underline disabled:opacity-50"
+                                    className="w-full text-center font-['Libre_Franklin'] text-sm text-gray-900 hover:underline disabled:opacity-50 cursor-pointer"
                                 >
                                     Resend code
                                 </button>

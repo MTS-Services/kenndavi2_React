@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, Loader2, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 
 import { UserMenuContent } from '@/components/user-menu-content';
@@ -223,9 +223,9 @@ export function FrontendHeader() {
     }, [performLogout]);
 
     return (
-        <section className="sticky top-0 z-1000 overflow-visible font-sans text-gray-900">
+        <section className="z-1000 overflow-visible pt-4 font-sans text-gray-900 md:pt-10">
             <nav
-                className="relative z-1000 container mx-auto mt-4 grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-white/10 bg-bg-red px-4 py-4 backdrop-blur-md md:mt-10 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-y-0 md:px-12 md:py-5"
+                className="relative z-1000 container mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-white/10 bg-bg-red px-4 py-4 backdrop-blur-md md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-y-0 md:px-12 md:py-5"
                 aria-label="Main navigation"
             >
                 <div className="flex min-w-0 shrink-0 items-center gap-2">
@@ -272,7 +272,7 @@ export function FrontendHeader() {
                         type="button"
                         onClick={() => router.visit(cartIndex.url())}
                         className={cn(
-                            'text-lg text-gray-900 transition hover:text-white',
+                            'cursor-pointer text-lg text-gray-900 transition hover:text-white',
                             currentPath === cartIndex.url()
                                 ? 'text-white'
                                 : 'text-gray-900',

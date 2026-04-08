@@ -8,7 +8,7 @@ export default function Login({ status }: { status?: string }) {
         <FrontendLayout>
             <Head title="User Login" />
 
-            <section className="flex flex-1 items-center justify-center">
+            <section className="flex flex-1 items-center justify-center py-10">
                 <div className="container mx-auto max-w-md">
                     <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-10 text-sidebar shadow-sm md:p-14">
                         <div className="mb-10 flex flex-col items-center">
@@ -61,7 +61,7 @@ export default function Login({ status }: { status?: string }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="text-md w-full rounded-sm bg-[var(--bg-red)] py-3 font-['Libre_Franklin'] font-bold text-white transition-colors disabled:opacity-50"
+                                        className="text-md w-full rounded-sm bg-[var(--bg-red)] py-3 font-['Libre_Franklin'] font-bold text-white transition-colors disabled:opacity-50 cursor-pointer"
                                     >
                                         {processing
                                             ? 'Processing...'

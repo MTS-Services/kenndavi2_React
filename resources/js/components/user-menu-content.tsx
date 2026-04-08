@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Cog, Loader2, LogOut, Package2, User, User2 } from 'lucide-react';
-import { useMemo } from 'react';
 
 import {
     DropdownMenu,
@@ -13,7 +12,6 @@ import {
 import { useLogout } from '@/hooks/use-logout';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
-import admin from '@/routes/admin';
 import { User as UserType, type SharedData } from '@/types';
 
 interface UserMenuContentProps {
@@ -24,11 +22,11 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     const { auth } = usePage<SharedData>().props;
     const cleanup = useMobileNavigation();
 
-    const logoutUrl = useMemo(() => {
-        return auth?.admin ? admin.logout.url() : logout.url();
-    }, [auth?.admin]);
+    // const logoutUrl = useMemo(() => {
+    //     return auth?.admin ? admin.logout.url() : logout.url();
+    // }, [auth?.admin]);
 
-    const { loggingOut, performLogout } = useLogout(logoutUrl);
+    const { loggingOut, performLogout } = useLogout(logout.url());
 
     const handleLogout = () => {
         if (loggingOut) {
@@ -43,7 +41,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className="text-lg text-gray-900 transition hover:text-white"
+                    className="text-lg text-gray-900 transition hover:text-white cursor-pointer"
                     aria-label="Open user menu"
                 >
                     <User size={20} />

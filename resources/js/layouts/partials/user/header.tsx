@@ -71,7 +71,7 @@ export function UserHeader({ showProfileMenu = true }: UserHeaderProps) {
                     </div>
 
                     {/* Cart */}
-                    <button onClick={() => router.visit(cartIndex.url())} className="text-lg text-red-600 transition">
+                    <button onClick={() => router.visit(cartIndex.url())} className="text-lg text-red-600 transition cursor-pointer">
                         <ShoppingCart size={20} />
                     </button>
 
