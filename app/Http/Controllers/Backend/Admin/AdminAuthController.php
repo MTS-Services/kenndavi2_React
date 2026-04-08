@@ -24,8 +24,8 @@ class AdminAuthController extends Controller
      */
     public function create(): Response
     {
-        // Use the app-styled admin login page component (frontend/User/admin-login.tsx)
-        return Inertia::render('frontend/User/admin-login', [
+        // Use the app-styled admin login page component
+        return Inertia::render('auth/admin/login', [
             'status' => session('status'),
             'error' => session('error'),
         ]);
@@ -91,12 +91,12 @@ class AdminAuthController extends Controller
         ]);
 
         // Rate limiting - max 5 requests per minute
-        $key = 'admin-password-reset-code:'.$request->ip();
+        $key = 'admin-password-reset-code:' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
 
             return back()->withErrors([
-                'email' => 'Too many attempts. Please try again in '.ceil($seconds / 60).' minute(s).',
+                'email' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
             ]);
         }
 
@@ -161,12 +161,12 @@ class AdminAuthController extends Controller
             'code' => ['required', 'digits:6'],
         ]);
 
-        $key = 'admin-verify-password-code:'.$request->ip();
+        $key = 'admin-verify-password-code:' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
 
             return back()->withErrors([
-                'code' => 'Too many attempts. Please try again in '.ceil($seconds / 60).' minute(s).',
+                'code' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
             ])->withInput($request->except('code'));
         }
 
@@ -231,9 +231,11 @@ class AdminAuthController extends Controller
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
 
-        if (session('admin_password_reset_token') !== $request->token ||
+        if (
+            session('admin_password_reset_token') !== $request->token ||
             session('admin_password_reset_email') !== $request->email ||
-            ! session('admin_password_reset_verified')) {
+            ! session('admin_password_reset_verified')
+        ) {
             return back()->withErrors([
                 'email' => 'Invalid password reset request. Please start again.',
             ]);
@@ -273,12 +275,12 @@ class AdminAuthController extends Controller
             return redirect()->route('admin.password.request');
         }
 
-        $key = 'admin-password-reset-code:'.$request->ip();
+        $key = 'admin-password-reset-code:' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
 
             return back()->withErrors([
-                'email' => 'Too many attempts. Please try again in '.ceil($seconds / 60).' minute(s).',
+                'email' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
             ]);
         }
 

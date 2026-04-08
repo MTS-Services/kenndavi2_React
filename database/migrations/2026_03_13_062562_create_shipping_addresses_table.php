@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('cart_id')->references('id')->on('carts')->onUpdate('cascade')->onDelete('cascade');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->boolean('is_default')->default(false);
             $table->string('first_name', 120);
             $table->string('last_name', 120)->nullable();
             $table->string('email', 191);

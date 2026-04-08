@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Enums\ProductStatus;
 use App\Enums\ProductType;
+use App\Enums\ReviewStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -96,22 +98,44 @@ class ProductController extends Controller
             'images',
             'variants.color',
             'variants.size',
-            'reviews.user',
         ]);
 
-        $approvedReviews = $product->reviews->where('status.value', 'approved');
-        $avgRating       = $approvedReviews->avg('rating') ?? 0;
-        $reviewCount     = $approvedReviews->count();
+        $reviewQuery = ProductReview::query()
+            ->where('product_id', $product->id)
+            ->whereIn('status', [
+                ReviewStatus::APPROVED->value,
+                ReviewStatus::PUBLISHED->value,
+            ])
+            ->with('user:id,first_name,last_name,email,avatar');
+
+        $avgRating = (float) ((clone $reviewQuery)->avg('rating') ?? 0);
+        $reviewCount = (int) ((clone $reviewQuery)->count());
 
         $distribution = [];
         for ($star = 5; $star >= 1; $star--) {
-            $count          = $approvedReviews->where('rating', $star)->count();
+            $count = (int) ((clone $reviewQuery)->where('rating', $star)->count());
             $distribution[] = [
                 'star'    => $star,
                 'count'   => $count,
                 'percent' => $reviewCount > 0 ? round(($count / $reviewCount) * 100) : 0,
             ];
         }
+
+        $reviews = (clone $reviewQuery)
+            ->latest()
+            ->paginate(25, ['*'], 'reviews_page')
+            ->withQueryString()
+            ->through(fn ($r) => [
+                'id'         => $r->id,
+                'rating'     => $r->rating,
+                'title'      => $r->title,
+                'comment'    => $r->comment,
+                'created_at' => $r->created_at?->diffForHumans(),
+                'user'       => [
+                    'name'   => $r->user?->name ?? 'Anonymous',
+                    'avatar' => $r->user?->avatar ?? null,
+                ],
+            ]);
 
         return Inertia::render('frontend/products/details', [
             'product' => [
@@ -159,19 +183,7 @@ class ProductController extends Controller
                     'quantity' => $v->quantity,
                 ]),
 
-                'reviews' => $approvedReviews
-                    ->sortByDesc('created_at')->take(10)->values()
-                    ->map(fn($r) => [
-                        'id'         => $r->id,
-                        'rating'     => $r->rating,
-                        'title'      => $r->title,
-                        'comment'    => $r->comment,
-                        'created_at' => $r->created_at->diffForHumans(),
-                        'user'       => [
-                            'name'   => $r->user?->name ?? 'Anonymous',
-                            'avatar' => $r->user?->avatar ?? null,
-                        ],
-                    ]),
+                'reviews' => $reviews,
             ],
         ]);
     }

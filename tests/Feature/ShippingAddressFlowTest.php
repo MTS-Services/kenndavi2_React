@@ -54,7 +54,7 @@ it('renders shipping page with cart summary when cart has items', function () {
             ->where('itemCount', 2));
 });
 
-it('stores shipping address and redirects to payment', function () {
+it('stores shipping address from checkout payload', function () {
     $user = User::factory()->create(['email_verified_at' => now()]);
     $this->actingAs($user);
 
@@ -76,9 +76,51 @@ it('stores shipping address and redirects to payment', function () {
         'save_as_default' => true,
     ];
 
-    $this->post(route('order.shipping.store'), $payload)
-        ->assertRedirect(route('order.payment'))
-        ->assertSessionHas('toast.type', 'success');
+    $this->post('/checkout/place-order', $payload)
+        ->assertRedirect();
 
-    expect(ShippingAddress::query()->where('user_id', $user->id)->count())->toBeGreaterThan(0);
+    $savedAddress = ShippingAddress::query()
+        ->where('user_id', $user->id)
+        ->first();
+
+    expect($savedAddress)->not->toBeNull()
+        ->and($savedAddress->is_default)->toBeTrue();
+});
+
+it('prefills shipping form from default address only', function () {
+    $user = User::factory()->create(['email_verified_at' => now()]);
+    $this->actingAs($user);
+
+    $variant = makeSellableVariantForShipping();
+    $this->post(route('cart.items.store'), [
+        'variant_id' => $variant->id,
+        'quantity' => 1,
+    ]);
+
+    $cartId = $user->carts()->latest('id')->value('id');
+
+    $secondCartId = $user->carts()->create([
+        'session_id' => 'secondary-cart-session',
+        'expires_at' => now()->addDays(7),
+    ])->id;
+
+    ShippingAddress::factory()->create([
+        'cart_id' => $cartId,
+        'user_id' => $user->id,
+        'first_name' => 'Legacy',
+        'is_default' => false,
+    ]);
+
+    ShippingAddress::factory()->create([
+        'cart_id' => $secondCartId,
+        'user_id' => $user->id,
+        'first_name' => 'Default',
+        'is_default' => true,
+    ]);
+
+    $this->get(route('order.shipping'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('shippingAddress.first_name', 'Default')
+            ->where('shippingAddress.is_default', true));
 });

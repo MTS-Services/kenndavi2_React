@@ -11,10 +11,8 @@ use App\Models\PaymentGateway;
 use App\Models\ShippingAddress;
 use App\Services\CartService;
 use App\Services\PaymentService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
@@ -73,7 +71,15 @@ class CheckoutController extends Controller
             $userId = (int) $request->user()->id;
 
             $shippingData = $request->validated();
+            $saveAsDefault = (bool) ($shippingData['save_as_default'] ?? false);
             unset($shippingData['save_as_default']);
+            $shippingData['is_default'] = $saveAsDefault;
+
+            if ($saveAsDefault) {
+                ShippingAddress::query()
+                    ->where('user_id', $userId)
+                    ->update(['is_default' => false]);
+            }
 
             $shippingAddress = ShippingAddress::query()->updateOrCreate(
                 ['cart_id' => $cart->id, 'user_id' => $userId],
@@ -106,7 +112,7 @@ class CheckoutController extends Controller
             $subtotal = round($subtotal, 2);
 
             $order = Order::create([
-                'order_number' => $this->generateOrderNumber(),
+                'order_number' => generate_order_id_hybrid(),
                 'idempotency_key' => $idempotencyKey,
                 'user_id' => $userId,
                 'shipping_address_id' => $shippingAddress->id,
@@ -193,7 +199,7 @@ class CheckoutController extends Controller
             ])
             ->values();
 
-        return Inertia::render('backend/User/order-management/gateway', [
+        return Inertia::render('backend/user/order-management/gateway', [
             'orderNumber' => $orderModel->order_number,
             'gateways' => $gateways,
             'grandTotal' => (float) $orderModel->grand_total,
@@ -232,10 +238,4 @@ class CheckoutController extends Controller
 
         return Inertia::location($result['checkout_url']);
     }
-
-    protected function generateOrderNumber(): string
-    {
-        return 'ORD-'.Str::upper(Str::random(10));
-    }
 }
-

@@ -90,7 +90,7 @@ class OrderSeeder extends Seeder
                     ? OrderPaymentStatus::PAID
                     : OrderPaymentStatus::UNPAID;
 
-                $orderNumber = 'ORD-' . strtoupper(substr(md5($user->email . '-' . $orderIndex), 0, 8));
+                $orderNumber = generate_order_id_hybrid();
                 $order = Order::updateOrCreate(
                     ['order_number' => $orderNumber],
                     [
@@ -164,6 +164,7 @@ class OrderSeeder extends Seeder
                         'order_id' => $order->id,
                         'method' => PaymentMethod::CARD,
                         'gateway_txn_id' => 'txn_' . substr(md5($order->order_number), 0, 10),
+                        'txn_id' => generate_transaction_id_hybrid(),
                         'amount' => $order->grand_total,
                         'currency' => CurrencyCode::USD,
                         'status' => PaymentStatus::COMPLETED,

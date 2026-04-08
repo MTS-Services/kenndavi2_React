@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\View;
 // Route::get('/accessories/catalog', [FrontendController::class, 'accessoriesCatalog'])->name('accessories.catalog');
 // Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
 Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
-Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
-Route::redirect('/cartpage', '/cart', 301)->name('cartpage');
+// Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
+// Route::redirect('/cartpage', '/cart', 301)->name('cartpage');
 
 Route::controller(CartController::class)->name('cart.')->group(function () {
     Route::get('/cart', 'index')->name('index');

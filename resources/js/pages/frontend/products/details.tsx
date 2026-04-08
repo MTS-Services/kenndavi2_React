@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
@@ -56,6 +56,17 @@ interface ProductReview {
     user: ReviewUser;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedReviews {
+    data: ProductReview[];
+    links: PaginationLink[];
+}
+
 interface Product {
     id: number;
     title: string;
@@ -71,7 +82,7 @@ interface Product {
     colors: ProductColor[];
     sizes: ProductSize[];
     variants: ProductVariant[];
-    reviews: ProductReview[];
+    reviews: PaginatedReviews;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -650,7 +661,7 @@ export default function ProductDetails({ product }: { product: Product }) {
                                         <h3 className="mb-6 font-[Alumni_Sans] text-xl font-medium">
                                             Recent Reviews
                                         </h3>
-                                        {product.reviews.map((review) => (
+                                        {product.reviews.data.map((review) => (
                                             <div
                                                 key={review.id}
                                                 className="border-b border-gray-700 pb-6"
@@ -699,53 +710,38 @@ export default function ProductDetails({ product }: { product: Product }) {
                         </div>
 
                         {/* Pagination (reviews) */}
-                        {product.review_count > 10 && (
+                        {product.reviews.links.length > 3 && (
                             <div className="mt-12 flex items-center space-x-2 font-sans">
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    «
-                                </a>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    ‹
-                                </a>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary text-white"
-                                >
-                                    1
-                                </a>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    2
-                                </a>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    3
-                                </a>
-                                <span className="flex h-9 w-9 items-center justify-center text-gray-400">
-                                    …
-                                </span>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    ›
-                                </a>
-                                <a
-                                    href="#"
-                                    className="flex h-9 w-9 items-center justify-center border border-gray-600 hover:bg-gray-800"
-                                >
-                                    »
-                                </a>
+                                {product.reviews.links.map((link, idx) => {
+                                    const label = link.label
+                                        .replace('&laquo; Previous', 'Previous')
+                                        .replace('Next &raquo;', 'Next');
+
+                                    if (!link.url) {
+                                        return (
+                                            <span
+                                                key={`disabled-${idx}`}
+                                                className="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-sm border border-gray-700 px-3 text-gray-500"
+                                            >
+                                                {label}
+                                            </span>
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={`${label}-${idx}`}
+                                            href={link.url}
+                                            className={`flex h-9 min-w-9 items-center justify-center rounded-sm border px-3 text-sm transition ${
+                                                link.active
+                                                    ? 'border-primary bg-primary text-white'
+                                                    : 'border-gray-600 text-gray-200 hover:bg-gray-800'
+                                            }`}
+                                        >
+                                            {label}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

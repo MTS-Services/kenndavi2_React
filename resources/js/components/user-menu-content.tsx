@@ -1,70 +1,110 @@
-import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Cog, Loader2, LogOut, Package2, User, User2 } from 'lucide-react';
 
 import {
+    DropdownMenu,
+    DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuGroup,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserInfo } from '@/components/user-info';
+import { useLogout } from '@/hooks/use-logout';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
-import admin from '@/routes/admin';
-import { type SharedData, type User } from '@/types';
+import { index as orderIndex } from '@/routes/order';
+import { index as profileIndex } from '@/routes/user/profile';
+import { index as settingsIndex } from '@/routes/user/settings';
+import { User as UserType, type SharedData } from '@/types';
 
 interface UserMenuContentProps {
-    user: User;
+    user: UserType;
 }
+
+const menuItems = [
+    {
+        label: 'Orders',
+        href: orderIndex().url,
+        icon: Package2,
+    },
+    {
+        label: 'Profile',
+        href: profileIndex().url,
+        icon: User2,
+    },
+    {
+        label: 'Settings',
+        href: settingsIndex().url,
+        icon: Cog,
+    },
+];
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const { auth } = usePage<SharedData>().props;
     const cleanup = useMobileNavigation();
-    const logoutRoute = auth?.admin ? admin.logout() : logout();
+
+    // const logoutUrl = useMemo(() => {
+    //     return auth?.admin ? admin.logout.url() : logout.url();
+    // }, [auth?.admin]);
+
+    const { loggingOut, performLogout } = useLogout(logout.url());
 
     const handleLogout = () => {
+        if (loggingOut) {
+            return;
+        }
         cleanup();
-        router.flushAll();
+        performLogout();
     };
 
     return (
-        <>
-            <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <UserInfo user={user} showEmail={true} showName={true} />
-                </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {!auth?.admin && (
-                <>
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem asChild>
-                            <Link
-                                className="block w-full cursor-pointer"
-                                href="/profile"
-                                onClick={cleanup}
-                            >
-                                <UserIcon className="mr-2 h-4 w-4" />
-                                Profile
-                            </Link>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                </>
-            )}
-            <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full cursor-pointer"
-                    href={logoutRoute.url()}
-                    method="post"
-                    as="button"
-                    onClick={handleLogout}
-                    data-test="logout-button"
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    type="button"
+                    className="cursor-pointer text-lg text-gray-900 transition hover:text-white"
+                    aria-label="Open user menu"
                 >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                </Link>
-            </DropdownMenuItem>
-        </>
+                    <User size={20} />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="truncate text-sm leading-none font-medium">
+                            {user.first_name} {user?.last_name}
+                        </p>
+                        <p className="truncate text-xs leading-none text-muted-foreground">
+                            {user.email}
+                        </p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {menuItems.map((item) => (
+                    <DropdownMenuItem asChild key={item.label}>
+                        <Link href={item.href} className="cursor-pointer">
+                            <item.icon className="mr-2 h-4 w-4" />
+                            {item.label}
+                        </Link>
+                    </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    className="cursor-pointer"
+                    disabled={loggingOut}
+                    onSelect={(event) => {
+                        event.preventDefault();
+                        handleLogout();
+                    }}
+                >
+                    {loggingOut ? (
+                        <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" />
+                    ) : (
+                        <LogOut className="mr-2 h-4 w-4" />
+                    )}
+                    {loggingOut ? 'Logging out…' : 'Log out'}
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
