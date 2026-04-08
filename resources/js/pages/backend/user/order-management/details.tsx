@@ -33,7 +33,7 @@ interface OrderItemDetails {
 interface PaymentDetails {
     id: number;
     method: string;
-    gateway_txn_id: string | null;
+    txn_id: string | null;
     amount: number;
     currency: string;
     status: string;
@@ -122,9 +122,14 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
             <Head title={`Order #${order.order_number}`} />
 
             <section className="py-8 md:py-12">
-                <div className="container mx-auto grid max-w-6xl gap-6 px-4 lg:grid-cols-3">
+                <div className="container mx-auto max-w-6xl space-y-4 px-4">
+                    <Button asChild variant="outline" className="bg-[var(--bg-gray0)]/80 backdrop-blur-lg">
+                        <Link href={route('order.index')}>Back to orders</Link>
+                    </Button>
+
+                    <div className="grid gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
-                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
+                        <Card className="border-[#e5d7d2] bg-(--bg-gray0)">
                             <CardHeader>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
@@ -213,7 +218,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
+                        <Card className="border-[#e5d7d2] bg-(--bg-gray0)">
                             <CardHeader>
                                 <CardTitle>Payment Details</CardTitle>
                             </CardHeader>
@@ -225,10 +230,10 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                 ) : (
                                     order.payments.map((payment) => (
                                         <div key={payment.id} className="rounded-md border border-[#e5d7d2] bg-[#f8f2f0] p-3 text-sm">
-                                            <p>
+                                            {/* <p>
                                                 <span className="font-medium">Method:</span>{' '}
                                                 {payment.method}
-                                            </p>
+                                            </p> */}
                                             <p>
                                                 <span className="font-medium">Status:</span>{' '}
                                                 {payment.status}
@@ -239,7 +244,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                                             </p>
                                             <p>
                                                 <span className="font-medium">Transaction:</span>{' '}
-                                                {payment.gateway_txn_id ?? '—'}
+                                                {payment?.txn_id ?? '—'}
                                             </p>
                                             <p>
                                                 <span className="font-medium">Paid at:</span>{' '}
@@ -253,7 +258,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                     </div>
 
                     <div className="space-y-6">
-                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
+                        <Card className="border-[#e5d7d2] bg-(--bg-gray0)">
                             <CardHeader>
                                 <CardTitle>Order Summary</CardTitle>
                             </CardHeader>
@@ -282,7 +287,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
+                        <Card className="border-[#e5d7d2] bg-(--bg-gray0)">
                             <CardHeader>
                                 <CardTitle>Shipping Address</CardTitle>
                             </CardHeader>
@@ -307,7 +312,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-[#e5d7d2] bg-[var(--bg-gray0)]">
+                        <Card className="border-[#e5d7d2] bg-(--bg-gray0)">
                             <CardHeader>
                                 <CardTitle>Status Timeline</CardTitle>
                             </CardHeader>
@@ -330,6 +335,7 @@ export default function OrderDetails({ order }: OrderDetailsPageProps) {
                             </CardContent>
                         </Card>
                     </div>
+                </div>
                 </div>
             </section>
         </FrontendLayout>

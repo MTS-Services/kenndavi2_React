@@ -106,7 +106,7 @@ class CheckoutController extends Controller
             $subtotal = round($subtotal, 2);
 
             $order = Order::create([
-                'order_number' => $this->generateOrderNumber(),
+                'order_number' => generate_order_id_hybrid(),
                 'idempotency_key' => $idempotencyKey,
                 'user_id' => $userId,
                 'shipping_address_id' => $shippingAddress->id,
@@ -152,7 +152,7 @@ class CheckoutController extends Controller
         $activeGateways = PaymentGateway::query()
             ->enabled()
             ->get()
-            ->filter(fn (PaymentGateway $g) => $g->isSupported())
+            ->filter(fn(PaymentGateway $g) => $g->isSupported())
             ->values();
 
         if ($activeGateways->count() === 1) {
@@ -186,8 +186,8 @@ class CheckoutController extends Controller
         $gateways = PaymentGateway::query()
             ->enabled()
             ->get()
-            ->filter(fn (PaymentGateway $g) => $g->isSupported())
-            ->map(fn (PaymentGateway $g) => [
+            ->filter(fn(PaymentGateway $g) => $g->isSupported())
+            ->map(fn(PaymentGateway $g) => [
                 'slug' => $g->slug,
                 'name' => $g->name,
             ])
@@ -232,10 +232,4 @@ class CheckoutController extends Controller
 
         return Inertia::location($result['checkout_url']);
     }
-
-    protected function generateOrderNumber(): string
-    {
-        return 'ORD-'.Str::upper(Str::random(10));
-    }
 }
-

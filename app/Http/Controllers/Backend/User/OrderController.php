@@ -20,7 +20,7 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
-    private const ORDERS_PER_PAGE = 2;
+    private const ORDERS_PER_PAGE = 8;
 
     public function index(Request $request): Response
     {

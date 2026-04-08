@@ -23,6 +23,7 @@ class Payment extends Model
         'order_id',
         'method',
         'gateway_txn_id',
+        'txn_id',
         'amount',
         'currency',
         'status',

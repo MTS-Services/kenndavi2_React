@@ -1,79 +1,126 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import FrontendLayout from '@/layouts/frontend-layout';
 
-export default function ProfileForm() {
+interface ProfileData {
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    phone: string | null;
+}
+
+export default function ProfileForm({ profile }: { profile: ProfileData }) {
+    const { data, setData, post, processing, errors } = useForm({
+        first_name: profile.first_name ?? '',
+        last_name: profile.last_name ?? '',
+        email: profile.email ?? '',
+        phone: profile.phone ?? '',
+    });
+
     return (
         <FrontendLayout>
-            <Head title="Dashboard" />
-            <section className="flex flex-1 items-center justify-center py-10">
-                <div className="container mx-auto max-w-4xl">
-                    <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-10 shadow-sm md:p-16">
-                        <h1 className="mb-10 font-['Alumni_Sans'] text-xl font-bold">
+            <Head title="Edit Profile" />
+            <section className="py-8 md:py-12">
+                <div className="container mx-auto max-w-3xl px-4">
+                    <div className="rounded-sm bg-(--bg-gray0) p-6 shadow-sm md:p-10">
+                        <h1 className="mb-8 text-xl font-semibold">
                             Edit profile
                         </h1>
-                        <form className="space-y-8">
-                            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                                <div>
-                                    <label className="text-md mb-3 block font-['Alumni_Sans'] font-bold">
+                        <form
+                            className="space-y-6"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                post(route('user.profile.update'));
+                            }}
+                        >
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="first_name">
                                         First name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="First name"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                    </Label>
+                                    <Input
+                                        id="first_name"
+                                        value={data.first_name}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData(
+                                                'first_name',
+                                                e.target.value,
+                                            )
+                                        }
                                     />
+                                    {errors.first_name ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.first_name}
+                                        </p>
+                                    ) : null}
                                 </div>
-                                <div>
-                                    <label className="text-md mb-3 block font-['Alumni_Sans'] font-bold">
-                                        Last name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Last name"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                <div className="space-y-2">
+                                    <Label htmlFor="last_name">Last name</Label>
+                                    <Input
+                                        id="last_name"
+                                        value={data.last_name}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData('last_name', e.target.value)
+                                        }
                                     />
+                                    {errors.last_name ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.last_name}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                                <div>
-                                    <label className="text-md mb-3 block font-['Alumni_Sans'] font-bold">
-                                        Email
-                                    </label>
-                                    <input
+
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
                                         type="email"
-                                        placeholder="jackson.graham@example.com"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData('email', e.target.value)
+                                        }
                                     />
-                                    <p className="mt-2 text-[10px] text-gray-500 italic">
-                                        This email is used for sign-in and order
-                                        updates.
-                                    </p>
+                                    {errors.email ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.email}
+                                        </p>
+                                    ) : null}
                                 </div>
-                                <div>
-                                    <label className="text-md mb-3 block font-['Alumni_Sans'] font-bold">
-                                        Phone number
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        placeholder="(406) 555-0120"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone</Label>
+                                    <Input
+                                        id="phone"
+                                        value={data.phone}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData('phone', e.target.value)
+                                        }
                                     />
+                                    {errors.phone ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.phone}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
-                            <div className="flex gap-4 pt-4">
-                                <button
-                                    type="button"
-                                    className="rounded-sm border border-bg-red px-8 py-2 font-medium text-bg-red transition-colors hover:bg-red-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="rounded-sm bg-bg-red px-10 py-2 font-medium text-white transition-colors hover:bg-red-800"
-                                >
-                                    Save
-                                </button>
+
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                <Button asChild type="button" variant="outline">
+                                    <Link href={route('user.profile.index')}>
+                                        Cancel
+                                    </Link>
+                                </Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Saving...' : 'Save changes'}
+                                </Button>
                             </div>
                         </form>
                     </div>

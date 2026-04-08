@@ -62,6 +62,7 @@ class PaymentService
                         'order_id' => $lockedOrder->id,
                         'method' => $gateway,
                         'gateway_txn_id' => null,
+                        'txn_id' => generate_transaction_id_hybrid(),
                         'amount' => $lockedOrder->grand_total,
                         'currency' => 'USD',
                         'status' => PaymentStatus::PENDING->value,

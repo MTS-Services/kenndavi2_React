@@ -72,7 +72,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                         <p className="truncate text-sm leading-none font-medium">
-                            {user.name}
+                            {user.first_name} {user?.last_name}
                         </p>
                         <p className="truncate text-xs leading-none text-muted-foreground">
                             {user.email}

@@ -1,81 +1,118 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import FrontendLayout from '@/layouts/frontend-layout';
 
-export default function AddressForm() {
+interface AddressData {
+    state: string | null;
+    city: string | null;
+    zip_code: string | null;
+    address_line: string | null;
+}
+
+export default function AddressForm({ address }: { address: AddressData }) {
+    const { data, setData, post, processing, errors } = useForm({
+        state: address.state ?? '',
+        city: address.city ?? '',
+        zip_code: address.zip_code ?? '',
+        address_line: address.address_line ?? '',
+    });
+
     return (
         <FrontendLayout>
-            <Head title="Dashboard" />
-            <section className="flex flex-1 items-center justify-center py-10">
-                <div className="container mx-auto max-w-4xl">
-                    <div className="w-full rounded-sm bg-[var(--bg-gray0)] p-10 shadow-sm md:p-16">
-                        <h1 className="mb-10 font-['Alumni_Sans'] text-2xl font-bold">
+            <Head title="Edit Address" />
+            <section className="py-8 md:py-12">
+                <div className="container mx-auto max-w-3xl px-4">
+                    <div className="rounded-sm bg-(--bg-gray0) p-6 shadow-sm md:p-10">
+                        <h1 className="mb-8 text-xl font-semibold">
                             Edit address
                         </h1>
-                        <form className="space-y-8">
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                <div>
-                                    <label className="mb-3 block font-['Alumni_Sans'] text-sm font-bold">
-                                        Region/State
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue="Antofagasta"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all focus:ring-1 focus:ring-red-800 focus:outline-none"
+                        <form
+                            className="space-y-6"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                post(route('user.address.update'));
+                            }}
+                        >
+                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                                <div className="space-y-2">
+                                    <Label htmlFor="state">Region/State</Label>
+                                    <Input
+                                        id="state"
+                                        value={data.state}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData('state', e.target.value)
+                                        }
                                     />
+                                    {errors.state ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.state}
+                                        </p>
+                                    ) : null}
                                 </div>
-                                <div>
-                                    <label className="mb-3 block font-['Alumni_Sans'] text-sm font-bold">
-                                        City
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue="Pembroke Pines"
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">City</Label>
+                                    <Input
+                                        id="city"
+                                        value={data.city}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData('city', e.target.value)
+                                        }
                                     />
+                                    {errors.city ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.city}
+                                        </p>
+                                    ) : null}
                                 </div>
-                                <div>
-                                    <label className="mb-3 block font-['Alumni_Sans'] text-sm font-bold">
-                                        Zip cope
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={97133}
-                                        className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                <div className="space-y-2">
+                                    <Label htmlFor="zip_code">Zip code</Label>
+                                    <Input
+                                        id="zip_code"
+                                        value={data.zip_code}
+                                        className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                        onChange={(e) =>
+                                            setData('zip_code', e.target.value)
+                                        }
                                     />
+                                    {errors.zip_code ? (
+                                        <p className="text-xs text-red-600">
+                                            {errors.zip_code}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
-                            <div>
-                                <label className="mb-3 block font-['Alumni_Sans'] text-sm font-bold">
-                                    Address
-                                </label>
-                                <input
-                                    type="text"
-                                    defaultValue="8558 Green Rd."
-                                    className="w-full rounded-sm border border-gray-400 bg-transparent p-3 transition-all focus:ring-1 focus:ring-red-800 focus:outline-none"
+
+                            <div className="space-y-2">
+                                <Label htmlFor="address_line">Address</Label>
+                                <Input
+                                    id="address_line"
+                                    value={data.address_line}
+                                    className="rounded border border-[#110304B8] focus:ring-1 focus:ring-red-800 focus:outline-none"
+                                    onChange={(e) =>
+                                        setData('address_line', e.target.value)
+                                    }
                                 />
+                                {errors.address_line ? (
+                                    <p className="text-xs text-red-600">
+                                        {errors.address_line}
+                                    </p>
+                                ) : null}
                             </div>
-                            <div className="pt-2">
-                                <button
-                                    type="button"
-                                    className="text-sm font-medium text-bg-red hover:underline"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                            <div className="flex gap-4 pt-4">
-                                <button
-                                    type="button"
-                                    className="rounded-sm border border-bg-red px-8 py-2 font-medium text-bg-red transition-colors hover:bg-red-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="rounded-sm bg-bg-red px-10 py-2 font-medium text-white transition-colors hover:bg-red-800"
-                                >
-                                    Save
-                                </button>
+
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                <Button asChild type="button" variant="outline">
+                                    <Link href={route('user.profile.index')}>
+                                        Cancel
+                                    </Link>
+                                </Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Saving...' : 'Save address'}
+                                </Button>
                             </div>
                         </form>
                     </div>

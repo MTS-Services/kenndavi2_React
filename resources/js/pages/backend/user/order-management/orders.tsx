@@ -265,7 +265,7 @@ export default function Orders({ orders }: OrdersPageProps) {
                                             variant="outline"
                                             size="sm"
                                             disabled
-                                            className="min-w-9 disabled:cursor-not-allowed bg-[var(--bg-gray0)]/30 backdrop-blur-lg"
+                                            className="min-w-9 disabled:cursor-not-allowed bg-[var(--bg-gray0)]/80 backdrop-blur-lg"
                                         >
                                             {label}
                                         </Button>
@@ -281,7 +281,7 @@ export default function Orders({ orders }: OrdersPageProps) {
                                         }
                                         size="sm"
                                         className={cn(
-                                            'cursor-pointer bg-[var(--bg-gray0)]/30 backdrop-blur-lg',
+                                            'cursor-pointer bg-[var(--bg-gray0)]/70 backdrop-blur-lg',
                                             isNavButton ? 'px-4' : 'min-w-9',
                                         )}
                                     >
