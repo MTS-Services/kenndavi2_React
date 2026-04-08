@@ -93,6 +93,16 @@ test('users can request a fresh sign-in code from the signed challenge page', fu
     expect($freshChallenge->challenge_token)->not()->toEqual($challenge->challenge_token);
 });
 
+test('authenticated users can logout', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('logout'))
+        ->assertRedirect();
+
+    $this->assertGuest();
+});
+
 test('users cannot authenticate with an invalid sign-in code', function () {
     Mail::fake();
 

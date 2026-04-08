@@ -1,15 +1,9 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ChevronDown, Loader2, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { UserMenuContent } from '@/components/user-menu-content';
+import { useLogout } from '@/hooks/use-logout';
 import { cn } from '@/lib/utils';
 import { home, login, logout } from '@/routes';
 import { index as cartIndex } from '@/routes/cart';
@@ -45,6 +39,7 @@ function catalogFilterHref(
     const sep = listingHref.includes('?') ? '&' : '?';
     return qs ? `${listingHref}${sep}${qs}` : listingHref;
 }
+
 function DesktopTypeNavItem({
     label,
     landingHref,
@@ -71,7 +66,6 @@ function DesktopTypeNavItem({
         setExpandedParentId(firstExpandableId);
     }, [firstExpandableId]);
 
-    // const isLandingActive = pathOnly(currentPath) === pathOnly(landingHref);
     const isLandingActive = isActive;
     const hasMenu = categories.length > 0;
 
@@ -95,7 +89,6 @@ function DesktopTypeNavItem({
                 <div
                     className={cn(
                         'absolute top-full left-0 z-9999 pt-3',
-                        /* Bridge padding fills the space under the label so the cursor never crosses a dead zone (mt-* gap + pointer-events-none used to drop hover). */
                         '-ml-2 pr-2 pl-2',
                         'pointer-events-none group-hover:pointer-events-auto',
                     )}
@@ -174,6 +167,7 @@ function DesktopTypeNavItem({
 
 export function FrontendHeader() {
     const { url, props } = usePage<SharedData>();
+    const mobileNavId = useId();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [mobileTypeOpen, setMobileTypeOpen] = useState<string | null>(null);
     const [mobileParentOpen, setMobileParentOpen] = useState<
@@ -183,26 +177,17 @@ export function FrontendHeader() {
     const user = props?.auth?.user ?? null;
     const frontendNav: FrontendNav | undefined = props?.frontendNav;
 
-    const productTypes = frontendNav?.productTypes ?? [];
-    const byType: Record<string, FrontendNavByTypeEntry> =
-        frontendNav?.byType ?? {};
+    const productTypes = useMemo(
+        () => frontendNav?.productTypes ?? [],
+        [frontendNav?.productTypes],
+    );
+    const byType = useMemo<Record<string, FrontendNavByTypeEntry>>(
+        () => frontendNav?.byType ?? {},
+        [frontendNav?.byType],
+    );
 
-    const logoutRoute = logout();
-    const logoutHref = (() => {
-        const route = logoutRoute as unknown as {
-            url?: string | (() => string);
-        };
-
-        if (typeof route === 'string') {
-            return route;
-        }
-
-        if (typeof route.url === 'function') {
-            return route.url();
-        }
-
-        return route.url ?? '';
-    })();
+    const logoutUrl = logout.url();
+    const { loggingOut, performLogout } = useLogout(logoutUrl);
 
     const currentPath = useMemo(() => pathOnly(url), [url]);
 
@@ -218,37 +203,42 @@ export function FrontendHeader() {
         const knownTypes = new Set(productTypes.map((pt) => pt.value));
         const defaultType = productTypes[0]?.value ?? '';
 
-        // Home route: always active, default to first type if no/invalid param
         if (currentPath === '/') {
             return typeParam && knownTypes.has(typeParam)
                 ? typeParam
                 : defaultType;
         }
 
-        // products.category route: /men, /women, /accessories
         const segment = currentPath.replace(/^\//, '').split('/')[0] ?? '';
         if (knownTypes.has(segment)) {
             return segment;
         }
 
-        // Any other route → nothing active
         return '';
     }, [url, currentPath, productTypes]);
 
+    const handleMobileLogout = useCallback(() => {
+        setMobileOpen(false);
+        performLogout();
+    }, [performLogout]);
+
     return (
-        <section className="relative z-1000 overflow-visible font-sans text-gray-900">
-            <nav className="relative z-1000 container mx-auto mt-10 flex items-center justify-between border-b border-white/10 bg-bg-red px-6 py-5 backdrop-blur-md md:px-12">
-                <div className="flex items-center gap-2">
-                    <Link href={home()}>
+        <section className="sticky top-0 z-1000 overflow-visible font-sans text-gray-900">
+            <nav
+                className="relative z-1000 container mx-auto mt-4 grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-white/10 bg-bg-red px-4 py-4 backdrop-blur-md md:mt-10 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-y-0 md:px-12 md:py-5"
+                aria-label="Main navigation"
+            >
+                <div className="flex min-w-0 shrink-0 items-center gap-2">
+                    <Link href={home()} className="inline-flex">
                         <img
                             src="/assets/images/Layer_1 (3).png"
                             alt="Logo"
-                            className="h-10 w-auto"
+                            className="h-9 w-auto md:h-10"
                         />
                     </Link>
                 </div>
 
-                <ul className="text-md hidden space-x-10 font-[Libre_Franklin] font-semibold tracking-wider md:flex">
+                <ul className="text-md hidden min-w-0 items-center justify-center space-x-8 font-[Libre_Franklin] font-semibold tracking-wider md:flex md:space-x-10">
                     {productTypes.map((pt) => {
                         const entry = byType[pt.value];
                         if (!entry) return null;
@@ -266,74 +256,34 @@ export function FrontendHeader() {
                     })}
                 </ul>
 
-                <div className="flex items-center gap-3 md:gap-6">
-                    <div className="relative hidden items-center gap-2 rounded bg-gray-900 px-4 py-2.5 sm:flex">
-                        <Search size={14} className="text-gray-100" />
+                <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-6">
+                    <div className="relative hidden min-w-0 items-center gap-2 rounded bg-gray-900 px-3 py-2 sm:flex md:px-4 md:py-2.5">
+                        <Search size={14} className="shrink-0 text-gray-100" />
                         <input
-                            type="text"
+                            type="search"
+                            name="header-search"
                             placeholder="Search"
-                            className="w-20 bg-transparent text-xs text-white outline-none placeholder:text-gray-100 md:w-32"
+                            className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-gray-100 sm:w-24 md:w-32"
+                            aria-label="Search products"
                         />
                     </div>
 
                     <button
                         type="button"
                         onClick={() => router.visit(cartIndex.url())}
-                        className="text-lg text-gray-900 transition hover:text-white"
+                        className={cn(
+                            'text-lg text-gray-900 transition hover:text-white',
+                            currentPath === cartIndex.url()
+                                ? 'text-white'
+                                : 'text-gray-900',
+                        )}
+                        aria-label="Shopping cart"
                     >
                         <ShoppingCart size={20} />
                     </button>
 
                     {user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    type="button"
-                                    className="text-lg text-gray-900 transition hover:text-white"
-                                    aria-label="Open user menu"
-                                >
-                                    <User size={20} />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className="w-56"
-                                align="end"
-                                sideOffset={8}
-                            >
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm leading-none font-medium">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href="/profile"
-                                        className="cursor-pointer"
-                                        onClick={() => setMobileOpen(false)}
-                                    >
-                                        Profile
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href={logoutHref}
-                                        method="post"
-                                        as="button"
-                                        className="w-full cursor-pointer"
-                                        onClick={() => setMobileOpen(false)}
-                                    >
-                                        Log out
-                                    </Link>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <UserMenuContent user={user} />
                     ) : (
                         <Link
                             href={login()}
@@ -347,15 +297,21 @@ export function FrontendHeader() {
 
                     <button
                         type="button"
-                        className="text-2xl md:hidden"
-                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="inline-flex items-center justify-center rounded-md p-1.5 text-2xl text-gray-900 transition hover:bg-white/10 hover:text-white md:hidden"
+                        aria-expanded={mobileOpen}
+                        aria-controls={mobileNavId}
+                        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                        onClick={() => setMobileOpen((o) => !o)}
                     >
                         {mobileOpen ? <X /> : <Menu />}
                     </button>
                 </div>
 
                 {mobileOpen && (
-                    <div className="absolute top-full left-0 w-full border-t border-white/10 bg-black/90 p-6 backdrop-blur-md md:hidden">
+                    <div
+                        id={mobileNavId}
+                        className="absolute top-full right-0 left-0 z-1001 max-h-[min(70vh,calc(100dvh-5rem))] overflow-y-auto border-t border-white/10 bg-black/90 p-4 shadow-lg backdrop-blur-md md:hidden"
+                    >
                         <ul className="flex flex-col space-y-2 text-sm font-semibold tracking-wider uppercase">
                             {productTypes.map((pt) => {
                                 const entry = byType[pt.value];
@@ -375,7 +331,7 @@ export function FrontendHeader() {
                                             <Link
                                                 href={entry.landingHref}
                                                 className={cn(
-                                                    'block flex-1',
+                                                    'block min-w-0 flex-1',
                                                     landingActive
                                                         ? 'font-bold text-white'
                                                         : 'text-gray-300',
@@ -390,7 +346,8 @@ export function FrontendHeader() {
                                                 <button
                                                     type="button"
                                                     aria-expanded={typeExpanded}
-                                                    className="shrink-0 p-1 text-gray-400"
+                                                    className="shrink-0 rounded p-1 text-gray-400 hover:bg-white/10 hover:text-white"
+                                                    aria-label={`Toggle ${pt.label} categories`}
                                                     onClick={() =>
                                                         setMobileTypeOpen(
                                                             (v) =>
@@ -435,7 +392,7 @@ export function FrontendHeader() {
                                                                                 entry.listingHref,
                                                                                 cat.slug,
                                                                             )}
-                                                                            className="flex-1 text-xs text-gray-200 hover:text-white"
+                                                                            className="min-w-0 flex-1 text-xs text-gray-200 hover:text-white"
                                                                             onClick={() =>
                                                                                 setMobileOpen(
                                                                                     false,
@@ -449,10 +406,11 @@ export function FrontendHeader() {
                                                                         {hasChildren && (
                                                                             <button
                                                                                 type="button"
-                                                                                className="p-1 text-gray-500"
+                                                                                className="shrink-0 rounded p-1 text-gray-500 hover:bg-white/10 hover:text-white"
                                                                                 aria-expanded={
                                                                                     pOpen
                                                                                 }
+                                                                                aria-label={`Toggle ${cat.title} subcategories`}
                                                                                 onClick={() =>
                                                                                     toggleMobileParent(
                                                                                         pKey,
@@ -513,7 +471,7 @@ export function FrontendHeader() {
                                 );
                             })}
 
-                            <li className="border-t border-white/10 pt-4">
+                            {/* <li className="border-t border-white/10 pt-4">
                                 {user ? (
                                     <div className="space-y-3 normal-case">
                                         <div className="text-left">
@@ -534,17 +492,19 @@ export function FrontendHeader() {
                                             >
                                                 Profile
                                             </Link>
-                                            <Link
-                                                href={logoutHref}
-                                                method="post"
-                                                as="button"
-                                                className="text-left text-sm text-gray-200 transition hover:text-white"
-                                                onClick={() =>
-                                                    setMobileOpen(false)
-                                                }
+                                            <button
+                                                type="button"
+                                                disabled={loggingOut}
+                                                className="flex items-center gap-2 text-left text-sm text-gray-200 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                                onClick={handleMobileLogout}
                                             >
-                                                Log out
-                                            </Link>
+                                                {loggingOut ? (
+                                                    <Loader2 className="size-4 shrink-0 animate-spin" />
+                                                ) : null}
+                                                {loggingOut
+                                                    ? 'Logging out…'
+                                                    : 'Log out'}
+                                            </button>
                                         </div>
                                     </div>
                                 ) : (
@@ -556,18 +516,20 @@ export function FrontendHeader() {
                                         Login
                                     </Link>
                                 )}
-                            </li>
+                            </li> */}
 
                             <li className="border-t border-white/10 pt-4">
                                 <div className="flex items-center gap-2 rounded bg-white/10 px-4 py-2 normal-case">
                                     <Search
                                         size={14}
-                                        className="text-gray-400"
+                                        className="shrink-0 text-gray-400"
                                     />
                                     <input
-                                        type="text"
+                                        type="search"
+                                        name="mobile-header-search"
                                         placeholder="Search"
-                                        className="w-full bg-transparent text-xs text-white outline-none placeholder:text-gray-400"
+                                        className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-gray-400"
+                                        aria-label="Search products"
                                     />
                                 </div>
                             </li>
