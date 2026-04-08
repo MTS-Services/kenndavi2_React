@@ -120,7 +120,7 @@ class UserOtpAuthController extends Controller
         $request->session()->regenerate();
         $request->session()->regenerateToken();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('order.index', absolute: false));
     }
 
     public function resend(Request $request, string $challenge): RedirectResponse

@@ -18,6 +18,7 @@ type ShippingAddress = {
     city: string;
     zip_code: string;
     address: string;
+    is_default: boolean;
 };
 
 type CartSummaryItem = {
@@ -64,6 +65,7 @@ export default function ShippingInformation({
                 city: '',
                 zip_code: '',
                 address: '',
+                is_default: false,
             },
         [shippingAddress],
     );
@@ -77,7 +79,7 @@ export default function ShippingInformation({
         city: defaults.city,
         zip_code: defaults.zip_code,
         address: defaults.address,
-        save_as_default: false,
+        save_as_default: defaults.is_default ?? false,
     });
 
     const total = subtotal;

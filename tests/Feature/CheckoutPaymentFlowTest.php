@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\ShippingAddress;
 use App\Models\User;
 use App\Services\PaymentService;
 use Illuminate\Support\Carbon;
@@ -129,3 +130,46 @@ it('checkout start redirects away to hosted checkout url', function () {
         ->assertRedirect('https://example.com/checkout');
 });
 
+it('place-order marks submitted default shipping address', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => Carbon::now(),
+    ]);
+
+    $product = Product::factory()->create(['price' => 25]);
+    $variant = ProductVariant::query()->create([
+        'product_id' => $product->id,
+        'color_id' => null,
+        'size_id' => null,
+        'quantity' => 10,
+        'status' => 'active',
+    ]);
+
+    $cart = Cart::factory()->create(['user_id' => $user->id]);
+    CartItem::factory()->create([
+        'cart_id' => $cart->id,
+        'variant_id' => $variant->id,
+        'quantity' => 2,
+        'unit_price' => 25,
+    ]);
+
+    $this->actingAs($user)
+        ->post('/checkout/place-order', [
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'email' => 'jane@example.com',
+            'phone' => '555-0100',
+            'state' => 'CA',
+            'city' => 'LA',
+            'zip_code' => '90001',
+            'address' => '100 Market Street',
+            'save_as_default' => true,
+        ])
+        ->assertRedirect();
+
+    $shippingAddress = ShippingAddress::query()
+        ->where('user_id', $user->id)
+        ->first();
+
+    expect($shippingAddress)->not->toBeNull()
+        ->and($shippingAddress->is_default)->toBeTrue();
+});

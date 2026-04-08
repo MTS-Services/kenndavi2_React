@@ -6,10 +6,10 @@ use App\Enums\OrderStatus;
 use App\Enums\ReviewStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderItemReviewRequest;
+use App\Http\Requests\Order\StoreShippingAddressRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductReview;
-use App\Http\Requests\Order\StoreShippingAddressRequest;
 use App\Models\ShippingAddress;
 use App\Services\CartService;
 use BackedEnum;
@@ -29,7 +29,7 @@ class OrderController extends Controller
             ->where('user_id', $userId)
             ->where('status', '!=', OrderStatus::INITIALIZED->value)
             ->with([
-                'items' => fn($query) => $query
+                'items' => fn ($query) => $query
                     ->select([
                         'id',
                         'order_id',
@@ -49,7 +49,7 @@ class OrderController extends Controller
             ->orderByDesc('created_at')
             ->paginate(self::ORDERS_PER_PAGE)
             ->withQueryString()
-            ->through(fn(Order $order) => $this->transformOrderListItem($order));
+            ->through(fn (Order $order) => $this->transformOrderListItem($order));
 
         return Inertia::render('backend/user/order-management/orders', [
             'orders' => $orders,
@@ -61,10 +61,10 @@ class OrderController extends Controller
         $this->authorizeOrderOwner($request, $order);
 
         $order->load([
-            'items' => fn($query) => $query->with('review'),
+            'items' => fn ($query) => $query->with('review'),
             'payments',
             'shippingAddress',
-            'statusHistory' => fn($query) => $query->latest('created_at'),
+            'statusHistory' => fn ($query) => $query->latest('created_at'),
         ]);
 
         return Inertia::render('backend/user/order-management/details', [
@@ -151,8 +151,9 @@ class OrderController extends Controller
 
         $userId = (int) $request->user()->id;
         $shippingAddress = ShippingAddress::query()
-            ->where('cart_id', $cart->id)
             ->where('user_id', $userId)
+            ->where('is_default', true)
+            ->latest('id')
             ->first();
 
         $items = $cart->items->map(function ($item) use ($cartService) {
@@ -190,6 +191,7 @@ class OrderController extends Controller
                 'city' => $shippingAddress->city,
                 'zip_code' => $shippingAddress->zip_code,
                 'address' => $shippingAddress->address,
+                'is_default' => (bool) $shippingAddress->is_default,
             ] : null,
             'cartItems' => $items,
             'subtotal' => $subtotal,
@@ -219,7 +221,15 @@ class OrderController extends Controller
         }
 
         $data = $request->validated();
+        $saveAsDefault = (bool) ($data['save_as_default'] ?? false);
         unset($data['save_as_default']);
+        $data['is_default'] = $saveAsDefault;
+
+        if ($saveAsDefault) {
+            ShippingAddress::query()
+                ->where('user_id', $userId)
+                ->update(['is_default' => false]);
+        }
 
         ShippingAddress::query()->updateOrCreate(
             ['cart_id' => $cart->id, 'user_id' => $userId],
@@ -384,7 +394,7 @@ class OrderController extends Controller
             'payments' => $order->payments->map(fn ($payment): array => [
                 'id' => $payment->id,
                 'method' => $this->enumString($payment->method),
-                'gateway_txn_id' => $payment->gateway_txn_id,
+                'txn_id' => $payment->txn_id,
                 'amount' => (float) $payment->amount,
                 'currency' => $this->enumString($payment->currency),
                 'status' => $this->enumString($payment->status),
@@ -410,7 +420,7 @@ class OrderController extends Controller
             return $url;
         }
 
-        return asset('storage/' . $url);
+        return asset('storage/'.$url);
     }
 
     private function enumString(mixed $value): string

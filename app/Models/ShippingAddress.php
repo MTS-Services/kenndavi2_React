@@ -19,6 +19,7 @@ class ShippingAddress extends Model
     protected $fillable = [
         'cart_id',
         'user_id',
+        'is_default',
         'first_name',
         'last_name',
         'email',
@@ -28,6 +29,16 @@ class ShippingAddress extends Model
         'zip_code',
         'address',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
 
     public function cart(): BelongsTo
     {

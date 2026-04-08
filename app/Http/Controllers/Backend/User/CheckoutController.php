@@ -11,10 +11,8 @@ use App\Models\PaymentGateway;
 use App\Models\ShippingAddress;
 use App\Services\CartService;
 use App\Services\PaymentService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
@@ -73,7 +71,15 @@ class CheckoutController extends Controller
             $userId = (int) $request->user()->id;
 
             $shippingData = $request->validated();
+            $saveAsDefault = (bool) ($shippingData['save_as_default'] ?? false);
             unset($shippingData['save_as_default']);
+            $shippingData['is_default'] = $saveAsDefault;
+
+            if ($saveAsDefault) {
+                ShippingAddress::query()
+                    ->where('user_id', $userId)
+                    ->update(['is_default' => false]);
+            }
 
             $shippingAddress = ShippingAddress::query()->updateOrCreate(
                 ['cart_id' => $cart->id, 'user_id' => $userId],
@@ -152,7 +158,7 @@ class CheckoutController extends Controller
         $activeGateways = PaymentGateway::query()
             ->enabled()
             ->get()
-            ->filter(fn(PaymentGateway $g) => $g->isSupported())
+            ->filter(fn (PaymentGateway $g) => $g->isSupported())
             ->values();
 
         if ($activeGateways->count() === 1) {
@@ -186,8 +192,8 @@ class CheckoutController extends Controller
         $gateways = PaymentGateway::query()
             ->enabled()
             ->get()
-            ->filter(fn(PaymentGateway $g) => $g->isSupported())
-            ->map(fn(PaymentGateway $g) => [
+            ->filter(fn (PaymentGateway $g) => $g->isSupported())
+            ->map(fn (PaymentGateway $g) => [
                 'slug' => $g->slug,
                 'name' => $g->name,
             ])
