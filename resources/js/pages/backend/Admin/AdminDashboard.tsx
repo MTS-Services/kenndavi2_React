@@ -255,10 +255,20 @@ export default function AdminDashboard({
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent
-                                            formatter={(value, _name, item) => [
-                                                currency.format(Number(value)),
-                                                `${item.payload.sold_qty} pcs`,
-                                            ]}
+                                            formatter={(value, _name, item) => {
+                                                const amount = currency.format(
+                                                    Number(value),
+                                                );
+                                                const qty =
+                                                    item.payload.sold_qty;
+                                                const product =
+                                                    item.payload.label;
+
+                                                return [
+                                                    `${amount} | Qty: ${qty} pcs`,
+                                                    `Product: ${product}`,
+                                                ];
+                                            }}
                                         />
                                     }
                                 />

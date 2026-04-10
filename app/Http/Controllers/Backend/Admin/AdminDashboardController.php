@@ -44,54 +44,6 @@ class AdminDashboardController extends Controller
         ]);
     }
 
-    public function OrderManagement(Request $request): Response
-    {
-        $validTabs = ['pending', 'shipped', 'delivered', 'cancelled'];
-        $initialTab = $request->query('tab');
-        if (! in_array($initialTab, $validTabs, true)) {
-            $initialTab = 'pending';
-        }
-
-        return Inertia::render('backend/Admin/OrderManagement', [
-            'initialTab' => $initialTab,
-        ]);
-    }
-
-    public function DashboarOrdersdetails(Request $request): Response
-    {
-        return Inertia::render('backend/Admin/Ordersdetails');
-    }
-
-    public function DashboarProduct(Request $request): Response
-    {
-        return Inertia::render('backend/Admin/Product');
-    }
-
-    public function DashboarOrdersAdd(Request $request): Response
-    {
-        return Inertia::render('backend/Admin/OrdersAdd');
-    }
-
-    public function DashboarCustomer(Request $request): Response
-    {
-        return Inertia::render('backend/Admin/Customer');
-    }
-
-    public function DashboarShipped(Request $request): RedirectResponse
-    {
-        return redirect()->route('admin.orders.index', ['tab' => 'shipped']);
-    }
-
-    public function DashboarDelivered(Request $request): RedirectResponse
-    {
-        return redirect()->route('admin.orders.index', ['tab' => 'delivered']);
-    }
-
-    public function DashboarCancelled(Request $request): RedirectResponse
-    {
-        return redirect()->route('admin.orders.index', ['tab' => 'cancelled']);
-    }
-
     private function normalizeRange(string $range): string
     {
         return in_array($range, ['week', 'month'], true) ? $range : 'week';
@@ -154,17 +106,31 @@ class AdminDashboardController extends Controller
     private function buildSalesOverview(CarbonImmutable $start, CarbonImmutable $end): array
     {
         return OrderItem::query()
-            ->selectRaw('COALESCE(product_title, ?) as label', ['Unknown product'])
-            ->selectRaw('SUM(quantity) as sold_qty')
-            ->selectRaw('COALESCE(SUM(total_price), 0) as sold_amount')
+            ->selectRaw(
+                "COALESCE(CAST(products.id AS CHAR), CONCAT('legacy:', COALESCE(order_items.product_title, ?))) as product_key",
+                ['Unknown product'],
+            )
+            ->selectRaw('MAX(COALESCE(products.title, order_items.product_title, ?)) as label', ['Unknown product'])
+            ->selectRaw('SUM(order_items.quantity) as sold_qty')
+            ->selectRaw('COALESCE(SUM(order_items.total_price), 0) as sold_amount')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->whereIn('orders.status', [OrderStatus::DELIVERED->value, OrderStatus::COMPLETED->value])
+            ->leftJoin('product_variants', 'product_variants.id', '=', 'order_items.variant_id')
+            ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
+            ->whereIn('orders.status', [
+                OrderStatus::PENDING->value,
+                OrderStatus::CONFIRMED->value,
+                OrderStatus::PROCESSING->value,
+                OrderStatus::SHIPPED->value,
+                OrderStatus::DELIVERED->value,
+                OrderStatus::COMPLETED->value,
+            ])
             ->whereBetween('orders.created_at', [$start, $end])
-            ->groupBy('product_title')
-            ->orderByDesc(DB::raw('SUM(quantity)'))
+            ->groupBy('product_key')
+            ->orderByDesc(DB::raw('SUM(order_items.quantity)'))
+            ->orderByDesc(DB::raw('SUM(order_items.total_price)'))
             ->limit(7)
             ->get()
-            ->map(fn ($row): array => [
+            ->map(fn($row): array => [
                 'label' => (string) $row->label,
                 'sold_qty' => (int) $row->sold_qty,
                 'sold_amount' => (float) $row->sold_amount,
@@ -192,7 +158,7 @@ class AdminDashboardController extends Controller
             ->groupBy('products.type')
             ->orderByDesc(DB::raw('SUM(order_items.total_price)'))
             ->get()
-            ->map(fn ($row): array => [
+            ->map(fn($row): array => [
                 'type' => ucfirst((string) $row->type),
                 'total_units' => (int) $row->total_units,
                 'total_sales_amount' => (float) $row->total_sales_amount,
@@ -214,7 +180,7 @@ class AdminDashboardController extends Controller
                 'items:id,order_id,quantity',
             ])
             ->latest('created_at')
-            ->limit(3)
+            ->limit(4)
             ->get()
             ->map(function (Order $order): array {
                 $buyerName = trim(implode(' ', array_filter([
@@ -228,7 +194,7 @@ class AdminDashboardController extends Controller
 
                 return [
                     'id' => $order->id,
-                    'order_number' => '#'.$order->order_number,
+                    'order_number' => '#' . $order->order_number,
                     'buyer_name' => $buyerName,
                     'total_amount' => (float) $order->grand_total,
                     'quantity' => (int) $order->items->sum('quantity'),
