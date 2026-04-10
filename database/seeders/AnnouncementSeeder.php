@@ -15,7 +15,12 @@ class AnnouncementSeeder extends Seeder
     {
         Announcement::create([
             'is_active' => true,
-            'announcement' => 'This is a test announcement',
+            'announcement' => ' Free Standard Delivery & 30-Day Free Returns | Free
+                        Standard Delivery & 30-Day Free Returns | Free Standard
+                        Delivery & 30-Day Free Returns | Free Standard Delivery
+                        & 30-Day Free Returns | Free Standard Delivery & 30-Day
+                        Free Returns | Free Standard Delivery & 30-Day Free
+                        Returns |',
         ]);
     }
 }
