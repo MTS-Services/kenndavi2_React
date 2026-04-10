@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Backend\Admin\AdminAuthController;
 use App\Http\Controllers\Backend\Admin\AdminDashboardController;
+use App\Http\Controllers\Backend\Admin\BannerContentController;
 use App\Http\Controllers\Backend\Admin\OrderController;
 use App\Http\Controllers\UserSelectionController;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{order}/ship', 'ship')->name('ship');
             Route::post('/{order}/deliver', 'deliver')->name('deliver');
             Route::get('/{order}', 'show')->name('show');
+        });
+
+        Route::controller(BannerContentController::class)->name('banner-content.')->prefix('banner-content')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'update')->name('update');
         });
     });
 });

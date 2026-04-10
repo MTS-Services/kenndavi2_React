@@ -16,11 +16,7 @@ return new class extends Migration
             $table->text('content')->nullable();
             $table->string('action_url', 255)->nullable();
             $table->string('action_title', 100)->nullable();
-
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->foreign('created_by')->references('id')->on('admins')->onUpdate('cascade')->onDelete('cascade');
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->foreign('updated_by')->references('id')->on('admins')->onUpdate('cascade')->onDelete('cascade');
+            $table->string('type', 20)->index();
             $table->timestamps();
         });
     }
