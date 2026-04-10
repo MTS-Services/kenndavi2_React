@@ -36,8 +36,8 @@ interface StatsTrend {
 }
 
 interface SalesOverviewRow {
+    date: string;
     label: string;
-    sold_qty: number;
     sold_amount: number;
 }
 
@@ -226,7 +226,8 @@ export default function AdminDashboard({
                         </div>
                     </div>
                     <p className="mb-6 text-xs text-gray-700">
-                        Top sold products by amount for this {range}.
+                        Total sold amount by {range === 'week' ? 'day' : 'date'}{' '}
+                        for this {range}.
                     </p>
 
                     {salesOverview.length > 0 ? (
@@ -245,30 +246,35 @@ export default function AdminDashboard({
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    interval={0}
-                                    tickFormatter={(value: string) =>
-                                        value.length > 10
-                                            ? `${value.slice(0, 10)}...`
-                                            : value
-                                    }
+                                    minTickGap={12}
                                 />
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent
-                                            formatter={(value, _name, item) => {
-                                                const amount = currency.format(
-                                                    Number(value),
-                                                );
-                                                const qty =
-                                                    item.payload.sold_qty;
-                                                const product =
-                                                    item.payload.label;
-
-                                                return [
-                                                    `${amount} | Qty: ${qty} pcs`,
-                                                    `Product: ${product}`,
-                                                ];
+                                            labelFormatter={(_, payload) => {
+                                                const row = payload?.[0]
+                                                    ?.payload as
+                                                    | SalesOverviewRow
+                                                    | undefined;
+                                                if (!row?.date) {
+                                                    return '';
+                                                }
+                                                return new Date(
+                                                    row.date,
+                                                ).toLocaleDateString('en-US', {
+                                                    weekday:
+                                                        range === 'week'
+                                                            ? 'long'
+                                                            : undefined,
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                });
                                             }}
+                                            formatter={(value) => [
+                                                currency.format(Number(value)),
+                                                'Total sold',
+                                            ]}
                                         />
                                     }
                                 />
@@ -289,10 +295,10 @@ export default function AdminDashboard({
 
             <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-12 rounded-lg border border-gray-100 bg-bg-animation p-4 shadow-sm md:p-6 lg:col-span-8">
-                    <h3 className="mb-6 font-[Alumni_Sans] text-lg font-bold">
+                    <h3 className="mb-4 font-[Alumni_Sans] text-lg font-bold">
                         Recent order
                     </h3>
-                    <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+                    <div className="overflow-x-auto px-4 md:mx-0 md:px-0">
                         <table className="w-full min-w-[500px] text-left text-sm">
                             <thead className="border-b border-gray-100 text-gray-900">
                                 <tr>

@@ -25,7 +25,7 @@ class AdminDashboardController extends Controller
         $statsCurrent = $this->buildStats($currentStart, $currentEnd);
         $statsPrevious = $this->buildStats($previousStart, $previousEnd);
 
-        $salesOverview = $this->buildSalesOverview($currentStart, $currentEnd);
+        $salesOverview = $this->buildSalesOverview($range, $currentStart, $currentEnd);
         $avgSalesByType = $this->buildAverageSalesByType($currentStart, $currentEnd);
         $recentOrders = $this->buildRecentOrders();
 
@@ -101,21 +101,14 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, sold_qty: int, sold_amount: float}>
+     * @return array<int, array{date: string, label: string, sold_amount: float}>
      */
-    private function buildSalesOverview(CarbonImmutable $start, CarbonImmutable $end): array
+    private function buildSalesOverview(string $range, CarbonImmutable $start, CarbonImmutable $end): array
     {
-        return OrderItem::query()
-            ->selectRaw(
-                "COALESCE(CAST(products.id AS CHAR), CONCAT('legacy:', COALESCE(order_items.product_title, ?))) as product_key",
-                ['Unknown product'],
-            )
-            ->selectRaw('MAX(COALESCE(products.title, order_items.product_title, ?)) as label', ['Unknown product'])
-            ->selectRaw('SUM(order_items.quantity) as sold_qty')
+        $rows = OrderItem::query()
+            ->selectRaw('DATE(orders.created_at) as sold_date')
             ->selectRaw('COALESCE(SUM(order_items.total_price), 0) as sold_amount')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->leftJoin('product_variants', 'product_variants.id', '=', 'order_items.variant_id')
-            ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
             ->whereIn('orders.status', [
                 OrderStatus::PENDING->value,
                 OrderStatus::CONFIRMED->value,
@@ -125,17 +118,29 @@ class AdminDashboardController extends Controller
                 OrderStatus::COMPLETED->value,
             ])
             ->whereBetween('orders.created_at', [$start, $end])
-            ->groupBy('product_key')
-            ->orderByDesc(DB::raw('SUM(order_items.quantity)'))
-            ->orderByDesc(DB::raw('SUM(order_items.total_price)'))
-            ->limit(7)
+            ->groupByRaw('DATE(orders.created_at)')
+            ->orderBy('sold_date')
             ->get()
-            ->map(fn($row): array => [
-                'label' => (string) $row->label,
-                'sold_qty' => (int) $row->sold_qty,
-                'sold_amount' => (float) $row->sold_amount,
-            ])
-            ->all();
+            ->keyBy(fn ($row): string => (string) $row->sold_date);
+
+        $result = [];
+        $cursor = $start->startOfDay();
+        $endCursor = $end->startOfDay();
+
+        while ($cursor->lte($endCursor)) {
+            $dateKey = $cursor->toDateString();
+            $row = $rows->get($dateKey);
+
+            $result[] = [
+                'date' => $dateKey,
+                'label' => $range === 'week' ? $cursor->format('D') : $cursor->format('M j'),
+                'sold_amount' => (float) ($row?->sold_amount ?? 0),
+            ];
+
+            $cursor = $cursor->addDay();
+        }
+
+        return $result;
     }
 
     /**
@@ -180,7 +185,7 @@ class AdminDashboardController extends Controller
                 'items:id,order_id,quantity',
             ])
             ->latest('created_at')
-            ->limit(4)
+            ->limit(5)
             ->get()
             ->map(function (Order $order): array {
                 $buyerName = trim(implode(' ', array_filter([

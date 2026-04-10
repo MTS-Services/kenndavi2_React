@@ -4,13 +4,9 @@ use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use App\Models\Admin;
 use App\Models\Cart;
-use App\Models\Color;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\ShippingAddress;
-use App\Models\Size;
 use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -31,40 +27,7 @@ afterEach(function () {
     Carbon::setTestNow();
 });
 
-test('sales overview aggregates by product id and appears in weekly and monthly filters', function () {
-    $alpha = Product::factory()->create([
-        'title' => 'Alpha Product',
-        'type' => 'men',
-    ]);
-    $beta = Product::factory()->create([
-        'title' => 'Beta Product',
-        'type' => 'women',
-    ]);
-
-    $color = Color::query()->create([
-        'name' => 'Blue',
-        'hex' => '#0000ff',
-    ]);
-    $size = Size::query()->create([
-        'name' => 'M',
-        'sort_order' => 1,
-    ]);
-
-    $alphaVariant = ProductVariant::query()->create([
-        'product_id' => $alpha->id,
-        'color_id' => $color->id,
-        'size_id' => $size->id,
-        'quantity' => 100,
-        'status' => 'active',
-    ]);
-    $betaVariant = ProductVariant::query()->create([
-        'product_id' => $beta->id,
-        'color_id' => $color->id,
-        'size_id' => $size->id,
-        'quantity' => 100,
-        'status' => 'active',
-    ]);
-
+test('sales overview shows day/date buckets with summed sold amount', function () {
     $firstOrder = Order::factory()->create([
         'user_id' => $this->user->id,
         'shipping_address_id' => $this->address->id,
@@ -84,22 +47,22 @@ test('sales overview aggregates by product id and appears in weekly and monthly 
 
     OrderItem::factory()->create([
         'order_id' => $firstOrder->id,
-        'variant_id' => $alphaVariant->id,
-        'product_title' => 'Legacy Alpha Name',
+        'variant_id' => null,
+        'product_title' => 'Item A',
         'quantity' => 2,
         'total_price' => 200,
     ]);
     OrderItem::factory()->create([
         'order_id' => $secondOrder->id,
-        'variant_id' => $alphaVariant->id,
-        'product_title' => 'Another Alpha Label',
+        'variant_id' => null,
+        'product_title' => 'Item B',
         'quantity' => 3,
         'total_price' => 300,
     ]);
     OrderItem::factory()->create([
         'order_id' => $firstOrder->id,
-        'variant_id' => $betaVariant->id,
-        'product_title' => 'Legacy Beta Name',
+        'variant_id' => null,
+        'product_title' => 'Item C',
         'quantity' => 1,
         'total_price' => 50,
     ]);
@@ -110,13 +73,10 @@ test('sales overview aggregates by product id and appears in weekly and monthly 
         ->assertInertia(fn (Assert $page) => $page
             ->component('backend/Admin/AdminDashboard')
             ->where('range', 'week')
-            ->has('salesOverview', 2)
-            ->where('salesOverview.0.label', 'Alpha Product')
-            ->where('salesOverview.0.sold_qty', 5)
-            ->where('salesOverview.0.sold_amount', 500)
-            ->where('salesOverview.1.label', 'Beta Product')
-            ->where('salesOverview.1.sold_qty', 1)
-            ->where('salesOverview.1.sold_amount', 50)
+            ->has('salesOverview', 7)
+            ->where('salesOverview.4.label', 'Fri')
+            ->where('salesOverview.4.date', '2026-04-10')
+            ->where('salesOverview.4.sold_amount', 550)
         );
 
     $this->actingAs($this->admin, 'admin')
@@ -125,10 +85,10 @@ test('sales overview aggregates by product id and appears in weekly and monthly 
         ->assertInertia(fn (Assert $page) => $page
             ->component('backend/Admin/AdminDashboard')
             ->where('range', 'month')
-            ->has('salesOverview', 2)
-            ->where('salesOverview.0.label', 'Alpha Product')
-            ->where('salesOverview.0.sold_qty', 5)
-            ->where('salesOverview.0.sold_amount', 500)
+            ->has('salesOverview', 30)
+            ->where('salesOverview.9.label', 'Apr 10')
+            ->where('salesOverview.9.date', '2026-04-10')
+            ->where('salesOverview.9.sold_amount', 550)
         );
 });
 
