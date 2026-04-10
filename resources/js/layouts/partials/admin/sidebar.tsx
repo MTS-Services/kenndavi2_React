@@ -5,9 +5,10 @@ import React, { useMemo } from 'react';
 import { index as ordersIndex } from '@/routes/admin/orders';
 import { index as productsIndex } from '@/routes/admin/products';
 import { useActiveUrl } from '@/hooks/use-active-url';
-import { Box, LayoutGrid, LucideIcon, Megaphone, Package2, ShoppingCart } from 'lucide-react';
+import { Box, Image, LayoutGrid, LucideIcon, Megaphone, Package2, ShoppingCart } from 'lucide-react';
 import { index as announcementIndex } from '@/routes/admin/announcement';
 import { Icon } from '@/components/icon';
+import { index as bannerContentIndex } from '@/routes/admin/banner-content';
 
 
 interface NavItem {
@@ -47,6 +48,11 @@ export const AdminSidebar: React.FC = React.memo(() => {
       label: 'Announcement',
       href: announcementIndex(),
       icon: Megaphone,
+    },
+    {
+      label: 'Banner Content',
+      href: bannerContentIndex(),
+      icon: Image,
     }
   ], []);
 

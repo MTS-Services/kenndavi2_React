@@ -4,38 +4,6 @@ import { useEffect, useState } from 'react';
 import Marquee from 'react-fast-marquee';
 
 import FrontendLayout from '@/layouts/frontend-layout';
-
-const heroSlides = [
-    {
-        id: 0,
-        title: 'Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we\'ve stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - "Built on Loyalty Designed to Last".',
-        primaryCta: 'Shop Now',
-        // secondaryCta: 'Learn More',
-        image: '/assets/images/heads.png',
-    },
-    {
-        id: 1,
-        title: 'Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we\'ve stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - "Built on Loyalty Designed to Last".',
-        primaryCta: 'Shop Now',
-        // secondaryCta: 'View Collection',
-        image: '/assets/images/Adobe Express - file.png',
-    },
-    {
-        id: 2,
-        title: 'Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we\'ve stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - "Built on Loyalty Designed to Last".',
-        primaryCta: 'Shop Now',
-        // secondaryCta: 'Discover More',
-        image: '/assets/images/Adobe Express - file (1).png',
-    },
-    {
-        id: 3,
-        title: 'Aces In DA Hole was created to celebrate a brotherhood built over 30+ years, not by blood, but by loyalty. Through every setback, hardship, and triumph, we\'ve stood together, uplifted each other, and grown stronger as one. Our brand reflects that same standard, crafted to stand the test of time, just like real brotherhood does. Aces In DA Hole - "Built on Loyalty Designed to Last".',
-        primaryCta: 'Shop Now',
-        secondaryCta: '',
-        image: '/assets/images/rechangele.png',
-    },
-];
-
 const featuredFallbackImage = '/assets/images/Rectangle 9.jpg';
 
 interface ProductPrimaryImage {
@@ -52,6 +20,15 @@ interface FeaturedProduct {
     primary_image: ProductPrimaryImage | null;
 }
 
+interface HeroSlide {
+    id: number;
+    title: string;
+    primaryCta: string;
+    actionUrl: string;
+    image: string;
+    secondaryCta?: string;
+}
+
 function formatUsd(price: string): string {
     const n = Number.parseFloat(price);
     if (!Number.isFinite(n)) {
@@ -65,10 +42,15 @@ function formatUsd(price: string): string {
 
 export default function Home({
     products = [],
+    bannerSlides = [],
+    announcement = null,
 }: {
     products?: FeaturedProduct[];
+    bannerSlides?: HeroSlide[];
+    announcement?: string | null;
 }) {
     const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+    const heroSlides: HeroSlide[] = bannerSlides.length > 0 ? bannerSlides : [];
 
     const totalHeroSlides = heroSlides.length;
 
@@ -90,7 +72,7 @@ export default function Home({
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [currentHeroIndex]);
+    }, [totalHeroSlides]);
 
     return (
         <FrontendLayout>
@@ -98,7 +80,7 @@ export default function Home({
             <section className="overflow-x-hidden bg-transparent font-sans text-white">
                 <div className="absolute inset-0 z-0 bg-sidebar/60"></div>
                 <div className="relative container mx-auto flex min-h-[90vh] flex-col items-center overflow-hidden px-6 pt-8 md:px-12 lg:h-[80vh] lg:flex-row lg:px-24 lg:pt-20">
-                    <div className="relative z-20 max-w-3xl text-center lg:text-left">
+                    <div className="relative z-20 max-w-3xl text-center lg:w-1/2 lg:text-left">
                         <h1 className="mb-10 font-['Alumni_Sans'] text-3xl leading-[1.1] font-semibold md:text-4xl lg:text-5xl">
                             {heroSlides[currentHeroIndex].title}
                         </h1>
@@ -106,7 +88,12 @@ export default function Home({
                         <div className="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
                             <button
                                 type="button"
-                                onClick={() => router.get('/sweatsuitsmen')}
+                                onClick={() =>
+                                    router.get(
+                                        heroSlides[currentHeroIndex]
+                                            .actionUrl ?? '/men',
+                                    )
+                                }
                                 className="w-full cursor-pointer rounded bg-[var(--bg-red)] px-10 py-3.5 font-['Libre_Franklin'] text-sm font-medium text-white transition hover:bg-black sm:w-auto"
                             >
                                 {heroSlides[currentHeroIndex].primaryCta}
@@ -122,7 +109,7 @@ export default function Home({
                         </div>
                     </div>
 
-                    <div className="relative top-0 right-0 mt-0 flex h-[50vh] w-full items-center justify-center lg:absolute lg:right-[-10%] lg:mt-12 lg:h-full lg:w-2/3">
+                    <div className="relative top-0 right-0 mt-0 flex h-[50vh] w-full items-center justify-center lg:absolute lg:right-[-10%] lg:mt-12 lg:h-full lg:w-1/2 overflow-hidden">
                         <img
                             src="/assets/images/Group 1.png"
                             alt=""
@@ -130,7 +117,6 @@ export default function Home({
                             decoding="async"
                             aria-hidden
                         />
-                        <div className="absolute inset-0 z-1 translate-x-20 scale-75 transform rounded-full opacity-10 blur-[120px]"></div>
                         <img
                             src={heroSlides[currentHeroIndex].image}
                             alt="Hero"
@@ -157,12 +143,9 @@ export default function Home({
 
                 <div className="relative z-10 overflow-hidden bg-[var(--bg-red)] py-3 whitespace-nowrap text-white">
                     <Marquee className="text-[10px] font-bold tracking-widest uppercase">
-                        Free Standard Delivery & 30-Day Free Returns | Free
-                        Standard Delivery & 30-Day Free Returns | Free Standard
-                        Delivery & 30-Day Free Returns | Free Standard Delivery
-                        & 30-Day Free Returns | Free Standard Delivery & 30-Day
-                        Free Returns | Free Standard Delivery & 30-Day Free
-                        Returns |
+                        {announcement && announcement.trim().length > 0
+                            ? `${announcement} | ${announcement} | ${announcement} | `
+                            : 'Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | Free Standard Delivery & 30-Day Free Returns | '}
                     </Marquee>
                 </div>
                 <div className="container mx-auto text-black">
