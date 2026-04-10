@@ -78,43 +78,64 @@ class PaymentController extends Controller
         $orderModel = Order::query()
             ->where('order_number', $order)
             ->where('user_id', $request->user()->id)
+            ->with(['items', 'shippingAddress'])
             ->firstOrFail();
 
-        $stripeSessionId = $request->query('session_id');
-        $paypalToken = $request->query('token');
+        $addr = $orderModel->shippingAddress;
 
-        if ($stripeSessionId) {
+        $sharedProps = [
+            'orderNumber'  => $orderModel->order_number,
+            'orderDate'    => $orderModel->created_at?->format('M j, Y'),
+            'userEmail'    => $request->user()->email,
+            'subtotal'     => number_format((float) $orderModel->subtotal, 2),
+            'shippingCost' => number_format((float) $orderModel->shipping_cost, 2),
+            'grandTotal'   => number_format((float) $orderModel->grand_total, 2),
+            'shippingAddress' => $addr ? [
+                'name'     => trim($addr->first_name . ' ' . $addr->last_name),
+                'address'  => $addr->address,
+                'city'     => $addr->city,
+                'state'    => $addr->state,
+                'zip_code' => $addr->zip_code,
+                'phone'    => $addr->phone,
+            ] : null,
+            'items' => $orderModel->items->map(fn($item) => [
+                'title'     => $item->product_title,
+                'quantity'  => $item->quantity,
+                'price'     => number_format((float) ($item->offer_price ?? $item->unit_price), 2),
+                'image_url' => $item->image_url,
+            ])->values(),
+        ];
+
+        if ($stripeSessionId = $request->query('session_id')) {
             $gateway = PaymentGateway::query()->where('slug', 'stripe')->first();
             abort_if(! $gateway, 404);
 
             $result = $gateway->paymentMethod()->confirmPayment((string) $stripeSessionId);
 
-            return Inertia::render('frontend/payment/success', [
-                'orderNumber' => $orderModel->order_number,
+            return Inertia::render('frontend/payment/success', array_merge($sharedProps, [
                 'paymentGateway' => 'stripe',
-                'success' => (bool) ($result['success'] ?? false),
-                'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
-            ]);
+                'success'        => (bool) ($result['success'] ?? false),
+                'message'        => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
+            ]));
         }
 
-        if ($paypalToken) {
+        if ($paypalToken = $request->query('token')) {
             $gateway = PaymentGateway::query()->where('slug', 'paypal')->first();
             abort_if(! $gateway, 404);
 
             $result = $gateway->paymentMethod()->confirmPayment((string) $paypalToken);
 
-            return Inertia::render('frontend/payment/success', [
-                'orderNumber' => $orderModel->order_number,
+            return Inertia::render('frontend/payment/success', array_merge($sharedProps, [
                 'paymentGateway' => 'paypal',
-                'success' => (bool) ($result['success'] ?? false),
-                'message' => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
-            ]);
+                'success'        => (bool) ($result['success'] ?? false),
+                'message'        => $result['message'] ?? (($result['success'] ?? false) ? 'Payment completed.' : 'Payment not completed.'),
+            ]));
         }
 
         return redirect()
             ->route('checkout.gateway', ['order' => $orderModel->order_number])
             ->with('toast', [
-                'type' => 'error',
+                'type'    => 'error',
                 'message' => 'Missing payment confirmation parameters.',
             ]);
     }
@@ -273,7 +294,7 @@ class PaymentController extends Controller
 
         $tokenRes = Http::asForm()
             ->withBasicAuth($clientId, $secret)
-            ->post($base.'/v1/oauth2/token', [
+            ->post($base . '/v1/oauth2/token', [
                 'grant_type' => 'client_credentials',
             ]);
 
@@ -288,7 +309,7 @@ class PaymentController extends Controller
         }
 
         $body = $request->json()->all();
-        $verifyRes = Http::withToken($accessToken)->post($base.'/v1/notifications/verify-webhook-signature', [
+        $verifyRes = Http::withToken($accessToken)->post($base . '/v1/notifications/verify-webhook-signature', [
             'auth_algo' => $request->header('PAYPAL-AUTH-ALGO'),
             'cert_url' => $request->header('PAYPAL-CERT-URL'),
             'transmission_id' => $request->header('PAYPAL-TRANSMISSION-ID'),
@@ -323,4 +344,3 @@ class PaymentController extends Controller
         ]);
     }
 }
-
