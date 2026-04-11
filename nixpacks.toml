@@ -1,6 +1,6 @@
 # nixpacks.toml
 [phases.setup]
-nixPkgs = ["php83", "php83Packages.composer", "nodejs_20", "mysql80"]
+nixPkgs = ["php83", "php83Packages.composer", "nodejs_20", "postgresql"]
 
 [phases.install]
 cmds = [

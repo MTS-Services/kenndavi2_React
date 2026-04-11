@@ -160,7 +160,7 @@ class FrontendController extends Controller
 
         $productQuery = DB::table('products as p')
             ->leftJoin('product_images as pi_primary', function ($join) {
-                $join->on('pi_primary.product_id', '=', 'p.id')->where('pi_primary.is_primary', 1);
+                $join->on('pi_primary.product_id', '=', 'p.id')->where('pi_primary.is_primary', true);
             })
             ->leftJoin('product_images as pi_fallback', function ($join) {
                 $join->on('pi_fallback.product_id', '=', 'p.id');
