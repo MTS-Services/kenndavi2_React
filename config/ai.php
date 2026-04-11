@@ -44,10 +44,16 @@ return [
     | Product embeddings (pgvector)
     |--------------------------------------------------------------------------
     |
-    | Dimensions must match the OpenAI embedding model (text-embedding-3-small
-    | defaults to 1536). Used by migrations and SyncProductEmbedding job.
+    | Model and dimensions must match: text-embedding-3-small uses 1536 by default.
+    | Passed explicitly to Embeddings::for([...])->generate($provider, $model).
+    |
+    | Verify in PostgreSQL after a successful sync:
+    |   SELECT id, embedding_model, embedded_at FROM products WHERE embedding_model IS NOT NULL LIMIT 5;
+    | (embedding_model is varchar(120); that is the column type, not the model name.)
     |
     */
+
+    'product_embedding_model' => env('AI_PRODUCT_EMBEDDING_MODEL', 'text-embedding-3-small'),
 
     'product_embedding_dimensions' => (int) env('AI_PRODUCT_EMBEDDING_DIMENSIONS', 1536),
 
