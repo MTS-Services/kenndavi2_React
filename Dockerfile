@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    libpq-dev \
     zip \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
@@ -21,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd \
+    && docker-php-ext-install pdo_pgsql mbstring zip exif pcntl gd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

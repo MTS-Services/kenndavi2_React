@@ -187,19 +187,19 @@ class CategoryController extends Controller
      *  3. Hard-delete the category row.
      *
      * Note: if you have run the `fix_products_category_fk` migration,
-     * step 1 is handled automatically by MySQL's nullOnDelete cascade
+     * step 1 is handled automatically by the database nullOnDelete cascade
      * and the products()->update() call becomes a no-op safety net.
      */
     private function deleteCategory(Category $category): void
     {
         // Null out any products still pointing at this category.
-        // If the FK is already nullOnDelete (after migration), MySQL does
+        // If the FK is already nullOnDelete (after migration), the database does
         // this automatically — this line is a safe double-guard.
         $category->products()->update(['category_id' => null]);
 
         // Detach all parent/child pivot rows.
         // If category_relations uses cascadeOnDelete (after migration),
-        // MySQL handles this automatically — these are safe double-guards.
+        // the database handles this automatically — these are safe double-guards.
         $category->parents()->detach();
         $category->children()->detach();
 

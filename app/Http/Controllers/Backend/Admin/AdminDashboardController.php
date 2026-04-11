@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductReview;
 use Carbon\CarbonImmutable;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -80,8 +79,8 @@ class AdminDashboardController extends Controller
     {
         $orders = Order::query()
             ->selectRaw('COUNT(*) as total_orders')
-            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancel_orders", [OrderStatus::CANCELLED->value])
-            ->selectRaw("COALESCE(SUM(CASE WHEN status IN (?, ?) THEN grand_total ELSE 0 END), 0) as total_revenue", [
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancel_orders', [OrderStatus::CANCELLED->value])
+            ->selectRaw('COALESCE(SUM(CASE WHEN status IN (?, ?) THEN grand_total ELSE 0 END), 0) as total_revenue', [
                 OrderStatus::DELIVERED->value,
                 OrderStatus::COMPLETED->value,
             ])
@@ -105,8 +104,10 @@ class AdminDashboardController extends Controller
      */
     private function buildSalesOverview(string $range, CarbonImmutable $start, CarbonImmutable $end): array
     {
+        $orderCreatedAtDate = $this->orderCreatedAtDateSqlExpression();
+
         $rows = OrderItem::query()
-            ->selectRaw('DATE(orders.created_at) as sold_date')
+            ->selectRaw("{$orderCreatedAtDate} as sold_date")
             ->selectRaw('COALESCE(SUM(order_items.total_price), 0) as sold_amount')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->whereIn('orders.status', [
@@ -118,7 +119,7 @@ class AdminDashboardController extends Controller
                 OrderStatus::COMPLETED->value,
             ])
             ->whereBetween('orders.created_at', [$start, $end])
-            ->groupByRaw('DATE(orders.created_at)')
+            ->groupByRaw($orderCreatedAtDate)
             ->orderBy('sold_date')
             ->get()
             ->keyBy(fn ($row): string => (string) $row->sold_date);
@@ -163,7 +164,7 @@ class AdminDashboardController extends Controller
             ->groupBy('products.type')
             ->orderByDesc(DB::raw('SUM(order_items.total_price)'))
             ->get()
-            ->map(fn($row): array => [
+            ->map(fn ($row): array => [
                 'type' => ucfirst((string) $row->type),
                 'total_units' => (int) $row->total_units,
                 'total_sales_amount' => (float) $row->total_sales_amount,
@@ -199,7 +200,7 @@ class AdminDashboardController extends Controller
 
                 return [
                     'id' => $order->id,
-                    'order_number' => '#' . $order->order_number,
+                    'order_number' => '#'.$order->order_number,
                     'buyer_name' => $buyerName,
                     'total_amount' => (float) $order->grand_total,
                     'quantity' => (int) $order->items->sum('quantity'),
@@ -208,6 +209,17 @@ class AdminDashboardController extends Controller
                 ];
             })
             ->all();
+    }
+
+    /**
+     * PostgreSQL uses a cast; MySQL/MariaDB/SQLite use DATE().
+     */
+    private function orderCreatedAtDateSqlExpression(): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => 'CAST(orders.created_at AS date)',
+            default => 'DATE(orders.created_at)',
+        };
     }
 
     private function calculateTrend(float|int $current, float|int $previous): float
