@@ -23,10 +23,13 @@ class ProductsEmbeddingsBackfillCommand extends Command
 
         $chunk = max(1, (int) $this->option('chunk'));
         $count = 0;
+        $globalIndex = 0;
 
-        Product::query()->orderBy('id')->chunkById($chunk, function ($products) use (&$count) {
+        Product::query()->orderBy('id')->chunkById($chunk, function ($products) use (&$count, &$globalIndex) {
             foreach ($products as $product) {
-                SyncProductEmbedding::dispatch($product->id);
+                $delaySeconds = min($globalIndex * 2, 600);
+                SyncProductEmbedding::dispatch($product->id)->delay(now()->addSeconds($delaySeconds));
+                $globalIndex++;
                 $count++;
             }
         });

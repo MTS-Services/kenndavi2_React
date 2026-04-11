@@ -6,6 +6,7 @@ use App\Models\Product;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,19 @@ class SyncProductEmbedding implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 12;
+
     public function __construct(
         public int $productId,
     ) {}
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [20, 45, 90, 180, 300, 600];
+    }
 
     public function handle(): void
     {
@@ -57,6 +68,17 @@ class SyncProductEmbedding implements ShouldQueue
                 [$literal, $model, now(), $product->id]
             );
         } catch (\Throwable $e) {
+            if ($this->isEmbeddingRateLimited($e)) {
+                Log::notice('SyncProductEmbedding rate limited; releasing job', [
+                    'product_id' => $this->productId,
+                    'attempt' => $this->attempts(),
+                    'message' => $e->getMessage(),
+                ]);
+                $this->release($this->releaseAfterSeconds());
+
+                return;
+            }
+
             Log::warning('SyncProductEmbedding failed', [
                 'product_id' => $this->productId,
                 'message' => $e->getMessage(),
@@ -64,6 +86,41 @@ class SyncProductEmbedding implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    protected function releaseAfterSeconds(): int
+    {
+        $steps = [45, 90, 180, 300, 600, 900];
+        $i = min(max($this->attempts() - 1, 0), count($steps) - 1);
+
+        return $steps[$i] + random_int(5, 35);
+    }
+
+    protected function isEmbeddingRateLimited(\Throwable $e): bool
+    {
+        if ($e instanceof RequestException && $e->response !== null) {
+            return $e->response->status() === 429;
+        }
+
+        $class = $e::class;
+        if ($class === 'Laravel\\Ai\\Exceptions\\RateLimitedException') {
+            return true;
+        }
+
+        if (str_contains($class, 'RateLimit') || str_contains($class, 'TooManyRequests')) {
+            return true;
+        }
+
+        $prev = $e->getPrevious();
+        if ($prev instanceof RequestException && $prev->response !== null) {
+            return $prev->response->status() === 429;
+        }
+
+        $msg = strtolower($e->getMessage());
+
+        return str_contains($msg, '429')
+            || str_contains($msg, 'too many requests')
+            || str_contains($msg, 'rate limit');
     }
 
     /**

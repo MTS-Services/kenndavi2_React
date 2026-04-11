@@ -57,3 +57,17 @@ it('skips sync product embedding job when vector column is unavailable', functio
 
     Embeddings::assertNothingGenerated();
 });
+
+it('renders the ai suggestion page with scrollable products', function () {
+    Product::factory()->create([
+        'status' => ProductStatus::ACTIVE,
+    ]);
+
+    $this->get('/ai-suggestion')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('frontend/products/ai-suggestion')
+            ->has('products')
+            ->has('page_title')
+            ->has('page_subtitle'));
+});
