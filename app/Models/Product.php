@@ -22,8 +22,6 @@ class Product extends Model
     /**
      * @var list<string>
      */
-
-
     protected $fillable = [
         'category_id',
         'subcategory_id',
@@ -45,6 +43,8 @@ class Product extends Model
         'meta_keywords',
         'created_by',
         'updated_by',
+        'embedding_model',
+        'embedded_at',
     ];
 
     /**
@@ -62,7 +62,31 @@ class Product extends Model
             'discount_type' => DiscountType::class,
             'discount_starts_at' => 'datetime',
             'discount_ends_at' => 'datetime',
+            'embedded_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Text sent to the embedding model (title, description, categories, tags).
+     */
+    public function embeddingSourceText(): string
+    {
+        $this->loadMissing(['category', 'subcategory', 'tags']);
+
+        $parts = array_filter([
+            $this->title,
+            $this->description,
+            $this->category?->title ? 'Category: '.$this->category->title : null,
+            $this->subcategory?->title ? 'Subcategory: '.$this->subcategory->title : null,
+            $this->tags->isNotEmpty() ? 'Tags: '.$this->tags->pluck('name')->implode(', ') : null,
+        ]);
+
+        return implode("\n\n", $parts) ?: (string) $this->title;
+    }
+
+    public function views(): HasMany
+    {
+        return $this->hasMany(ProductView::class);
     }
 
     /* ── Relations ── */

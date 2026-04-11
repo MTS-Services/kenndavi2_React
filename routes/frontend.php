@@ -4,8 +4,10 @@ use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\ProductSuggestionController;
 use App\Http\Controllers\Frontend\UserOtpAuthController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Middleware\RecordProductView;
 use App\Mail\TestMailtrapMail;
 use App\Mail\UserOtpCodeMail;
 use Illuminate\Support\Facades\Mail;
@@ -18,7 +20,7 @@ use Illuminate\Support\Facades\View;
 // Route::get('/accessories', [FrontendController::class, 'accessories'])->name('accessories');
 // Route::get('/accessories/catalog', [FrontendController::class, 'accessoriesCatalog'])->name('accessories.catalog');
 // Route::get('/productdetails', [FrontendController::class, 'productdetails'])->name('productdetails');
-Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
+// Route::get('/ai-suggestion', [FrontendController::class, 'aisuggestion'])->name('aisuggestion');
 // Route::get('/home-women', [FrontendController::class, 'homeWomen'])->name('home.women');
 // Route::redirect('/cartpage', '/cart', 301)->name('cartpage');
 
@@ -107,11 +109,15 @@ if (app()->environment('local')) {
     })->name('dev.mail.preview.otp.text');
 }
 
-
-
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/details/{product}/suggestions', ProductSuggestionController::class)
+    ->middleware('throttle:product-suggestions')
+    ->name('products.suggestions');
+
+Route::get('/ai-suggestion', [ProductSuggestionController::class, 'aiSuggestion'])->name('ai-suggestion');
+
 Route::controller(ProductController::class)->name('products.')->group(function () {
-    Route::get('/details/{id}', 'details')->name('details');
+    Route::get('/details/{id}', 'details')->middleware(RecordProductView::class)->name('details');
     Route::get('/{type}', 'category')->name('category');
 });
