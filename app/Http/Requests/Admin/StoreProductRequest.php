@@ -28,13 +28,13 @@ class StoreProductRequest extends FormRequest
              *  - only lowercase letters, numbers, hyphens and underscores
              *  - must be globally unique across the products table
              */
-            'slug' => [
-                'nullable',
-                'string',
-                'max:255',
-                'regex:/^[a-z0-9_-]+$/',
-                'unique:products,slug',
-            ],
+            // 'slug' => [
+            //     'nullable',
+            //     'string',
+            //     'max:255',
+            //     'regex:/^[a-z0-9_-]+$/',
+            //     'unique:products,slug',
+            // ],
 
             'description' => ['nullable', 'string'],
             'type' => ['required', new Enum(ProductType::class)],

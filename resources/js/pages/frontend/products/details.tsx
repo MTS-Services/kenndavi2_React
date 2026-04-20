@@ -67,6 +67,15 @@ interface PaginatedReviews {
     links: PaginationLink[];
 }
 
+interface SuggestedProduct {
+    id: number;
+    title: string;
+    slug: string | null;
+    image_url: string | null;
+    reason: string;
+    score: number;
+}
+
 interface Product {
     id: number;
     title: string;
@@ -158,6 +167,9 @@ export default function ProductDetails({ product }: { product: Product }) {
     const [quantity, setQuantity] = useState(1);
     const [quantityDraft, setQuantityDraft] = useState('1');
 
+    const [aiSuggestions, setAiSuggestions] = useState<SuggestedProduct[]>([]);
+    const [aiSuggestionsLoading, setAiSuggestionsLoading] = useState(true);
+
     const finalPrice = computeFinalPrice(
         product.price,
         product.discount,
@@ -215,6 +227,39 @@ export default function ProductDetails({ product }: { product: Product }) {
     useEffect(() => {
         setQuantityDraft(String(quantity));
     }, [quantity]);
+
+    useEffect(() => {
+        let cancelled = false;
+        setAiSuggestionsLoading(true);
+
+        fetch(`/details/${product.id}/suggestions`, {
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+            .then((res) => (res.ok ? res.json() : Promise.reject()))
+            .then((data: { suggestions?: SuggestedProduct[] }) => {
+                if (!cancelled) {
+                    setAiSuggestions(data.suggestions ?? []);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setAiSuggestions([]);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setAiSuggestionsLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [product.id]);
 
     function commitQuantityFromDraft() {
         const n = parseInt(quantityDraft.trim(), 10);
@@ -589,6 +634,68 @@ export default function ProductDetails({ product }: { product: Product }) {
                                 </button>
                             </div>
                         </div>
+
+                        {/* AI / personalized recommendations */}
+                        {!aiSuggestionsLoading && aiSuggestions.length > 0 && (
+                            <div className="mt-16 max-w-6xl">
+                                <h2 className="mb-2 font-[Alumni_Sans] text-2xl font-semibold text-white">
+                                    Recommended for you
+                                </h2>
+                                <p className="mb-8 text-sm text-gray-400">
+                                    Based on this product, your activity, and
+                                    what others are viewing.
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                    {aiSuggestions.map((item) => (
+                                        <Link
+                                            key={item.id}
+                                            href={`/details/${item.id}`}
+                                            className="group overflow-hidden rounded-lg border border-gray-700/80 bg-gray-900/40 transition hover:border-primary/60 hover:bg-gray-900/70"
+                                        >
+                                            <div className="aspect-3/4 overflow-hidden bg-gray-800/50">
+                                                <img
+                                                    src={resolveUrl(
+                                                        item.image_url,
+                                                    )}
+                                                    alt={item.title}
+                                                    className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]"
+                                                />
+                                            </div>
+                                            <div className="p-3">
+                                                <p className="line-clamp-2 text-sm font-medium text-gray-100">
+                                                    {item.title}
+                                                </p>
+                                                <p className="mt-1 text-xs text-primary/90">
+                                                    {item.reason}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {aiSuggestionsLoading && (
+                            <div className="mt-16 max-w-6xl">
+                                <h2 className="mb-4 font-[Alumni_Sans] text-2xl font-semibold text-white">
+                                    Recommended for you
+                                </h2>
+                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="animate-pulse overflow-hidden rounded-lg border border-gray-700/60 bg-gray-900/30"
+                                        >
+                                            <div className="aspect-3/4 bg-gray-800/60" />
+                                            <div className="space-y-2 p-3">
+                                                <div className="h-3 rounded bg-gray-700" />
+                                                <div className="h-2 w-2/3 rounded bg-gray-700" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* CUSTOMER FEEDBACK */}
                         <div className="mt-20 max-w-5xl">

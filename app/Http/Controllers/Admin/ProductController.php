@@ -8,6 +8,7 @@ use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Jobs\SyncProductEmbedding;
 use App\Models\Category;
 use App\Models\Color;
 use App\Models\Product;
@@ -38,13 +39,13 @@ class ProductController extends Controller
             ?? ProductType::MEN;
 
         $paginator = Product::with([
-            'images' => fn ($q) => $q->where('is_primary', true),
+            'images' => fn($q) => $q->where('is_primary', true),
         ])
             ->where('type', $type->value)
             ->latest()
             ->paginate(self::PER_PAGE, ['*'], 'page', $request->query('page', 1));
 
-        $products = $paginator->through(fn (Product $p) => [
+        $products = $paginator->through(fn(Product $p) => [
             'id' => $p->id,
             'title' => $p->title,
             'slug' => $p->slug,
@@ -80,7 +81,7 @@ class ProductController extends Controller
         }
 
         $exists = Product::where('slug', $slug)
-            ->when($excludeId, fn ($q) => $q->where('id', '!=', (int) $excludeId))
+            ->when($excludeId, fn($q) => $q->where('id', '!=', (int) $excludeId))
             ->exists();
 
         return response()->json(['available' => ! $exists]);
@@ -116,10 +117,11 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        DB::transaction(function () use ($request) {
+        $product = null;
+
+        DB::transaction(function () use ($request, &$product) {
             $product = Product::create([
                 'title' => $request->title,
-                'slug' => $request->slug,
                 'description' => $request->description,
                 'type' => $request->type,
                 'price' => $request->price,
@@ -142,6 +144,10 @@ class ProductController extends Controller
             $this->syncVariants($product, $request->input('variants', []), removedIds: []);
         });
 
+        if ($product !== null) {
+            SyncProductEmbedding::dispatch($product->id);
+        }
+
         return redirect()
             ->route('admin.products.index', ['type' => $request->type])
             ->with('success', 'Product created successfully.');
@@ -154,7 +160,7 @@ class ProductController extends Controller
     public function show(Product $product, Request $request): Response
     {
         $product->load([
-            'images' => fn ($q) => $q->orderBy('sort_order'),
+            'images' => fn($q) => $q->orderBy('sort_order'),
             'tags:id,name',
             'category:id,title',
             'subcategory:id,title',
@@ -183,21 +189,21 @@ class ProductController extends Controller
             'subcategory' => $product->subcategory
                 ? ['id' => $product->subcategory->id, 'title' => $product->subcategory->title]
                 : null,
-            'images' => $product->images->map(fn ($img) => [
+            'images' => $product->images->map(fn($img) => [
                 'id' => $img->id,
                 'url' => $img->url,
                 'alt_text' => $img->alt_text,
                 'is_primary' => (bool) $img->is_primary,
                 'sort_order' => $img->sort_order,
             ])->values()->toArray(),
-            'variants' => $product->variants->map(fn ($v) => [
+            'variants' => $product->variants->map(fn($v) => [
                 'id' => $v->id,
                 'quantity' => (int) $v->quantity,
                 'status' => $v->status?->value,
                 'color' => $v->color ? ['id' => $v->color->id, 'name' => $v->color->name, 'hex' => $v->color->hex] : null,
                 'size' => $v->size ? ['id' => $v->size->id,  'name' => $v->size->name] : null,
             ])->values()->toArray(),
-            'tags' => $product->tags->map(fn ($t) => [
+            'tags' => $product->tags->map(fn($t) => [
                 'id' => $t->id,
                 'name' => $t->name,
             ])->values()->toArray(),
@@ -245,7 +251,7 @@ class ProductController extends Controller
             'resolved_category_id' => $product->category_id,
             'resolved_subcategory_id' => $product->subcategory_id,
             'tag_ids' => $product->tags->pluck('id')->values()->all(),
-            'images' => $product->images->map(fn ($img) => [
+            'images' => $product->images->map(fn($img) => [
                 'id' => $img->id,
                 'url' => $img->url,
                 'alt_text' => $img->alt_text,
@@ -253,7 +259,7 @@ class ProductController extends Controller
                 'sort_order' => $img->sort_order,
                 'color_id' => $img->color_id,
             ])->values()->toArray(),
-            'variants' => $product->variants->map(fn ($v) => [
+            'variants' => $product->variants->map(fn($v) => [
                 'id' => $v->id,
                 'color_id' => $v->color_id,
                 'size_id' => $v->size_id,
@@ -312,6 +318,8 @@ class ProductController extends Controller
                 $request->input('removed_variant_ids', [])
             );
         });
+
+        SyncProductEmbedding::dispatch($product->id);
 
         return redirect()
             ->route('admin.products.index', ['type' => $request->type])
@@ -442,7 +450,7 @@ class ProductController extends Controller
         return Category::whereDoesntHave('parents')
             ->forType($type)
             ->with([
-                'children' => fn ($q) => $q
+                'children' => fn($q) => $q
                     ->forType($type)
                     ->select(['categories.id', 'categories.title'])
                     ->orderByPivot('sort_order'),
