@@ -28,7 +28,7 @@ class PaymentGatewaySeeder extends Seeder
                     'secret_key' => 'sk_test_51RyARmHCDWKjgteWucouB1313fWtSqsTmtA8cyjyiJ81YS4JUOGEYKZhaGbzBGMka1eb52CMo1bU9r74O9ICCVWJ00qbt8yfNC',
                     'webhook_secret' => null,
                 ],
-                'is_active' => true,
+                'is_active' => false,
                 'mode' => 'sandbox',
             ],
             [
