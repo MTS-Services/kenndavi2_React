@@ -15,6 +15,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import FrontendLayout from '@/layouts/frontend-layout';
+import { category as productsCategoryRoute } from '@/routes/products';
 import { Head, InfiniteScroll, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -36,6 +37,7 @@ interface Props {
     categories: CategoryOption[];
     selected_category: string;
     selected_subcategory: string;
+    search: string;
 }
 
 export default function ProductCategory({
@@ -45,6 +47,7 @@ export default function ProductCategory({
     categories,
     selected_category,
     selected_subcategory,
+    search,
 }: Props) {
     const [category, setCategory] = useState(selected_category);
     const [subcategory, setSubcategory] = useState(selected_subcategory);
@@ -71,14 +74,19 @@ export default function ProductCategory({
     const allLoaded =
         products.data.length > 0 && products.current_page >= products.last_page;
 
-    function navigate(nextCategory: string, nextSubcategory: string) {
+    function navigate(
+        nextCategory: string,
+        nextSubcategory: string,
+        preserveSearch = true,
+    ) {
         const query: Record<string, string> = {};
         if (nextCategory !== 'all') query.category = nextCategory;
         if (nextSubcategory !== 'all') query.subcategory = nextSubcategory;
+        if (preserveSearch && search.trim() !== '') query.search = search.trim();
 
         navigating.current = true;
 
-        router.get(`/${type}`, query, {
+        router.get(productsCategoryRoute.url(type), query, {
             preserveState: true,
             preserveScroll: false,
             onFinish: () => {
@@ -101,7 +109,7 @@ export default function ProductCategory({
     function handleClear() {
         setCategory('all');
         setSubcategory('all');
-        navigate('all', 'all');
+        navigate('all', 'all', false);
     }
 
     return (
@@ -191,7 +199,7 @@ export default function ProductCategory({
                         <CatalogEmptyStateFilters onClear={handleClear} />
                     ) : (
                         <InfiniteScroll
-                            key={`${selected_category}-${selected_subcategory}`}
+                            key={`${selected_category}-${selected_subcategory}-${search}`}
                             data="products"
                             buffer={300}
                             onlyNext

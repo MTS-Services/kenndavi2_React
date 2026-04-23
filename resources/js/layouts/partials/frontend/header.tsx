@@ -1,12 +1,13 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useId, useMemo, useState } from 'react';
 
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useLogout } from '@/hooks/use-logout';
 import { cn } from '@/lib/utils';
 import { home, login, logout } from '@/routes';
 import { index as cartIndex } from '@/routes/cart';
+import { category as productsCategoryRoute } from '@/routes/products';
 import type {
     FrontendNav,
     FrontendNavByTypeEntry,
@@ -190,6 +191,14 @@ export function FrontendHeader() {
     const { loggingOut, performLogout } = useLogout(logoutUrl);
 
     const currentPath = useMemo(() => pathOnly(url), [url]);
+    const currentSearch = useMemo(() => {
+        const searchParams = new URLSearchParams(
+            url.includes('?') ? url.split('?')[1] : '',
+        );
+
+        return searchParams.get('search') ?? '';
+    }, [url]);
+    const [searchInput, setSearchInput] = useState(currentSearch);
 
     const toggleMobileParent = useCallback((key: string) => {
         setMobileParentOpen((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -217,10 +226,41 @@ export function FrontendHeader() {
         return '';
     }, [url, currentPath, productTypes]);
 
+    useEffect(() => {
+        setSearchInput(currentSearch);
+    }, [currentSearch]);
+
     const handleMobileLogout = useCallback(() => {
         setMobileOpen(false);
         performLogout();
     }, [performLogout]);
+
+    const handleSearchSubmit = useCallback(
+        (e: FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+
+            const search = searchInput.trim();
+            if (search === '') {
+                return;
+            }
+
+            const destinationType = activeType || productTypes[0]?.value;
+            if (!destinationType) {
+                return;
+            }
+
+            router.get(
+                productsCategoryRoute.url(destinationType),
+                { search },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    onFinish: () => setMobileOpen(false),
+                },
+            );
+        },
+        [activeType, productTypes, searchInput],
+    );
 
     return (
         <section className="z-1000 overflow-visible pt-4 font-sans text-gray-900 md:pt-10">
@@ -257,7 +297,10 @@ export function FrontendHeader() {
                 </ul>
 
                 <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-6">
-                    <div className="relative hidden min-w-0 items-center gap-2 rounded bg-gray-900 px-3 py-2 sm:flex md:px-4 md:py-2.5">
+                    <form
+                        className="relative hidden min-w-0 items-center gap-2 rounded bg-gray-900 px-3 py-2 sm:flex md:px-4 md:py-2.5"
+                        onSubmit={handleSearchSubmit}
+                    >
                         <Search size={14} className="shrink-0 text-gray-100" />
                         <input
                             type="search"
@@ -265,8 +308,10 @@ export function FrontendHeader() {
                             placeholder="Search"
                             className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-gray-100 sm:w-24 md:w-32"
                             aria-label="Search products"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                         />
-                    </div>
+                    </form>
 
                     <button
                         type="button"
@@ -519,7 +564,10 @@ export function FrontendHeader() {
                             </li> */}
 
                             <li className="border-t border-white/10 pt-4">
-                                <div className="flex items-center gap-2 rounded bg-white/10 px-4 py-2 normal-case">
+                                <form
+                                    className="flex items-center gap-2 rounded bg-white/10 px-4 py-2 normal-case"
+                                    onSubmit={handleSearchSubmit}
+                                >
                                     <Search
                                         size={14}
                                         className="shrink-0 text-gray-400"
@@ -530,8 +578,12 @@ export function FrontendHeader() {
                                         placeholder="Search"
                                         className="min-w-0 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-gray-400"
                                         aria-label="Search products"
+                                        value={searchInput}
+                                        onChange={(e) =>
+                                            setSearchInput(e.target.value)
+                                        }
                                     />
-                                </div>
+                                </form>
                             </li>
                         </ul>
                     </div>

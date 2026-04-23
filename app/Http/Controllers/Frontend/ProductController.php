@@ -20,6 +20,7 @@ class ProductController extends Controller
     {
         $categorySlug = $request->query('category', 'all');
         $subcategorySlug = $request->query('subcategory', 'all');
+        $search = trim((string) $request->query('search', ''));
 
         $query = Product::with([
             'images' => fn ($q) => $q->orderByDesc('is_primary')->orderBy('sort_order'),
@@ -36,6 +37,19 @@ class ProductController extends Controller
                 // FIX: filter by id, not slug
                 fn ($q) => $q->whereHas('subcategory', fn ($c) => $c->where('slug', $subcategorySlug))
             )
+            ->when($search !== '', function ($q) use ($search) {
+                $term = '%'.$search.'%';
+                $likeOperator = $q->getModel()->getConnection()->getDriverName() === 'pgsql'
+                    ? 'ILIKE'
+                    : 'LIKE';
+
+                $q->where(function ($searchQuery) use ($term, $likeOperator) {
+                    $searchQuery
+                        ->where('title', $likeOperator, $term)
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('title', $likeOperator, $term))
+                        ->orWhereHas('subcategory', fn ($subcategoryQuery) => $subcategoryQuery->where('title', $likeOperator, $term));
+                });
+            })
             ->inRandomOrder();
 
         $categories = Category::query()
@@ -65,6 +79,7 @@ class ProductController extends Controller
             'categories' => $categories,
             'selected_category' => $categorySlug,    // already a string from query()
             'selected_subcategory' => $subcategorySlug, // already a string from query()
+            'search' => $search,
         ]);
     }
 
