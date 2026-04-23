@@ -35,6 +35,7 @@ Route::controller(CartController::class)->name('cart.')->group(function () {
 
 Route::post('/webhooks/stripe', [PaymentController::class, 'stripeWebhook'])->name('webhooks.stripe');
 Route::post('/webhooks/paypal', [PaymentController::class, 'paypalWebhook'])->name('webhooks.paypal');
+Route::post('/webhooks/authorize-net', [PaymentController::class, 'authorizeNetWebhook'])->name('webhooks.authorize-net');
 
 // Route::middleware('throttle:cart-mutations')->group(function () {
 //     Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');

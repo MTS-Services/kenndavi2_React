@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 
 import FrontendLayout from '@/layouts/frontend-layout';
 import { home } from '@/routes';
+import { index as ordersIndex } from '@/routes/order';
 
 interface OrderItem {
     title: string;
@@ -23,7 +24,7 @@ interface PaymentSuccessProps {
     orderNumber: string;
     orderDate: string;
     userEmail: string;
-    paymentGateway: 'stripe' | 'paypal';
+    paymentGateway: 'stripe' | 'paypal' | 'authorize_net';
     success: boolean;
     message: string;
     subtotal: string;
@@ -166,12 +167,14 @@ export default function PaymentSuccess({
                                             </div>
                                         </div>
                                     </div>
-                                    {success && (
-                                        <div className="max-w-xs rounded border border-red-500/50 bg-[var(--bg-nevired)] p-4 font-['Libre_Franklin'] text-xs text-red-700">
-                                            A confirmation email has been sent
-                                            to your inbox
-                                        </div>
-                                    )}
+                                    {/* 
+                                        {success && (
+                                            <div className="max-w-xs rounded border border-red-500/50 bg-[var(--bg-nevired)] p-4 font-['Libre_Franklin'] text-xs text-red-700">
+                                                A confirmation email has been sent
+                                                to your inbox
+                                            </div>
+                                        )}
+                                    */}
                                 </div>
 
                                 {/* Shipping info */}
@@ -227,7 +230,7 @@ export default function PaymentSuccess({
                                             </div>
                                         )}
 
-                                        <div className="flex gap-4 rounded bg-[var(--bg-animation)] p-5">
+                                        {/* <div className="flex gap-4 rounded bg-[var(--bg-animation)] p-5">
                                             <div className="shrink-0 text-gray-900">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -252,7 +255,7 @@ export default function PaymentSuccess({
                                                     {paymentGateway.toUpperCase()}
                                                 </p>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
 
@@ -263,6 +266,12 @@ export default function PaymentSuccess({
                                         className="inline-flex items-center rounded-sm border border-gray-300 px-5 py-2 font-['Libre_Franklin'] text-sm font-medium text-gray-900 transition hover:bg-gray-100"
                                     >
                                         Continue shopping
+                                    </Link>
+                                    <Link
+                                        href={ordersIndex()}
+                                        className="inline-flex items-center rounded-sm bg-destructive px-5 py-2 font-['Libre_Franklin'] text-sm font-medium text-white transition hover:bg-destructive/90"
+                                    >
+                                        View All Orders
                                     </Link>
                                 </div>
                             </div>
@@ -339,7 +348,7 @@ export default function PaymentSuccess({
                                             : `$${shippingCost}`}
                                     </span>
                                 </div>
-                                <div className="mb-8 flex justify-between pt-1">
+                                <div className="flex justify-between pt-1">
                                     <span className="font-['Libre_Franklin'] font-bold text-gray-900">
                                         Total
                                     </span>
@@ -347,14 +356,14 @@ export default function PaymentSuccess({
                                         ${grandTotal}
                                     </span>
                                 </div>
-                                <div className="flex justify-between border-t border-gray-300 pt-4 text-xs">
+                                {/* <div className="flex justify-between border-t border-gray-300 pt-4 text-xs">
                                     <span className="font-[Libre_Franklin] text-gray-600">
                                         Payment Method:
                                     </span>
                                     <span className="font-[Libre_Franklin] font-bold text-gray-900">
                                         {paymentGateway.toUpperCase()}
                                     </span>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>
