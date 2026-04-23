@@ -23,7 +23,7 @@ interface PaymentSuccessProps {
     orderNumber: string;
     orderDate: string;
     userEmail: string;
-    paymentGateway: 'stripe' | 'paypal';
+    paymentGateway: 'stripe' | 'paypal' | 'authorize_net';
     success: boolean;
     message: string;
     subtotal: string;

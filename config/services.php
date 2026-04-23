@@ -35,10 +35,17 @@ return [
         ],
     ],
 
-    'wheniwork' => [
-        'api_key' => env('WHEN_I_WORK_API_KEY'),
-        'login_url' => env('WHEN_I_WORK_LOGIN_URL', 'https://api.login.wheniwork.com/login'),
-        'base_url' => env('WHEN_I_WORK_BASE_URL', 'https://api.wheniwork.com/2/'),
+    'authorize_net' => [
+        'public_base_url' => env('AUTHORIZE_NET_PUBLIC_BASE_URL', env('APP_URL')),
+        'sandbox' => [
+            'login_id' => env('AUTHORIZE_NET_SANDBOX_LOGIN_ID'),
+            'transaction_key' => env('AUTHORIZE_NET_SANDBOX_TRANSACTION_KEY'),
+            'signature_key' => env('AUTHORIZE_NET_SANDBOX_SIGNATURE_KEY'),
+        ],
+        'production' => [
+            'login_id' => env('AUTHORIZE_NET_LOGIN_ID'),
+            'transaction_key' => env('AUTHORIZE_NET_TRANSACTION_KEY'),
+            'signature_key' => env('AUTHORIZE_NET_SIGNATURE_KEY'),
+        ],
     ],
-
 ];

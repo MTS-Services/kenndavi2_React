@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\Backend\User\OrderController;
-use App\Http\Controllers\Backend\User\CheckoutController;
+use App\Http\Controllers\AuthorizeNetRelayController;
 use App\Http\Controllers\Backend\User\AccountController;
+use App\Http\Controllers\Backend\User\CheckoutController;
+use App\Http\Controllers\Backend\User\OrderController;
 use App\Http\Controllers\Backend\User\UserDashboardController;
-use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,6 +46,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('/payment/{order}/success', [\App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('payment.success');
     // Route::get('/payment/{order}/cancel', [\App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('payment.cancel');
     // Route::post('/payment/{order}/restore-cart', [PaymentController::class, 'restoreCart'])->name('payment.restore-cart');
+
+    Route::get('/payment/authorize-net/relay/{payment}', AuthorizeNetRelayController::class)
+        ->middleware('signed')
+        ->name('payment.authorize-net.relay');
 
     Route::controller(PaymentController::class)->prefix('payment')->name('payment.')->group(function () {
         Route::get('/{order}/success', 'paymentSuccess')->name('success');
