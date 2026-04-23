@@ -15,9 +15,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use net\authorize\api\contract\v1\BatchDetailsType;
+use net\authorize\api\contract\v1\GetSettledBatchListRequest;
+use net\authorize\api\contract\v1\GetSettledBatchListResponse;
+use net\authorize\api\contract\v1\GetTransactionListRequest;
+use net\authorize\api\contract\v1\GetTransactionListResponse;
 use net\authorize\api\contract\v1\GetUnsettledTransactionListRequest;
 use net\authorize\api\contract\v1\GetUnsettledTransactionListResponse;
 use net\authorize\api\contract\v1\MerchantAuthenticationType;
+use net\authorize\api\contract\v1\PagingType;
+use net\authorize\api\contract\v1\TransactionListSortingType;
+use net\authorize\api\contract\v1\TransactionSummaryType;
+use net\authorize\api\controller\GetSettledBatchListController;
+use net\authorize\api\controller\GetTransactionListController;
 use net\authorize\api\controller\GetUnsettledTransactionListController;
 
 class AuthorizeNetMethod extends PaymentMethod
@@ -119,25 +129,13 @@ class AuthorizeNetMethod extends PaymentMethod
             $merchantAuth->setName($config->loginId);
             $merchantAuth->setTransactionKey($config->transactionKey);
 
-            $request = new GetUnsettledTransactionListRequest;
-            $request->setMerchantAuthentication($merchantAuth);
-
-            $controller = new GetUnsettledTransactionListController($request);
-            /** @var GetUnsettledTransactionListResponse|null $response */
-            $response = $controller->executeWithApiResponse($config->apiEndpoint());
-            if ($response === null || $response->getMessages()?->getResultCode() !== 'Ok') {
-                return ['success' => false, 'message' => __('Unable to verify payment yet.')];
-            }
-
-            $matchedTxn = null;
-            foreach ($response->getTransactions() ?? [] as $txn) {
-                if ((string) $txn->getInvoiceNumber() === $orderNumber) {
-                    $matchedTxn = $txn;
-                    break;
-                }
-            }
+            $matchedTxn = $this->findTransactionByInvoice($merchantAuth, $config, $orderNumber);
 
             if (! $matchedTxn) {
+                Log::info('Authorize.Net fallback confirm: transaction not found yet', [
+                    'order_number' => $orderNumber,
+                ]);
+
                 return ['success' => false, 'message' => __('Payment is still processing.')];
             }
 
@@ -167,7 +165,7 @@ class AuthorizeNetMethod extends PaymentMethod
             });
 
             return ['success' => true, 'message' => __('Payment confirmed.')];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('Authorize.Net payment confirmation fallback failed', [
                 'order_number' => $orderNumber,
                 'error' => $e->getMessage(),
@@ -194,5 +192,80 @@ class AuthorizeNetMethod extends PaymentMethod
         }
 
         return $configured;
+    }
+
+    private function findTransactionByInvoice(
+        MerchantAuthenticationType $merchantAuth,
+        AuthorizeNetConfig $config,
+        string $orderNumber,
+    ): ?TransactionSummaryType {
+        $sorting = new TransactionListSortingType;
+        $sorting->setOrderBy('id');
+        $sorting->setOrderDescending(true);
+
+        $paging = new PagingType;
+        $paging->setLimit(1000);
+        $paging->setOffset(1);
+
+        $request = new GetUnsettledTransactionListRequest;
+        $request->setMerchantAuthentication($merchantAuth);
+        $request->setSorting($sorting);
+        $request->setPaging($paging);
+
+        $controller = new GetUnsettledTransactionListController($request);
+        /** @var GetUnsettledTransactionListResponse|null $response */
+        $response = $controller->executeWithApiResponse($config->apiEndpoint());
+        if ($response && $response->getMessages()?->getResultCode() === 'Ok') {
+            foreach ($response->getTransactions() ?? [] as $txn) {
+                if ((string) $txn->getInvoiceNumber() === $orderNumber) {
+                    return $txn;
+                }
+            }
+        }
+
+        $settledRequest = new GetSettledBatchListRequest;
+        $settledRequest->setMerchantAuthentication($merchantAuth);
+        $settledRequest->setIncludeStatistics(false);
+        $settledRequest->setFirstSettlementDate(new \DateTime(now()->subDays(7)->toDateTimeString()));
+        $settledRequest->setLastSettlementDate(new \DateTime(now()->toDateTimeString()));
+
+        $settledController = new GetSettledBatchListController($settledRequest);
+        /** @var GetSettledBatchListResponse|null $settledResponse */
+        $settledResponse = $settledController->executeWithApiResponse($config->apiEndpoint());
+        if (! $settledResponse || $settledResponse->getMessages()?->getResultCode() !== 'Ok') {
+            return null;
+        }
+
+        foreach ($settledResponse->getBatchList() ?? [] as $batch) {
+            if (! $batch instanceof BatchDetailsType) {
+                continue;
+            }
+
+            $batchId = (string) $batch->getBatchId();
+            if ($batchId === '') {
+                continue;
+            }
+
+            $txListRequest = new GetTransactionListRequest;
+            $txListRequest->setMerchantAuthentication($merchantAuth);
+            $txListRequest->setBatchId($batchId);
+            $txListRequest->setSorting($sorting);
+            $txListRequest->setPaging($paging);
+
+            $txListController = new GetTransactionListController($txListRequest);
+            /** @var GetTransactionListResponse|null $txListResponse */
+            $txListResponse = $txListController->executeWithApiResponse($config->apiEndpoint());
+            if (! $txListResponse || $txListResponse->getMessages()?->getResultCode() !== 'Ok') {
+                continue;
+            }
+
+            foreach ($txListResponse->getTransactions() ?? [] as $txn) {
+                if ((string) $txn->getInvoiceNumber() === $orderNumber) {
+                    return $txn;
+                }
+            }
+        }
+
+        return null;
     }
 }

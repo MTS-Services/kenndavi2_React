@@ -40,11 +40,11 @@ class AcceptHostedTokenService
             throw new Exception('Invalid cancel URL. Expected absolute http(s) URL.');
         }
 
-        Log::info('Authorize.Net return URLs', [
-            'order_number' => $order->order_number,
-            'return_url' => $returnUrl,
-            'cancel_url' => $cancelUrl,
-        ]);
+        // Log::info('Authorize.Net return URLs', [
+        //     'order_number' => $order->order_number,
+        //     'return_url' => $returnUrl,
+        //     'cancel_url' => $cancelUrl,
+        // ]);
 
         $merchantAuthentication = new MerchantAuthenticationType;
         $merchantAuthentication->setName($config->loginId);
