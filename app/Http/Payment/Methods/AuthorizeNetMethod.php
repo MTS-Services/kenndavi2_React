@@ -129,11 +129,25 @@ class AuthorizeNetMethod extends PaymentMethod
             $merchantAuth->setName($config->loginId);
             $merchantAuth->setTransactionKey($config->transactionKey);
 
-            $matchedTxn = $this->findTransactionByInvoice($merchantAuth, $config, $orderNumber);
+            $matchedTxn = null;
+            $maxAttempts = 4;
+            $retrySleepMicroseconds = 800_000; // 0.8s between checks
+
+            for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+                $matchedTxn = $this->findTransactionByInvoice($merchantAuth, $config, $orderNumber);
+                if ($matchedTxn) {
+                    break;
+                }
+
+                if ($attempt < $maxAttempts) {
+                    usleep($retrySleepMicroseconds);
+                }
+            }
 
             if (! $matchedTxn) {
                 Log::info('Authorize.Net fallback confirm: transaction not found yet', [
                     'order_number' => $orderNumber,
+                    'attempts' => $maxAttempts,
                 ]);
 
                 return ['success' => false, 'message' => __('Payment is still processing.')];
