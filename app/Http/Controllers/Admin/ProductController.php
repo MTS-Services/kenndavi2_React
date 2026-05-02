@@ -211,9 +211,12 @@ class ProductController extends Controller
             'updated_at' => $product->updated_at->toDateTimeString(),
         ];
 
+        $frontendUrl = route('products.details', ['id' => $product->id]);
+
         return Inertia::render('backend/Admin/product/details', [
             'product' => $productData,
             'activeType' => $request->query('type', $product->type->value),
+            'frontendUrl' => $frontendUrl,
         ]);
     }
 
