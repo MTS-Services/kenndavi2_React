@@ -20,7 +20,7 @@ export function FrontendFooter() {
     return (
         <section className="relative z-10 overflow-x-hidden bg-[var(--bg-animation)] font-sans text-gray-900">
             <footer className="bg-[var(--sidebar)] px-6 py-12 text-[var(--bg-black)]">
-                <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-4">
+                <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-5">
                     <div className="flex flex-col items-center space-y-6 md:items-start">
                         <div className="text-center md:text-left">
                             <img src="/assets/images/Layer_1.png" alt="logo" />
@@ -44,7 +44,7 @@ export function FrontendFooter() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-3">
                         {links.map((link) => (
                             <Link
                                 href={link.href}
@@ -55,7 +55,7 @@ export function FrontendFooter() {
                         ))}
                     </div>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-3">
                         <a
                             href="#"
                             onClick={() => router.visit('/shippings')}
@@ -81,7 +81,7 @@ export function FrontendFooter() {
                         </a>
                     </div>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-3">
                         <h3 className="font-['Alumni_Sans'] text-2xl font-semibold text-gray-100">
                             Join for Exclusive Offers + Updates
                         </h3>
@@ -102,6 +102,15 @@ export function FrontendFooter() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    {/* Column 4: Logo */}
+                    <div className="flex justify-center md:justify-end mt-8 md:mt-0 space-y-3">
+                        <img
+                            src="/assets/images/footer-logo-preview.png"
+                            alt="logo"
+                            className="max-w-36 max-h-24"
+                        />
                     </div>
                 </div>
             </footer>
