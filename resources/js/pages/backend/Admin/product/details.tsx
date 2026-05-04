@@ -459,24 +459,27 @@ export default function ProductDetails({
                                 </dd>
                             </dl>
                         </div>
-                                        <div className="space-y-3">
-                    <div className="flex w-fit flex-col items-center rounded bg-white p-4 shadow">
-                        {/* 👇 add the ref here */}
-                        <QRCodeSVG ref={qrRef} value={frontendUrl} size={200} />
-                        <p className="mt-2 text-xs text-gray-500">
-                            Scan to View
-                        </p>
-                    </div>
+                        {/* <div className="space-y-3">
+                            <div className="flex w-fit flex-col items-center rounded bg-white p-4 shadow">
+                                <QRCodeSVG
+                                    ref={qrRef}
+                                    value={frontendUrl}
+                                    size={200}
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Scan to View
+                                </p>
+                            </div>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={downloadSVG}
-                            className="cursor-pointer flex items-center gap-2 rounded-md border border-green-600 px-4 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50"
-                        >
-                            ↓ SVG
-                        </button>
-                    </div>
-                </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={downloadSVG}
+                                    className="flex cursor-pointer items-center gap-2 rounded-md border border-green-600 px-4 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50"
+                                >
+                                    ↓ SVG
+                                </button>
+                            </div>
+                        </div> */}
                     </div>
                 </div>
 
