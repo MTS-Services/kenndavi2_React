@@ -459,7 +459,7 @@ export default function ProductDetails({
                                 </dd>
                             </dl>
                         </div>
-                        {/* <div className="space-y-3">
+                        <div className="space-y-3">
                             <div className="flex w-fit flex-col items-center rounded bg-white p-4 shadow">
                                 <QRCodeSVG
                                     ref={qrRef}
@@ -479,7 +479,7 @@ export default function ProductDetails({
                                     ↓ SVG
                                 </button>
                             </div>
-                        </div> */}
+                        </div>
                     </div>
                 </div>
 

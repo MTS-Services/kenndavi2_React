@@ -1,6 +1,6 @@
 import { home } from '@/routes';
 import { Link, router } from '@inertiajs/react';
-import { FacebookIcon, Instagram } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 
 const links = [
     {
@@ -29,10 +29,18 @@ export function FrontendFooter() {
                         <div className="flex space-x-2">
                             <a
                                 target="_blank"
-                                href="https://www.facebook.com"
+                                href="https://www.tiktok.com/@aces.in.da.hole?_r=1&_t=ZP-964uvVCe2HP"
                                 className="flex h-10 w-10 items-center justify-center rounded bg-[var(--bg-violet)] transition-colors"
                             >
-                                <FacebookIcon className="h-5 w-5" />
+                                <svg
+                                    role="img"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6"
+                                    fill="currentColor"
+                                >
+                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.31-.75.42-1.24 1.17-1.35 2.01-.11 1.25.7 2.45 1.9 2.78.33.09.68.1 1.02.1 1.12-.03 2.22-.61 2.81-1.55.39-.55.59-1.24.62-1.92V.02z" />
+                                </svg>
                             </a>
                             <a
                                 target="_blank"
@@ -105,11 +113,11 @@ export function FrontendFooter() {
                     </div>
 
                     {/* Column 4: Logo */}
-                    <div className="flex justify-center md:justify-end mt-8 md:mt-0 space-y-3">
+                    <div className="mt-8 flex justify-center space-y-3 md:mt-0 md:justify-end">
                         <img
                             src="/assets/images/footer-logo-preview.png"
                             alt="logo"
-                            className="max-w-36 max-h-24"
+                            className="max-h-24 max-w-36"
                         />
                     </div>
                 </div>
