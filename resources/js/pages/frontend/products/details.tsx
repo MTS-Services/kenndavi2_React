@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { login } from '@/routes';
 import { store as cartItemsStore } from '@/routes/cart/items';
 import { SharedData } from '@/types';
+import { shipping } from '@/routes/order';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -313,6 +314,12 @@ export default function ProductDetails({ product }: { product: Product }) {
         router.post(cartItemsStore.url(), {
             variant_id: selectedVariant.id,
             quantity,
+        }, {
+            onSuccess: () => {
+                if (buyNow) {
+                    router.get(shipping().url);
+                }
+            }
         });
     }
 
