@@ -19,7 +19,7 @@ import {
     Star,
     Trash,
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -195,23 +195,32 @@ export default function ProductDetails({
     );
 
     // ── Download as SVG ──────────────────────────────────────────────
-    const qrRef = useRef<SVGSVGElement>(null);
-    const downloadSVG = () => {
-        const svg = qrRef.current;
-        if (!svg) return;
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
-        const serializer = new XMLSerializer();
-        const svgString = serializer.serializeToString(svg);
-        const blob = new Blob([svgString], {
-            type: 'image/svg+xml;charset=utf-8',
-        });
-        const url = URL.createObjectURL(blob);
+    const downloadPNG = () => {
+        const qrCanvas = canvasRef.current;
+        if (!qrCanvas) return;
 
+        const padding = 20;
+        const size = qrCanvas.width + padding * 2;
+
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = size;
+        newCanvas.height = size;
+
+        const ctx = newCanvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+
+        ctx.drawImage(qrCanvas, padding, padding);
+
+        const url = newCanvas.toDataURL('image/png');
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${product.title}-qrcode.svg`;
+        a.download = `${product.title}-qrcode.png`;
         a.click();
-        URL.revokeObjectURL(url);
     };
 
     return (
@@ -460,11 +469,14 @@ export default function ProductDetails({
                             </dl>
                         </div>
                         <div className="space-y-3">
+                            {/* ref wrapper div */}
                             <div className="flex w-fit flex-col items-center rounded bg-white p-4 shadow">
-                                <QRCodeSVG
-                                    ref={qrRef}
+                                <QRCodeCanvas
+                                    ref={canvasRef}
                                     value={frontendUrl}
-                                    size={200}
+                                    size={300}
+                                    level="H"
+                                    includeMargin={true}
                                 />
                                 <p className="mt-2 text-xs text-gray-500">
                                     Scan to View
@@ -473,10 +485,10 @@ export default function ProductDetails({
 
                             <div className="flex gap-2">
                                 <button
-                                    onClick={downloadSVG}
+                                    onClick={downloadPNG}
                                     className="flex cursor-pointer items-center gap-2 rounded-md border border-green-600 px-4 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50"
                                 >
-                                    ↓ SVG
+                                    Download QR Code
                                 </button>
                             </div>
                         </div>

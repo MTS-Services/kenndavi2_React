@@ -172,6 +172,7 @@ export default function Home({
                                         product.title;
 
                                     return (
+                                        <Link href={productDetailsRoute(product.id)} className="block h-full w-full">
                                         <div
                                             key={product.id}
                                             className="group relative h-[174px] w-full cursor-default overflow-hidden rounded-md lg:h-[820px]"
@@ -213,6 +214,7 @@ export default function Home({
 
                                             <div className="pointer-events-none absolute inset-0 rounded-md border-2 border-transparent transition-all duration-500 group-hover:border-white/20"></div>
                                         </div>
+                                        </Link>
                                     );
                                 })
                             )}

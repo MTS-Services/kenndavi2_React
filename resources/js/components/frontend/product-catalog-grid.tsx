@@ -1,4 +1,5 @@
-import { router } from '@inertiajs/react';
+import product from '@/pages/backend/Admin/product';
+import { Link, router } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 
 /** Product row shape from `CatalogProductPayload` (category + AI suggestion pages). */
@@ -86,6 +87,7 @@ export function CatalogImageSlot({
     gridClass: string;
 }) {
     return (
+        <Link href={`/details/${productId}`} className="block h-full w-full">
         <div
             className={`group relative cursor-default overflow-hidden rounded ${gridClass}`}
         >
@@ -126,6 +128,7 @@ export function CatalogImageSlot({
 
             <div className="pointer-events-none absolute inset-0 rounded border-2 border-transparent transition-all duration-500 group-hover:border-white/20" />
         </div>
+        </Link>
     );
 }
 
